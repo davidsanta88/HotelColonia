@@ -1,0 +1,19 @@
+COLUMN_NAME                                                                                                                     
+--------------------------------------------------------------------------------------------------------------------------------
+id                                                                                                                              
+numero                                                                                                                          
+descripcion                                                                                                                     
+tipo_id                                                                                                                         
+estado_id                                                                                                                       
+precio_1                                                                                                                        
+precio_2                                                                                                                        
+precio_3                                                                                                                        
+precio_4                                                                                                                        
+precio_5                                                                                                                        
+precio_6                                                                                                                        
+UsuarioCreacion                                                                                                                 
+FechaCreacion                                                                                                                   
+UsuarioModificacion                                                                                                             
+FechaModificacion                                                                                                               
+
+(15 rows affected)

@@ -1,0 +1,13 @@
+categoria: varchar(50) - Nullable: NO
+descripcion: varchar(255) - Nullable: YES
+FechaCreacion: datetime(null) - Nullable: YES
+FechaModificacion: datetime(null) - Nullable: YES
+id: int(null) - Nullable: NO
+imagen_url: varchar(-1) - Nullable: YES
+nombre: varchar(100) - Nullable: NO
+precio: decimal(null) - Nullable: NO
+stock: int(null) - Nullable: YES
+stock_minimo: int(null) - Nullable: YES
+tipo_inventario: varchar(50) - Nullable: YES
+UsuarioCreacion: nvarchar(100) - Nullable: YES
+UsuarioModificacion: nvarchar(100) - Nullable: YES
