@@ -221,7 +221,7 @@ const Usuarios = () => {
                             </div>
                         </div>
                         <form onSubmit={handleSave} className="p-6 space-y-5">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre Completo *</label>
                                     <input
@@ -245,8 +245,8 @@ const Usuarios = () => {
                                 </div>
                             </div>
                             
-                            <div className="flex gap-4">
-                                <div className="w-1/2">
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <div className="w-full sm:w-1/2">
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Correo Electrónico *</label>
                                     <input
                                         type="email"
@@ -258,7 +258,7 @@ const Usuarios = () => {
                                     />
                                     <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-wide">Usuario de Ingreso</p>
                                 </div>
-                                <div className="w-1/2">
+                                <div className="w-full sm:w-1/2">
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Nivel de Permisos *</label>
                                     <select
                                         className="input-field font-bold text-blue-900 bg-blue-50/30 border-blue-200"

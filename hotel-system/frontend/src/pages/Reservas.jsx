@@ -469,7 +469,7 @@ const Reservas = () => {
                                         />
                                     ) : (
                                         <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 space-y-4 animate-fade-in">
-                                            <div className="grid grid-cols-2 gap-3">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                 <div>
                                                     <label className="block text-[10px] font-black text-blue-900 uppercase tracking-widest mb-1">Tipo Doc.</label>
                                                     <select 
@@ -504,7 +504,7 @@ const Reservas = () => {
                                                     onChange={(e) => setFormData({...formData, nuevoCliente: {...formData.nuevoCliente, nombre: e.target.value}})}
                                                 />
                                             </div>
-                                            <div className="grid grid-cols-2 gap-3">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                 <div>
                                                     <label className="block text-[10px] font-black text-blue-900 uppercase tracking-widest mb-1">Teléfono</label>
                                                     <input 
