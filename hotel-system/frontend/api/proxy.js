@@ -1,40 +1,48 @@
-import axios from 'axios';
-
 export default async function handler(req, res) {
-    // Detectar si es una petición de API o de Imagen (uploads)
-    const url = req.url || '';
-    const isUpload = url.includes('/uploads/');
-    const separator = isUpload ? '/uploads/' : '/api/';
-    const path = url.split(separator)[1] || '';
-    const targetUrl = `http://hbalconplaza-001-site1.site4future.com/${isUpload ? 'uploads' : 'api'}/${path}`;
+    const { path, isUpload } = req.query;
+    
+    if (!path) {
+        return res.status(400).json({ error: 'Ruta no especificada' });
+    }
+
+    // Si la ruta ya empieza con 'uploads/', no le agregamos '/api/'
+    const baseUrl = 'http://hbalconplaza-001-site1.site4future.com';
+    const finalPath = path.startsWith('uploads') ? path : `api/${path}`;
+    const targetUrl = `${baseUrl}/${finalPath}`;
     
     // Credenciales de SmarterASP (11300916:60-dayfreetrial)
     const authHeader = 'Basic MTEzMDA5MTY6NjAtZGF5ZnJlZXRyaWFs';
 
     try {
-        const response = await axios({
+        const fetchOptions = {
             method: req.method,
-            url: targetUrl,
             headers: {
                 'Authorization': authHeader,
                 'Content-Type': req.headers['content-type'] || 'application/json',
-            },
-            data: req.method !== 'GET' ? req.body : undefined,
-            responseType: isUpload ? 'arraybuffer' : 'json', 
-            timeout: 10000,
-            validateStatus: () => true
-        });
+            }
+        };
 
-        if (isUpload) {
-            res.setHeader('Content-Type', response.headers['content-type'] || 'image/jpeg');
-            return res.status(response.status).send(response.data);
+        // Si es una petición con cuerpo (POST, PUT, etc)
+        if (req.method !== 'GET' && req.method !== 'HEAD' && req.body) {
+            fetchOptions.body = JSON.stringify(req.body);
         }
 
-        return res.status(response.status).json(response.data);
+        const response = await fetch(targetUrl, fetchOptions);
+        
+        // Manejo de imágenes (uploads)
+        if (isUpload) {
+            const arrayBuffer = await response.arrayBuffer();
+            res.setHeader('Content-Type', response.headers.get('content-type') || 'image/jpeg');
+            return res.status(response.status).send(Buffer.from(arrayBuffer));
+        }
+
+        // Manejo de JSON (API)
+        const data = await response.json();
+        return res.status(response.status).json(data);
     } catch (error) {
-        console.error('Proxy Error:', error.message);
+        console.error('Proxy Fetch Error:', error);
         return res.status(500).json({ 
-            error: 'Error en el túnel de conexión', 
+            error: 'Error de conexión en el túnel', 
             details: error.message 
         });
     }
