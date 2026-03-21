@@ -1,0 +1,6 @@
+Obteniendo municipios de la API de Datos Abiertos de Colombia...
+Connected to MSSQL on 76.74.150.83:1434 | Database: PruebaIA
+Se encontraron undefined municipios. Guardando en Base de datos...
+Error general: TypeError: data is not iterable
+    at seedMunicipios (C:\Users\USUARIO\Documents\Empresa\Hotel\hotel-system\backend\seed-municipios.js:17:26)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)

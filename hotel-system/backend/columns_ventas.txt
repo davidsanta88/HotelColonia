@@ -1,0 +1,14 @@
+COLUMN_NAME                                                                                                                     
+--------------------------------------------------------------------------------------------------------------------------------
+id                                                                                                                              
+empleado_id                                                                                                                     
+fecha                                                                                                                           
+total                                                                                                                           
+medio_pago_id                                                                                                                   
+registro_id                                                                                                                     
+UsuarioCreacion                                                                                                                 
+FechaCreacion                                                                                                                   
+UsuarioModificacion                                                                                                             
+FechaModificacion                                                                                                               
+
+(10 rows affected)

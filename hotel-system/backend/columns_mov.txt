@@ -1,0 +1,15 @@
+COLUMN_NAME                                                                                                                     
+--------------------------------------------------------------------------------------------------------------------------------
+id                                                                                                                              
+producto_id                                                                                                                     
+tipo                                                                                                                            
+cantidad                                                                                                                        
+fecha                                                                                                                           
+motivo                                                                                                                          
+usuario_id                                                                                                                      
+UsuarioCreacion                                                                                                                 
+FechaCreacion                                                                                                                   
+UsuarioModificacion                                                                                                             
+FechaModificacion                                                                                                               
+
+(11 rows affected)

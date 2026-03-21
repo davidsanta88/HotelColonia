@@ -1,0 +1,25 @@
+{
+  "categorias_gastos": {
+    "id": 1,
+    "nombre": "Servicios Públicos",
+    "descripcion": "Agua, Luz, Gas, Internet y Telefonía",
+    "activo": true,
+    "UsuarioCreacion": "Sistema Migracion",
+    "FechaCreacion": "2026-03-20T20:58:28.280Z",
+    "UsuarioModificacion": null,
+    "FechaModificacion": null
+  },
+  "gastos": {
+    "id": 1,
+    "concepto": "PAGO LUZ",
+    "categoria_id": 1,
+    "monto": 350000,
+    "fecha_gasto": "2026-03-21T00:00:00.000Z",
+    "notas": null,
+    "UsuarioCreacion": "Administrador del Sistema",
+    "FechaCreacion": "2026-03-20T21:16:59.097Z",
+    "UsuarioModificacion": null,
+    "FechaModificacion": null,
+    "imagen_url": null
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "habitaciones": {
+    "id": 1,
+    "numero": 201,
+    "descripcion": "WIFI+BALCON+TV+BAÑO PRIVADO",
+    "tipo_id": 5,
+    "estado_id": 2,
+    "precio_1": 50000,
+    "precio_2": 70000,
+    "precio_3": 100000,
+    "precio_4": 120000,
+    "precio_5": null,
+    "precio_6": null,
+    "UsuarioCreacion": null,
+    "FechaCreacion": null,
+    "UsuarioModificacion": "Administrador del Sistema",
+    "FechaModificacion": "2026-03-17T20:42:29.937Z"
+  },
+  "clientes": {
+    "id": 6,
+    "nombre": "DAVID FERNANDO SANTA",
+    "documento": "1045047432",
+    "telefono": "316279924",
+    "email": null,
+    "tipo_documento": "CC",
+    "municipio_origen_id": 1330,
+    "UsuarioCreacion": null,
+    "FechaCreacion": null,
+    "UsuarioModificacion": "Administrador del Sistema",
+    "FechaModificacion": "2026-03-20T20:51:16.383Z"
+  }
+}

@@ -1,0 +1,54 @@
+[
+  {
+    "COLUMN_NAME": "id",
+    "DATA_TYPE": "int"
+  },
+  {
+    "COLUMN_NAME": "registro_id",
+    "DATA_TYPE": "int"
+  },
+  {
+    "COLUMN_NAME": "producto_id",
+    "DATA_TYPE": "int"
+  },
+  {
+    "COLUMN_NAME": "cantidad",
+    "DATA_TYPE": "int"
+  },
+  {
+    "COLUMN_NAME": "precio_unitario",
+    "DATA_TYPE": "decimal"
+  },
+  {
+    "COLUMN_NAME": "total",
+    "DATA_TYPE": "decimal"
+  },
+  {
+    "COLUMN_NAME": "fecha",
+    "DATA_TYPE": "datetime"
+  },
+  {
+    "COLUMN_NAME": "pagado",
+    "DATA_TYPE": "bit"
+  },
+  {
+    "COLUMN_NAME": "usuario_id",
+    "DATA_TYPE": "int"
+  },
+  {
+    "COLUMN_NAME": "UsuarioCreacion",
+    "DATA_TYPE": "nvarchar"
+  },
+  {
+    "COLUMN_NAME": "FechaCreacion",
+    "DATA_TYPE": "datetime"
+  },
+  {
+    "COLUMN_NAME": "UsuarioModificacion",
+    "DATA_TYPE": "nvarchar"
+  },
+  {
+    "COLUMN_NAME": "FechaModificacion",
+    "DATA_TYPE": "datetime"
+  }
+]

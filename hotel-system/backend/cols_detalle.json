@@ -1,0 +1,42 @@
+[
+  {
+    "COLUMN_NAME": "id",
+    "DATA_TYPE": "int"
+  },
+  {
+    "COLUMN_NAME": "venta_id",
+    "DATA_TYPE": "int"
+  },
+  {
+    "COLUMN_NAME": "producto_id",
+    "DATA_TYPE": "int"
+  },
+  {
+    "COLUMN_NAME": "cantidad",
+    "DATA_TYPE": "int"
+  },
+  {
+    "COLUMN_NAME": "precio_unitario",
+    "DATA_TYPE": "decimal"
+  },
+  {
+    "COLUMN_NAME": "subtotal",
+    "DATA_TYPE": "decimal"
+  },
+  {
+    "COLUMN_NAME": "UsuarioCreacion",
+    "DATA_TYPE": "nvarchar"
+  },
+  {
+    "COLUMN_NAME": "FechaCreacion",
+    "DATA_TYPE": "datetime"
+  },
+  {
+    "COLUMN_NAME": "UsuarioModificacion",
+    "DATA_TYPE": "nvarchar"
+  },
+  {
+    "COLUMN_NAME": "FechaModificacion",
+    "DATA_TYPE": "datetime"
+  }
+]
