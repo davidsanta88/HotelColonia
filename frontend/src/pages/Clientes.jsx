@@ -243,8 +243,8 @@ const Clientes = () => {
                                     onChange={e => setCurrentCliente({...currentCliente, nombre: e.target.value})}
                                 />
                             </div>
-                            <div className="flex gap-4">
-                                <div className="w-1/3">
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <div className="w-full sm:w-1/3">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Tipo Doc. *</label>
                                     <select
                                         required
@@ -259,7 +259,7 @@ const Clientes = () => {
                                         <option value="NIT">NIT</option>
                                     </select>
                                 </div>
-                                <div className="w-2/3">
+                                <div className="w-full sm:w-2/3">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Documento *</label>
                                     <input
                                         type="text"
@@ -271,8 +271,8 @@ const Clientes = () => {
                                 </div>
                             </div>
                             
-                            <div className="flex gap-4">
-                                <div className="w-1/2">
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <div className="w-full sm:w-1/2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
                                     <input
                                         type="text"
@@ -281,7 +281,7 @@ const Clientes = () => {
                                         onChange={e => setCurrentCliente({...currentCliente, telefono: e.target.value})}
                                     />
                                 </div>
-                                <div className="w-1/2">
+                                <div className="w-full sm:w-1/2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                     <input
                                         type="email"

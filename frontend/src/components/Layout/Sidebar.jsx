@@ -17,10 +17,11 @@ import {
     UserCog, 
     ShieldCheck, 
     ClipboardList,
-    StickyNote
+    StickyNote,
+    X
 } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, setIsOpen }) => {
     const { user, logout } = useContext(AuthContext);
 
     const hasPermission = (code) => {
@@ -67,9 +68,12 @@ const Sidebar = () => {
     ];
 
     return (
-        <div className="bg-slate-900 text-white w-64 min-h-screen flex flex-col shadow-xl transition-all duration-300">
-            <div className="p-5 border-b border-slate-800 flex items-center justify-center bg-slate-950">
+        <div className={`fixed inset-y-0 left-0 z-30 w-64 bg-slate-900 text-white flex flex-col shadow-xl transition-transform duration-300 transform lg:translate-x-0 lg:static lg:inset-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className="p-5 border-b border-slate-800 flex items-center justify-between lg:justify-center bg-slate-950">
                 <h2 className="text-2xl font-black bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">Hotel Admin</h2>
+                <button onClick={() => setIsOpen(false)} className="lg:hidden text-slate-400 hover:text-white transition-colors">
+                    <X size={24} />
+                </button>
             </div>
             
             <nav className="flex-1 py-6 overflow-y-auto custom-scrollbar">
@@ -88,6 +92,7 @@ const Sidebar = () => {
                                         <li key={idx}>
                                             <NavLink
                                                 to={item.path}
+                                                onClick={() => { if(window.innerWidth < 1024) setIsOpen(false); }}
                                                 className={({ isActive }) =>
                                                     `flex items-center px-4 py-2.5 mx-2 rounded-xl transition-all duration-200 group relative ${
                                                         isActive

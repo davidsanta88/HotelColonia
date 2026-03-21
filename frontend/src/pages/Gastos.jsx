@@ -335,7 +335,7 @@ const Gastos = () => {
                             </p>
                         </div>
                         <form onSubmit={handleSave} className="p-6 space-y-5">
-                            <div className="flex gap-4">
+                            <div className="flex flex-col sm:flex-row gap-4">
                                 <div className="flex-1">
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Concepto Principal *</label>
                                     <input
@@ -347,7 +347,7 @@ const Gastos = () => {
                                         onChange={e => setCurrent({...current, concepto: e.target.value})}
                                     />
                                 </div>
-                                <div className="w-1/3">
+                                <div className="w-full sm:w-1/3">
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Mov. *</label>
                                     <select
                                         required
@@ -361,8 +361,8 @@ const Gastos = () => {
                                 </div>
                             </div>
                             
-                            <div className="flex gap-4">
-                                <div className="w-1/2">
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <div className="w-full sm:w-1/2">
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Categoría</label>
                                     <select
                                         className="input-field font-medium text-gray-700"
@@ -376,7 +376,7 @@ const Gastos = () => {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="w-1/2">
+                                <div className="w-full sm:w-1/2">
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Fecha Movimiento *</label>
                                     <input
                                         type="date"
