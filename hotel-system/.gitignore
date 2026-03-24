@@ -28,3 +28,10 @@ build/
 Thumbs.db
 
 .vercel
+*.log
+log.txt
+migration_error.txt
+error_mig.txt
+pos_test_output.txt
+migrate-log.txt
+test-login.js
