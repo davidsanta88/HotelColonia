@@ -38,13 +38,15 @@ const PrivateRoute = ({ children, roles, code }) => {
   if (loading) return <div>Cargando...</div>;
   if (!user) return <Navigate to="/login" />;
   
+  // SuperAdmin override: acceso total para Admin
+  if (user.rol_id === 1 || user.rol_nombre === 'Admin') return children;
+
   // if roles specifies required roles
   if (roles && !roles.includes(user.rol_id)) {
       return <Navigate to="/" />; // Or unauthorized page
   }
 
   if (code) {
-      if (user.rol_id === 1) return children; // SuperAdmin override
       // Validar si p.p coincide con el código de pantalla y p.v (Ver) es true
       if (!user.permisos || !user.permisos.some(p => p.p === code && p.v)) {
           return <Navigate to="/" />; // Access denied mapping

@@ -15,6 +15,16 @@ const SLIDES = [
         sub: 'Tu hogar en Belalcázar, Caldas',
     },
     {
+        img: '/hotel_balcon.jpg',
+        title: 'Vistas Panorámicas',
+        sub: 'Mira el Cristo de Belalcázar, Manizales y el valle',
+    },
+    {
+        img: '/mapa_region.png',
+        title: 'Ubicación Estratégica',
+        sub: 'Tu conexión ideal con el Eje Cafetero: 40 min de Pereira y 1.5 h de Manizales',
+    },
+    {
         img: '/hotel_hab1.jpg',
         title: 'Hermosas Habitaciones',
         sub: 'Confort y descanso con el mejor estilo cafetero',
@@ -33,16 +43,6 @@ const SLIDES = [
         img: '/hotel_studio.jpg',
         title: 'Servicio de Spa y Uñas',
         sub: 'Relájate y consiéntete en nuestro espacio exclusivo',
-    },
-    {
-        img: '/hotel_balcon.jpg',
-        title: 'Vistas Panorámicas',
-        sub: 'Mira el Cristo de Belalcázar, Manizales y el valle',
-    },
-    {
-        img: '/mapa_region.png',
-        title: 'Ubicación Estratégica',
-        sub: 'Tu conexión ideal con el Eje Cafetero: 40 min de Pereira y 1.5 h de Manizales',
     },
     {
         img: '/hotel_globos2.jpg',
