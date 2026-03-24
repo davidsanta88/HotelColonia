@@ -5,11 +5,6 @@ import api from '../services/api';
 
 const SLIDES = [
     {
-        img: '/cristo_belalcazar.png',
-        title: 'Cristo de Belalcázar',
-        sub: 'El monumento más icónico de la región, visible desde nuestro hotel',
-    },
-    {
         img: '/hotel_noche.jpg',
         title: 'Hotel Balcón Plaza',
         sub: 'Tu hogar en Belalcázar, Caldas',
@@ -23,6 +18,11 @@ const SLIDES = [
         img: '/mapa_region.png',
         title: 'Ubicación Estratégica',
         sub: 'Tu conexión ideal con el Eje Cafetero: 40 min de Pereira y 1.5 h de Manizales',
+    },
+    {
+        img: '/cristo_belalcazar.png',
+        title: 'Cristo de Belalcázar',
+        sub: 'El monumento más icónico de la región, visible desde nuestro hotel',
     },
     {
         img: '/hotel_hab1.jpg',
