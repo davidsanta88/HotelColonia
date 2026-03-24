@@ -18,18 +18,21 @@ const verifyToken = (req, res, next) => {
         }
         req.userId = decoded.id;
         req.userRole = decoded.rol_id;
+        req.userRoleName = decoded.rol_nombre; // Añadido nombre del rol al request
         req.userName = decoded.nombre;
         next();
     });
 };
 
 const isAdmin = (req, res, next) => {
-    if (req.userRole === 1) {
+    // En NoSQL usamos el nombre del rol guardado en el token para mayor velocidad
+    if (req.userRoleName === 'Admin' || req.userRoleName === 'admin') {
         next();
         return;
     }
     res.status(403).json({ message: 'Requiere rol de Administrador' });
 };
+
 
 const authorize = (allowedRoles) => {
     return (req, res, next) => {

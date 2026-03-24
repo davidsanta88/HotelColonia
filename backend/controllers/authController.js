@@ -28,10 +28,17 @@ exports.login = async (req, res) => {
         const permisos = user.rol ? user.rol.permisos : [];
 
         const token = jwt.sign(
-            { id: user._id, rol_id: user.rol ? user.rol._id : null, nombre: user.nombre, permisos },
+            { 
+                id: user._id, 
+                rol_id: user.rol ? user.rol._id : null, 
+                rol_nombre: user.rol ? user.rol.nombre : null, // Añadido nombre al token
+                nombre: user.nombre, 
+                permisos 
+            },
             process.env.JWT_SECRET,
             { expiresIn: 86400 } // 24 horas
         );
+
 
         res.status(200).json({
             id: user._id,
@@ -81,10 +88,12 @@ exports.setupInitialAdmin = async (req, res) => {
         if (!adminRole) {
             adminRole = new Rol({
                 nombre: 'Admin',
-                permisos: ['all']
+                descripcion: 'Administrador total del sistema',
+                permisos: [] // Los administradores suelen tener bypass en middleware
             });
             await adminRole.save();
         }
+
 
         const hashedPassword = bcrypt.hashSync(password, 10);
         const newAdmin = new Usuario({
