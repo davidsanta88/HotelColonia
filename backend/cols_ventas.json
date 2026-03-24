@@ -1,0 +1,42 @@
+[
+  {
+    "COLUMN_NAME": "id",
+    "DATA_TYPE": "int"
+  },
+  {
+    "COLUMN_NAME": "empleado_id",
+    "DATA_TYPE": "int"
+  },
+  {
+    "COLUMN_NAME": "fecha",
+    "DATA_TYPE": "datetime"
+  },
+  {
+    "COLUMN_NAME": "total",
+    "DATA_TYPE": "decimal"
+  },
+  {
+    "COLUMN_NAME": "medio_pago_id",
+    "DATA_TYPE": "int"
+  },
+  {
+    "COLUMN_NAME": "registro_id",
+    "DATA_TYPE": "int"
+  },
+  {
+    "COLUMN_NAME": "UsuarioCreacion",
+    "DATA_TYPE": "nvarchar"
+  },
+  {
+    "COLUMN_NAME": "FechaCreacion",
+    "DATA_TYPE": "datetime"
+  },
+  {
+    "COLUMN_NAME": "UsuarioModificacion",
+    "DATA_TYPE": "nvarchar"
+  },
+  {
+    "COLUMN_NAME": "FechaModificacion",
+    "DATA_TYPE": "datetime"
+  }
+]

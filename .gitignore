@@ -1,4 +1,39 @@
-node_modules
-node_modules
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production Build
+dist/
+build/
+
+# Environment Variables
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Deployment
 .vercel
-.env*.local
+*.log
+log.txt
+migration_error.txt
+error_mig.txt
+pos_test_output.txt
+migrate-log.txt
+test-login.js
+backend_deploy.zip

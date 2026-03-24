@@ -1,0 +1,30 @@
+
+> hotel-system-frontend@0.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 1761 modules transformed.
+
+[31mx[39m Build failed in 4.17s
+[31merror during build:
+[31msrc/components/Layout/Sidebar.jsx (4:46): "ShoppingStore" is not exported by "node_modules/lucide-react/dist/esm/lucide-react.js", imported by "src/components/Layout/Sidebar.jsx".[31m
+file: [36mC:/Users/USUARIO/Documents/Empresa/Hotel/hotel-system/frontend/src/components/Layout/Sidebar.jsx:4:46[31m
+[33m
+2: import { NavLink } from 'react-router-dom';
+3: import { AuthContext } from '../../context/AuthContext';
+4: import { LayoutDashboard, Bed, CalendarCheck, ShoppingStore, LogOut, Hotel } from 'lucide-react';
+                                                 ^
+5: 
+6: const Sidebar = () => {
+[31m
+    at getRollupError (file:///C:/Users/USUARIO/Documents/Empresa/Hotel/hotel-system/frontend/node_modules/rollup/dist/es/shared/parseAst.js:402:41)
+    at error (file:///C:/Users/USUARIO/Documents/Empresa/Hotel/hotel-system/frontend/node_modules/rollup/dist/es/shared/parseAst.js:398:42)
+    at Module.error (file:///C:/Users/USUARIO/Documents/Empresa/Hotel/hotel-system/frontend/node_modules/rollup/dist/es/shared/node-entry.js:17040:16)
+    at Module.traceVariable (file:///C:/Users/USUARIO/Documents/Empresa/Hotel/hotel-system/frontend/node_modules/rollup/dist/es/shared/node-entry.js:17452:29)
+    at ModuleScope.findVariable (file:///C:/Users/USUARIO/Documents/Empresa/Hotel/hotel-system/frontend/node_modules/rollup/dist/es/shared/node-entry.js:15070:39)
+    at ReturnValueScope.findVariable (file:///C:/Users/USUARIO/Documents/Empresa/Hotel/hotel-system/frontend/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at FunctionBodyScope.findVariable (file:///C:/Users/USUARIO/Documents/Empresa/Hotel/hotel-system/frontend/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at Identifier.bind (file:///C:/Users/USUARIO/Documents/Empresa/Hotel/hotel-system/frontend/node_modules/rollup/dist/es/shared/node-entry.js:5447:40)
+    at CallExpression.bind (file:///C:/Users/USUARIO/Documents/Empresa/Hotel/hotel-system/frontend/node_modules/rollup/dist/es/shared/node-entry.js:2825:28)
+    at CallExpression.bind (file:///C:/Users/USUARIO/Documents/Empresa/Hotel/hotel-system/frontend/node_modules/rollup/dist/es/shared/node-entry.js:12179:15)[39m

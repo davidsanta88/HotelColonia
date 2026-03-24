@@ -1,0 +1,17 @@
+COLUMN_NAME                                                                                                                     
+--------------------------------------------------------------------------------------------------------------------------------
+id                                                                                                                              
+registro_id                                                                                                                     
+producto_id                                                                                                                     
+cantidad                                                                                                                        
+precio_unitario                                                                                                                 
+total                                                                                                                           
+fecha                                                                                                                           
+pagado                                                                                                                          
+usuario_id                                                                                                                      
+UsuarioCreacion                                                                                                                 
+FechaCreacion                                                                                                                   
+UsuarioModificacion                                                                                                             
+FechaModificacion                                                                                                               
+
+(13 rows affected)
