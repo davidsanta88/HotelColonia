@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     }
 
     // Si la ruta ya empieza con 'uploads/', no le agregamos '/api/'
-    const baseUrl = 'http://hbalconplaza-001-site1.site4future.com';
+    const baseUrl = 'https://hbalconplaza-001-site1.site4future.com';
     const finalPath = path.startsWith('uploads') ? path : `api/${path}`;
     const targetUrl = `${baseUrl}/${finalPath}`;
     
@@ -41,9 +41,20 @@ export default async function handler(req, res) {
             return res.status(response.status).send(Buffer.from(arrayBuffer));
         }
 
-        // Manejo de JSON (API)
-        const data = await response.json();
-        return res.status(response.status).json(data);
+        // Verificar si la respuesta es JSON antes de parsear
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            return res.status(response.status).json(data);
+        } else {
+            const text = await response.text();
+            console.error('Non-JSON response from backend:', text.substring(0, 200));
+            return res.status(response.status).json({ 
+                error: 'El servidor backend no devolvió JSON',
+                status: response.status,
+                details: text.substring(0, 100)
+            });
+        }
     } catch (error) {
         console.error('Proxy Fetch Error:', error);
         return res.status(500).json({ 
