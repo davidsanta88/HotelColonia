@@ -3,6 +3,9 @@ const cors = require('cors');
 require('dotenv').config();
 const connectDB = require('./config/db');
 
+// Iniciar app
+const app = express();
+
 // Conectar a MongoDB
 connectDB();
 
@@ -12,6 +15,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 app.use('/api/uploads', express.static('uploads'));
+
 
 const auditMiddleware = require('./middleware/auditMiddleware');
 const { verifyToken } = require('./middleware/auth');
