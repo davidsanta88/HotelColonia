@@ -138,3 +138,24 @@ exports.getConsumosByRegistro = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+exports.updateVenta = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updated = await Venta.findByIdAndUpdate(id, req.body, { new: true });
+        res.json(updated);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.deleteVenta = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await Venta.findByIdAndDelete(id);
+        res.json({ message: 'Venta eliminada' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+

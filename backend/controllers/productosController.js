@@ -86,3 +86,35 @@ exports.deleteProducto = async (req, res) => {
     }
 };
 
+exports.getProductoDetails = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const producto = await Producto.findById(id);
+        if (!producto) return res.status(404).json({ message: 'Producto no encontrado' });
+        res.json(producto);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.getAlertasStock = async (req, res) => {
+    try {
+        const products = await Producto.find({ $expr: { $lte: ["$stock", "$stockMinimo"] } });
+        res.json(products);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.updateStock = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { stock } = req.body;
+        const updated = await Producto.findByIdAndUpdate(id, { stock }, { new: true });
+        res.json({ message: 'Stock actualizado', stock: updated.stock });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+
