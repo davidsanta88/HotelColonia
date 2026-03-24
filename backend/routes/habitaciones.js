@@ -26,6 +26,6 @@ router.patch('/:id/limpieza', verifyToken, habitacionesController.updateCleaning
 
 // Rutas para fotos
 router.post('/:id/fotos', [verifyToken, isAdmin, upload.array('fotos', 10)], habitacionesController.uploadFotos);
-router.delete('/fotos/:id', [verifyToken, isAdmin], habitacionesController.deleteFoto);
+router.delete('/fotos/:id/:index', [verifyToken, isAdmin], habitacionesController.deleteFoto);
 
 module.exports = router;
