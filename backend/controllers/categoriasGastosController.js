@@ -12,8 +12,8 @@ const categoriasGastosController = {
 
     createCategoria: async (req, res) => {
         try {
-            const { nombre, descripcion } = req.body;
-            const newCat = new CategoriaGasto({ nombre, descripcion });
+            const { nombre, descripcion, tipo, activo } = req.body;
+            const newCat = new CategoriaGasto({ nombre, descripcion, tipo, activo });
             await newCat.save();
             res.status(201).json(newCat);
         } catch (error) {
