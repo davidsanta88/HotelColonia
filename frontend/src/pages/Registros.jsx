@@ -94,16 +94,43 @@ const Registros = () => {
             if (huespedesList.length === 0) {
                 return Swal.fire('Atención', 'Debe agregar al menos un huésped al registro', 'warning');
             }
+            
+            Swal.fire({ title: 'Procesando...', text: 'Registrando información, por favor espere...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            // Bypass logic for old backend deployed on DigitalOcean
+            const processedHuespedesIds = [];
+            for (const h of huespedesList) {
+                if (h.id || h._id) {
+                    processedHuespedesIds.push(h.id || h._id);
+                } else {
+                    // Check local cache first
+                    const existing = clientes.find(c => c.documento === h.documento || c.documentoNumero === h.documento);
+                    if (existing && (existing.id || existing._id)) {
+                        processedHuespedesIds.push(existing.id || existing._id);
+                    } else {
+                        // Dynamically create client
+                        const res = await api.post('/clientes', h);
+                        processedHuespedesIds.push(res.data.id || res.data._id);
+                    }
+                }
+            }
+
             const dataToSave = {
                 ...formData,
-                huespedes: huespedesList
+                cliente_id: processedHuespedesIds[0],
+                huespedes: processedHuespedesIds,
+                observaciones: formData.notas // old backend expects observaciones
             };
+            
             await api.post('/registros', dataToSave);
+            
+            Swal.close();
             Swal.fire('Éxito', 'Registro creado', 'success');
             setShowModal(false);
             fetchData();
         } catch (error) {
-            Swal.fire('Error', error.response?.data?.message || 'Error al guardar', 'error');
+            Swal.close();
+            Swal.fire('Error', error.response?.data?.message || 'Error al guardar el registro', 'error');
         }
     };
 
@@ -126,14 +153,43 @@ const Registros = () => {
             if (editData.huespedes.length === 0) {
                 return Swal.fire('Atención', 'Debe haber al menos un huésped', 'warning');
             }
-            await api.put(`/registros/${selectedRegistroDetails.id}`, editData);
+            
+            Swal.fire({ title: 'Procesando...', text: 'Actualizando registro, por favor espere...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            // Bypass logic for old backend 
+            const processedHuespedesIds = [];
+            for (const h of editData.huespedes) {
+                if (h.id || h._id) {
+                    processedHuespedesIds.push(h.id || h._id);
+                } else {
+                    const existing = clientes.find(c => c.documento === h.documento || c.documentoNumero === h.documento);
+                    if (existing && (existing.id || existing._id)) {
+                        processedHuespedesIds.push(existing.id || existing._id);
+                    } else {
+                        const res = await api.post('/clientes', h);
+                        processedHuespedesIds.push(res.data.id || res.data._id);
+                    }
+                }
+            }
+
+            const dataToUpdate = {
+                ...editData,
+                cliente_id: processedHuespedesIds[0],
+                huespedes: processedHuespedesIds,
+                observaciones: editData.notas
+            };
+            
+            await api.put(`/registros/${selectedRegistroDetails.id}`, dataToUpdate);
+            
+            Swal.close();
             Swal.fire('Exito', 'Registro actualizado correctamente', 'success');
             setIsEditing(false);
             const resDet = await api.get(`/registros/${selectedRegistroDetails.id}`);
             setSelectedRegistroDetails(resDet.data);
             fetchData();
         } catch (error) {
-            Swal.fire('Error', 'No se pudo actualizar el registro', 'error');
+            Swal.close();
+            Swal.fire('Error', error.response?.data?.message || 'No se pudo actualizar el registro', 'error');
         }
     };
 
