@@ -66,21 +66,34 @@ const Inventory = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            if (view === 'products') {
+            if (view === 'products' || view === 'alerts') {
                 const [prodRes, catRes] = await Promise.all([
                     api.get('/productos'),
                     api.get('/categorias')
                 ]);
-                setProductos(prodRes.data.filter(p => p.tipo_inventario === 'venta'));
+                
+                // Mapear campos de Mongoose (camelCase) a lo que espera la UI (snake_case)
+                const mapped = prodRes.data.map(p => ({
+                    ...p,
+                    id: p.id || p._id,
+                    tipo_inventario: p.tipoInventario || p.tipo_inventario || 'venta',
+                    imagen_url: p.imagenUrl || p.imagen_url,
+                    stock_minimo: p.stockMinimo || p.stock_minimo || 0,
+                    precio_compra: p.precio_compra || 0
+                }));
+
+                const filtered = view === 'alerts' 
+                    ? mapped.filter(p => p.stock <= p.stock_minimo)
+                    : mapped;
+
+                setProductos(filtered.filter(p => p.tipo_inventario === 'venta'));
                 setCategoriasLista(catRes.data.filter(c => c.activo === 1 || c.activo === true));
             } else if (view === 'movements') {
                 const { data } = await api.get('/inventario/movimientos');
                 setMovimientos(data);
-            } else if (view === 'alerts') {
-                const { data } = await api.get('/inventario/alertas');
-                setProductos(data.filter(p => p.tipo_inventario === 'venta'));
             }
         } catch (error) {
+            console.error('Fetch Data Error:', error);
             Swal.fire('Error', 'No se pudo cargar la información', 'error');
         } finally {
             setLoading(false);
