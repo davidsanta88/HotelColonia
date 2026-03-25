@@ -7,14 +7,15 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Ruta no especificada' });
     }
 
-    // URL de DigitalOcean (Se debe configurar en las variables de entorno de Vercel)
-    // En desarrollo puedes usar http://localhost:5000
-    // Priorizamos VITE_API_URL que es la que el usuario ya configuró en Vercel
-    const baseUrl = process.env.VITE_API_URL || process.env.BACKEND_URL || 'https://whale-app-c75fy.ondigitalocean.app';
+    // URL de SmarterASP.net (Priorizar variables de entorno)
+    const baseUrl = process.env.VITE_API_URL || process.env.BACKEND_URL || 'http://hbalconplaza-001-site1.site4future.com';
 
+    // Limpiar el baseUrl para evitar duplicados /api/api
+    const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl.slice(0, -4) : (baseUrl.endsWith('/api/') ? baseUrl.slice(0, -5) : baseUrl);
     
     const finalPath = path.startsWith('uploads') ? path : `api/${path}`;
-    const targetUrl = `${baseUrl}/${finalPath}`;
+    const targetUrl = `${cleanBaseUrl}/${finalPath}`;
+
 
     try {
         const axiosConfig = {
