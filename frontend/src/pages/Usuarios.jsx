@@ -13,8 +13,9 @@ const Usuarios = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showModal, setShowModal] = useState(false);
-    const [current, setCurrent] = useState({ nombre: '', email: '', password: '', rol_id: 2, telefono: '' });
+    const [current, setCurrent] = useState({ nombre: '', email: '', password: '', rol_id: '', telefono: '' });
     const [isEditing, setIsEditing] = useState(false);
+
 
     useEffect(() => {
         if (canView) {
@@ -26,8 +27,13 @@ const Usuarios = () => {
     const fetchUsuarios = async () => {
         try {
             const response = await api.get('/usuarios');
-            setUsuarios(response.data);
+            const data = response.data.map(u => ({
+                ...u,
+                rol_id: u.rol?._id || u.rol || ''
+            }));
+            setUsuarios(data);
             setLoading(false);
+
         } catch (error) {
             Swal.fire('Error', 'No se pudieron cargar los usuarios', 'error');
             setLoading(false);
@@ -45,14 +51,20 @@ const Usuarios = () => {
 
     const handleOpenModal = (item = null) => {
         if (item) {
-            setCurrent({ ...item, password: '' });
+            setCurrent({ 
+                ...item, 
+                password: '',
+                rol_id: item.rol?._id || item.rol || ''
+            });
             setIsEditing(true);
         } else {
-            setCurrent({ nombre: '', email: '', password: '', rol_id: 2, telefono: '' });
+            const defaultRol = roles.find(r => r.nombre === 'Empleado')?._id || roles[0]?._id || '';
+            setCurrent({ nombre: '', email: '', password: '', rol_id: defaultRol, telefono: '' });
             setIsEditing(false);
         }
         setShowModal(true);
     };
+
 
     const handleSave = async (e) => {
         e.preventDefault();
@@ -165,8 +177,8 @@ const Usuarios = () => {
                                             <div className="text-gray-500 text-[11px] font-medium mt-1 uppercase tracking-wider">{item.telefono || 'Sin teléfono'}</div>
                                         </td>
                                         <td className="p-4 text-center">
-                                            <span className={`px-4 py-1.5 text-[10px] font-black rounded-full uppercase tracking-widest ${item.rol_id === 1 ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-green-100 text-green-700 border border-green-200 shadow-sm'}`}>
-                                                {roles.find(r => r.id === item.rol_id)?.nombre || (item.rol_id === 1 ? 'Administrador' : 'Empleado')}
+                                            <span className={`px-4 py-1.5 text-[10px] font-black rounded-full uppercase tracking-widest ${item.rol?.nombre === 'Admin' || item.rol_nombre === 'Admin' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-green-100 text-green-700 border border-green-200 shadow-sm'}`}>
+                                                {roles.find(r => (r._id || r.id) === item.rol_id)?.nombre || (item.rol?.nombre === 'Admin' || item.rol_nombre === 'Admin' ? 'Administrador' : 'Empleado')}
                                             </span>
                                         </td>
                                         {(canEdit || canDelete) && (
@@ -261,13 +273,15 @@ const Usuarios = () => {
                                     <select
                                         className="input-field font-bold text-blue-900 bg-blue-50/30 border-blue-200"
                                         value={current.rol_id}
-                                        onChange={e => setCurrent({...current, rol_id: parseInt(e.target.value)})}
+                                        onChange={e => setCurrent({...current, rol_id: e.target.value})}
                                         required
                                     >
+                                        <option value="" disabled>Seleccione rol...</option>
                                         {roles.map(r => (
-                                            <option key={r.id} value={r.id}>{r.nombre}</option>
+                                            <option key={r._id || r.id} value={r._id || r.id}>{r.nombre}</option>
                                         ))}
                                     </select>
+
                                 </div>
                             </div>
 

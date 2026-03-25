@@ -34,9 +34,14 @@ const usuariosController = {
         try {
             const { id } = req.params;
             const data = { ...req.body };
+            if (data.rol_id) {
+                data.rol = data.rol_id;
+                delete data.rol_id;
+            }
             if (data.password) data.password = bcrypt.hashSync(data.password, 10);
             const updated = await Usuario.findByIdAndUpdate(id, data, { new: true });
             res.json(updated);
+
         } catch (error) {
             res.status(500).json({ message: 'Error al actualizar usuario', error: error.message });
         }
