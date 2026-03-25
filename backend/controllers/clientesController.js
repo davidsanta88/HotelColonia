@@ -46,6 +46,14 @@ exports.createCliente = async (req, res) => {
     try {
         const { nombre, documento, tipo_documento, telefono, email, municipio_origen_id } = req.body;
         
+        // Check for duplicates
+        if (documento) {
+            const existing = await Cliente.findOne({ documento });
+            if (existing) {
+                return res.status(400).json({ message: `El documento ${documento} ya está registrado a nombre de ${existing.nombre}` });
+            }
+        }
+
         const newCliente = new Cliente({
             nombre,
             documento,
