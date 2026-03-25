@@ -43,18 +43,62 @@ exports.getRegistroById = async (req, res) => {
 
 exports.createRegistro = async (req, res) => {
     try {
-        const { habitacion_id, cliente_id, fecha_ingreso, fecha_salida, huespedes, total, observaciones } = req.body;
+        const { habitacion_id, fecha_ingreso, fecha_salida, huespedes, total, observaciones, notas, medio_pago_id, valor_cobrado, tipo_registro_id } = req.body;
+
+        if (!huespedes || huespedes.length === 0) {
+            return res.status(400).json({ message: 'Se requiere al menos un huésped' });
+        }
+
+        const huesped_ids = [];
+        for (const h of huespedes) {
+            if (h.id) {
+                huesped_ids.push(h.id);
+            } else {
+                // Determine if a client with this document already exists to avoid duplicate key errors
+                let existingCliente = await Cliente.findOne({ documento: h.documento });
+
+                if (existingCliente) {
+                    huesped_ids.push(existingCliente._id);
+                } else {
+                    const newCliente = new Cliente({
+                        nombre: h.nombre,
+                        documento: h.documento,
+                        tipo_documento: h.tipo_documento || 'CC',
+                        telefono: h.telefono,
+                        email: h.email,
+                        municipio_origen_id: h.municipio_origen_id || null,
+                        usuarioCreacion: req.userName,
+                        fechaCreacion: Date.now()
+                    });
+                    await newCliente.save();
+                    huesped_ids.push(newCliente._id);
+                }
+            }
+        }
+
+        const titular_id = huesped_ids[0];
 
         const newReg = new Registro({
             habitacion: habitacion_id,
-            cliente: cliente_id,
-            huespedes: huespedes || [cliente_id],
+            cliente: titular_id,
+            huespedes: huesped_ids,
             fechaEntrada: fecha_ingreso,
             fechaSalida: fecha_salida,
-            total,
-            observaciones,
-            usuarioCreacion: req.userName
+            total: valor_cobrado !== undefined ? valor_cobrado : total, // Map valor_cobrado if available from the frontend
+            observaciones: notas || observaciones, // frontend uses 'notas'
+            usuarioCreacion: req.userName,
+            fechaCreacion: Date.now(),
+            estado: 'activo' // Make sure it's created as activo by default initially if checking in. Wait, frontend uses "estado" mostly in put, but let's keep model default. 
         });
+
+        // Add initial payment if medio_pago is provided
+        if (medio_pago_id) {
+            newReg.pagos = [{
+                monto: parseFloat(valor_cobrado || total || 0),
+                medio: 'DefinirPorMedio', // Need medio name?
+                fecha: Date.now()
+            }];
+        }
 
         await newReg.save();
         
