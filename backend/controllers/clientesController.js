@@ -46,21 +46,20 @@ exports.createCliente = async (req, res) => {
     }
 };
 
-exports.updateCliente = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { nombre, documento, tipo_documento, telefono, email, municipio_origen_id } = req.body;
-        const updated = await Cliente.findByIdAndUpdate(id, {
-            nombre,
-            documento,
-            tipo_documento,
-            telefono,
-            email,
-            municipio_origen_id: (municipio_origen_id === '' || !municipio_origen_id) ? null : municipio_origen_id,
-            usuarioModificacion: req.userName,
-            fechaModificacion: Date.now()
-        }, { new: true });
-        res.json({ message: 'Cliente actualizado con éxito', cliente: updated });
+        const cliente = await Cliente.findById(id);
+        if (!cliente) return res.status(404).json({ message: 'Cliente no encontrado' });
+
+        cliente.nombre = nombre;
+        cliente.documento = documento;
+        cliente.tipo_documento = tipo_documento;
+        cliente.telefono = telefono;
+        cliente.email = email;
+        cliente.municipio_origen_id = (municipio_origen_id === '' || !municipio_origen_id) ? null : municipio_origen_id;
+        cliente.usuarioModificacion = req.userName || 'Sistema';
+        cliente.fechaModificacion = Date.now();
+
+        await cliente.save();
+        res.json({ message: 'Cliente actualizado con éxito', cliente });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
