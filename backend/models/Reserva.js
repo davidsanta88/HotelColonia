@@ -43,16 +43,19 @@ const reservaSchema = new mongoose.Schema({
 
 // Virtual for client name to satisfy frontend r.cliente_nombre
 reservaSchema.virtual('cliente_nombre').get(function() {
-    return this.cliente ? this.cliente.nombre : 'Desconocido';
+    if (!this.cliente) return 'Desconocido';
+    return this.cliente.nombre || 'Desconocido';
 });
 
 // Virtual for client document to satisfy frontend r.identificacion / r.documento
 reservaSchema.virtual('identificacion').get(function() {
-    return this.cliente ? this.cliente.documento : '';
+    if (!this.cliente) return '';
+    return this.cliente.documento || '';
 });
 
 reservaSchema.virtual('documento').get(function() {
-    return this.cliente ? this.cliente.documento : '';
+    if (!this.cliente) return '';
+    return this.cliente.documento || '';
 });
 
 module.exports = mongoose.model('Reserva', reservaSchema);

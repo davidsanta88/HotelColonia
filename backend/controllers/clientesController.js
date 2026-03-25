@@ -11,7 +11,7 @@ exports.getClientes = async (req, res) => {
             telefono: c.telefono,
             email: c.email,
             municipio_origen_id: c.municipio_origen_id ? c.municipio_origen_id._id : null,
-            municipio_nombre: c.municipio_origen_id ? c.municipio_origen_id.nombre : null,
+            municipio_nombre: (c.municipio_origen_id && c.municipio_origen_id.nombre) ? c.municipio_origen_id.nombre : '-',
             UsuarioCreacion: c.usuarioCreacion,
             FechaCreacion: c.fechaCreacion,
             UsuarioModificacion: c.usuarioModificacion,

@@ -26,6 +26,11 @@ exports.getReservas = async (req, res) => {
             if (!obj.fecha_entrada && obj.fechaInicio) obj.fecha_entrada = obj.fechaInicio;
             if (!obj.fecha_salida && obj.fechaFin) obj.fecha_salida = obj.fechaFin;
 
+            // Ensure client_nombre is present even if virtual fails for some reason
+            if (!obj.cliente_nombre) {
+                obj.cliente_nombre = obj.cliente?.nombre || 'Desconocido';
+            }
+
             return obj;
         });
 
