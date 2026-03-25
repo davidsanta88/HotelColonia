@@ -47,7 +47,13 @@ const Store = () => {
                 api.get('/medios-pago'),
                 api.get('/registros/activos')
             ]);
-            setProductos(resProd.data);
+            const mappedProductos = resProd.data.map(p => ({
+                ...p,
+                id: p.id || p._id,
+                tipo_inventario: p.tipoInventario || p.tipo_inventario || 'venta',
+                imagen_url: p.imagenUrl || p.imagen_url
+            }));
+            setProductos(mappedProductos);
             setMediosPago(resMP.data);
             setRegistrosActivos(resReg.data);
             if (resMP.data.length > 0) setMedioPagoId(resMP.data[0].id);
