@@ -3,8 +3,11 @@ const mongoose = require('mongoose');
 const productoSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
     categoria: { type: String, default: 'bebidas' },
+    precio_compra: { type: Number, default: 0 },
     precio: { type: Number, default: 0 },
+    margen: { type: Number, default: 0 },
     stock: { type: Number, default: 0 },
+
     stockMinimo: { type: Number, default: 0 },
     descripcion: String,
     tipoInventario: { type: String, enum: ['venta', 'insumo'], default: 'venta' },

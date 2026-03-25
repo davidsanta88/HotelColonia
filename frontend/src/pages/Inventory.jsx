@@ -32,12 +32,15 @@ const Inventory = () => {
     const [formData, setFormData] = useState({
         nombre: '',
         categoria: '',
+        precio_compra: '',
         precio: '',
+        margen: '',
         stock: '',
         stock_minimo: '',
         descripcion: '',
         tipo_inventario: 'venta'
     });
+
     const [movementFormData, setMovementFormData] = useState({
         producto_id: '',
         tipo: 'entrada',
@@ -47,8 +50,18 @@ const Inventory = () => {
     const [selectedFile, setSelectedFile] = useState(null);
 
     useEffect(() => {
+        const compra = parseFloat(formData.precio_compra) || 0;
+        const venta = parseFloat(formData.precio) || 0;
+        const calculado = venta - compra;
+        if (formData.margen !== calculado.toString()) {
+            setFormData(prev => ({ ...prev, margen: calculado.toString() }));
+        }
+    }, [formData.precio, formData.precio_compra]);
+
+    useEffect(() => {
         fetchData();
     }, [view]);
+
 
     const fetchData = async () => {
         setLoading(true);
@@ -160,12 +173,15 @@ const Inventory = () => {
         setFormData({
             nombre: prod.nombre,
             categoria: prod.categoria,
+            precio_compra: prod.precio_compra || '',
             precio: prod.precio,
+            margen: prod.margen || '',
             stock: prod.stock,
             stock_minimo: prod.stock_minimo || 0,
             descripcion: prod.descripcion || '',
             tipo_inventario: prod.tipo_inventario || 'venta'
         });
+
         setShowModal(true);
     };
 
@@ -189,7 +205,9 @@ const Inventory = () => {
                         setFormData({
                             nombre:'', 
                             categoria:'', 
+                            precio_compra: '',
                             precio:'', 
+                            margen: '',
                             stock:'', 
                             stock_minimo:'', 
                             descripcion:'',
@@ -318,24 +336,46 @@ const Inventory = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
-                                    <select required className="input-field" value={formData.categoria} onChange={e => setFormData({...formData, categoria: e.target.value})}>
-                                        <option value="">Seleccione categoría...</option>
+                                    <select required className="input-field text-sm" value={formData.categoria} onChange={e => setFormData({...formData, categoria: e.target.value})}>
+                                        <option value="">Seleccione...</option>
                                         {categoriasLista.map(cat => (
                                             <option key={cat.id} value={cat.nombre}>{cat.nombre}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Precio</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Precio Compra</label>
                                     <input 
                                         type="text" 
                                         required 
-                                        className="input-field" 
+                                        className="input-field text-sm" 
+                                        value={formatCurrency(formData.precio_compra)} 
+                                        onChange={e => setFormData({...formData, precio_compra: cleanNumericValue(e.target.value)})} 
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Precio Venta</label>
+                                    <input 
+                                        type="text" 
+                                        required 
+                                        className="input-field text-sm" 
                                         value={formatCurrency(formData.precio)} 
                                         onChange={e => setFormData({...formData, precio: cleanNumericValue(e.target.value)})} 
                                     />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Margen ($)</label>
+                                    <input 
+                                        type="text" 
+                                        readOnly 
+                                        className="input-field text-sm bg-gray-50 font-bold text-green-600" 
+                                        value={formatCurrency(formData.margen)} 
+                                    />
+                                </div>
                             </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>

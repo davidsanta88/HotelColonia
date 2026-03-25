@@ -12,13 +12,19 @@ exports.getProductos = async (req, res) => {
 
 exports.createProducto = async (req, res) => {
     try {
-        const { nombre, categoria, precio, stock, stock_minimo, descripcion, tipo_inventario } = req.body;
+        console.log('[DEBUG] createProducto BODY:', req.body);
+        console.log('[DEBUG] createProducto FILE:', req.file);
+        const { nombre, categoria, precio, precio_compra, margen, stock, stock_minimo, descripcion, tipo_inventario } = req.body;
+
+
         const imagen_url = req.file ? `/uploads/productos/${req.file.filename}` : null;
 
         const newProd = new Producto({
             nombre: nombre.trim(),
             categoria,
+            precio_compra: parseFloat(precio_compra) || 0,
             precio: parseFloat(precio) || 0,
+            margen: parseFloat(margen) || 0,
             stock: parseInt(stock) || 0,
             stockMinimo: parseInt(stock_minimo) || 0,
             descripcion,
@@ -26,6 +32,7 @@ exports.createProducto = async (req, res) => {
             imagenUrl: imagen_url,
             usuarioCreacion: req.userName
         });
+
 
         await newProd.save();
         res.status(201).json({ message: 'Producto creado con éxito', producto: newProd });
@@ -36,14 +43,20 @@ exports.createProducto = async (req, res) => {
 
 exports.updateProducto = async (req, res) => {
     try {
+        console.log('[DEBUG] updateProducto BODY:', req.body);
+        console.log('[DEBUG] updateProducto FILE:', req.file);
         const { id } = req.params;
-        const { nombre, categoria, precio, stock, stock_minimo, descripcion, tipo_inventario } = req.body;
+        const { nombre, categoria, precio, precio_compra, margen, stock, stock_minimo, descripcion, tipo_inventario } = req.body;
+
+
         const imagen_url = req.file ? `/uploads/productos/${req.file.filename}` : null;
 
         const updateData = {
             nombre: nombre.trim(),
             categoria,
+            precio_compra: parseFloat(precio_compra) || 0,
             precio: parseFloat(precio) || 0,
+            margen: parseFloat(margen) || 0,
             stock: parseInt(stock) || 0,
             stockMinimo: parseInt(stock_minimo) || 0,
             descripcion,
@@ -51,6 +64,7 @@ exports.updateProducto = async (req, res) => {
             usuarioModificacion: req.userName,
             fechaModificacion: Date.now()
         };
+
 
         if (imagen_url) updateData.imagenUrl = imagen_url;
 
