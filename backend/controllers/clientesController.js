@@ -29,19 +29,22 @@ exports.getClientes = async (req, res) => {
 exports.createCliente = async (req, res) => {
     try {
         const { nombre, documento, tipo_documento, telefono, email, municipio_origen_id } = req.body;
+        
         const newCliente = new Cliente({
             nombre,
             documento,
             tipo_documento,
             telefono,
             email,
-            municipio_origen_id,
-            usuarioCreacion: req.userName,
+            municipio_origen_id: (municipio_origen_id === '' || !municipio_origen_id) ? null : municipio_origen_id,
+            usuarioCreacion: req.userName || 'Sistema',
             fechaCreacion: Date.now()
         });
+
         await newCliente.save();
         res.status(201).json({ message: 'Cliente creado con éxito', id: newCliente._id });
     } catch (err) {
+        console.error('Error creating client:', err);
         res.status(500).json({ message: err.message });
     }
 };
