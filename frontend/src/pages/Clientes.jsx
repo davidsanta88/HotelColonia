@@ -181,15 +181,15 @@ const Clientes = () => {
                                             <div className="text-gray-400 text-[10px]">{cliente.email || ''}</div>
                                         </td>
                                         <td className="p-4 text-gray-600 text-sm whitespace-nowrap">
-                                            {cliente.municipio_nombre || '-'}
+                                            {cliente.municipio_nombre || (cliente.municipio_origen_id && municipios.find(m => String(m.id) === String(cliente.municipio_origen_id))?.nombre) || '-'}
                                         </td>
                                         <td className="p-4 text-sm whitespace-nowrap">
-                                            <div className="text-gray-900 font-medium">{cliente.UsuarioCreacion || '-'}</div>
-                                            <div className="text-gray-400 text-[10px]">{cliente.FechaCreacion ? new Date(cliente.FechaCreacion).toLocaleDateString() : ''}</div>
+                                            <div className="text-gray-900 font-medium">{cliente.UsuarioCreacion || cliente.usuarioCreacion || '-'}</div>
+                                            <div className="text-gray-400 text-[10px]">{(cliente.FechaCreacion || cliente.fechaCreacion) ? new Date(cliente.FechaCreacion || cliente.fechaCreacion).toLocaleDateString() : ''}</div>
                                         </td>
                                         <td className="p-4 text-sm whitespace-nowrap">
-                                            <div className="text-gray-900 font-medium">{cliente.UsuarioModificacion || '-'}</div>
-                                            <div className="text-gray-400 text-[10px]">{cliente.FechaModificacion ? new Date(cliente.FechaModificacion).toLocaleDateString() : ''}</div>
+                                            <div className="text-gray-900 font-medium">{cliente.UsuarioModificacion || cliente.usuarioModificacion || '-'}</div>
+                                            <div className="text-gray-400 text-[10px]">{(cliente.FechaModificacion || cliente.fechaModificacion) ? new Date(cliente.FechaModificacion || cliente.fechaModificacion).toLocaleDateString() : ''}</div>
                                         </td>
                                         {(canEdit || canDelete) && (
                                             <td className="p-4">
