@@ -3,23 +3,39 @@ const Cliente = require('../models/Cliente');
 exports.getClientes = async (req, res) => {
     try {
         const clientes = await Cliente.find().populate('municipio_origen_id', 'nombre');
-        const mappedClientes = clientes.map(c => {
-            const munObj = c.municipio_origen_id;
-            return {
+        const mappedClientes = [];
+        for (const c of clientes) {
+            let munObj = c.municipio_origen_id;
+            let municipio_nombre = '-';
+
+            if (munObj && munObj.nombre) {
+                municipio_nombre = munObj.nombre;
+            } else if (munObj) {
+                // Not populated or reference missing, try to find manually for this diagnostic run
+                const Municipio = require('../models/Municipio');
+                const m = await Municipio.findById(munObj);
+                if (m) {
+                    municipio_nombre = m.nombre;
+                } else {
+                    console.log(`[CLIENTE ${c.nombre}] Municipio ID ${munObj} no encontrado en db.`);
+                }
+            }
+
+            mappedClientes.push({
                 id: c._id,
                 nombre: c.nombre,
-                documento: c.documentoNumero || c.documento,
-                tipo_documento: c.documentoTipo || c.tipo_documento,
+                documento: c.documento || c.documentoNumero || '',
+                tipo_documento: c.tipo_documento || c.documentoTipo || '',
                 telefono: c.telefono,
                 email: c.email,
-                municipio_origen_id: munObj ? (munObj._id || munObj) : null,
-                municipio_nombre: munObj?.nombre || '-',
-                UsuarioCreacion: c.usuarioCreacion,
+                municipio_origen_id: munObj?._id || munObj || null,
+                municipio_nombre: municipio_nombre,
+                UsuarioCreacion: c.usuarioCreacion || '-',
                 FechaCreacion: c.fechaCreacion,
-                UsuarioModificacion: c.usuarioModificacion,
+                UsuarioModificacion: c.usuarioModificacion || '-',
                 FechaModificacion: c.fechaModificacion
-            };
-        });
+            });
+        }
         res.json(mappedClientes);
     } catch (err) {
         res.status(500).json({ message: err.message });

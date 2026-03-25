@@ -34,7 +34,11 @@ const auditMiddleware = require('./middleware/auditMiddleware');
 const { verifyToken } = require('./middleware/auth');
 
 // 0. DIAGNOSTICS
-app.get('/api/ping', (req, res) => res.json({ status: 'ok', time: new Date().toISOString(), version: '1.0.2' }));
+app.get('/api/ping', (req, res) => res.json({ 
+    status: 'ok', 
+    time: new Date().toISOString(), 
+    version: '1.1.0 (Defensive Fixes)' 
+}));
 
 // 1. PUBLIC ROUTES (No Token)
 app.use('/api/auth', require('./routes/auth'));
