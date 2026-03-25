@@ -400,7 +400,7 @@ const Reservas = () => {
                             {reservas.map(r => (
                                 <tr key={r.id} className="hover:bg-blue-50/30 transition-colors">
                                     <td className="p-4">
-                                        <div className="font-bold text-gray-800">{r.cliente_nombre}</div>
+                                        <div className="font-bold text-gray-800">{r.cliente_nombre || (r.cliente && typeof r.cliente === 'object' ? r.cliente.nombre : '') || r.cliente || 'Desconocido'}</div>
                                         <div className="flex flex-col">
                                             <span className="text-xs text-gray-500 font-medium">{r.identificacion || r.documento}</span>
                                             {r.telefono && (
@@ -421,11 +421,16 @@ const Reservas = () => {
                                     </td>
                                     <td className="p-4">
                                         <div className="flex flex-wrap gap-1">
-                                            {r.habitaciones.map(h => (
-                                                <span key={h.habitacion_id} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold">
-                                                    Hab {h.numero}
+                                            {(r.habitaciones || []).map(h => (
+                                                <span key={h.habitacion_id || h._id || Math.random()} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold">
+                                                    Hab {h.numero || (h.habitacion ? h.habitacion.numero : '?')}
                                                 </span>
                                             ))}
+                                            {(!r.habitaciones || r.habitaciones.length === 0) && r.habitacion && (
+                                                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold">
+                                                    Hab {r.habitacion.numero || '?'}
+                                                </span>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="p-4">
