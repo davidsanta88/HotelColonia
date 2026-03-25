@@ -32,7 +32,7 @@ const SLIDES = [
     {
         img: '/mapa_region.png',
         title: 'Ubicación Estratégica',
-        sub: 'Tu conexión ideal con el Eje Cafetero: 321 805 1869 | Belalcázar, Caldas',
+        sub: 'Carrera 4 #11-03, 2do Piso (Plaza Córdoba) | Tel: 321 805 1869',
     },
     {
         img: '/hotel_studio.jpg',
@@ -232,8 +232,8 @@ const Landing = () => {
                             />
                         ))}
                     </div>
-                    <p className="text-white/20 text-[10px] font-black uppercase tracking-[0.5em]">
-                        © {new Date().getFullYear()} HOTEL BALCÓN PLAZA · Belalcázar, Caldas · Colombia
+                    <p className="text-white/20 text-[10px] font-black uppercase tracking-[0.5em] text-center px-4">
+                        © {new Date().getFullYear()} HOTEL BALCÓN PLAZA · Cra 4 #11-03 2do Piso (Plaza Córdoba) · Belalcázar, Caldas
                     </p>
                 </div>
             </div>
