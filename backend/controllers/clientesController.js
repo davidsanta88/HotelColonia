@@ -46,6 +46,10 @@ exports.createCliente = async (req, res) => {
     }
 };
 
+exports.updateCliente = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, documento, tipo_documento, telefono, email, municipio_origen_id } = req.body;
         const cliente = await Cliente.findById(id);
         if (!cliente) return res.status(404).json({ message: 'Cliente no encontrado' });
 
