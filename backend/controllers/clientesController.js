@@ -2,8 +2,22 @@ const Cliente = require('../models/Cliente');
 
 exports.getClientes = async (req, res) => {
     try {
-        const clientes = await Cliente.find();
-        res.json(clientes);
+        const clientes = await Cliente.find().populate('municipio_origen_id', 'nombre');
+        const mappedClientes = clientes.map(c => ({
+            id: c._id,
+            nombre: c.nombre,
+            documento: c.documentoNumero || c.documento,
+            tipo_documento: c.documentoTipo || c.tipo_documento,
+            telefono: c.telefono,
+            email: c.email,
+            municipio_origen_id: c.municipio_origen_id ? c.municipio_origen_id._id : null,
+            municipio_nombre: c.municipio_origen_id ? c.municipio_origen_id.nombre : null,
+            UsuarioCreacion: c.usuarioCreacion,
+            FechaCreacion: c.fechaCreacion,
+            UsuarioModificacion: c.usuarioModificacion,
+            FechaModificacion: c.fechaModificacion
+        }));
+        res.json(mappedClientes);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -14,12 +28,13 @@ exports.createCliente = async (req, res) => {
         const { nombre, documento, tipo_documento, telefono, email, municipio_origen_id } = req.body;
         const newCliente = new Cliente({
             nombre,
-            documentoNumero: documento,
-            documentoTipo: tipo_documento,
+            documento,
+            tipo_documento,
             telefono,
             email,
-            ciudad: municipio_origen_id, // Map municipio to ciudad for now or add to model
-            usuarioCreacion: req.userName
+            municipio_origen_id,
+            usuarioCreacion: req.userName,
+            fechaCreacion: Date.now()
         });
         await newCliente.save();
         res.status(201).json({ message: 'Cliente creado con éxito', id: newCliente._id });
@@ -34,11 +49,11 @@ exports.updateCliente = async (req, res) => {
         const { nombre, documento, tipo_documento, telefono, email, municipio_origen_id } = req.body;
         const updated = await Cliente.findByIdAndUpdate(id, {
             nombre,
-            documentoNumero: documento,
-            documentoTipo: tipo_documento,
+            documento,
+            tipo_documento,
             telefono,
             email,
-            ciudad: municipio_origen_id,
+            municipio_origen_id,
             usuarioModificacion: req.userName,
             fechaModificacion: Date.now()
         }, { new: true });

@@ -480,7 +480,7 @@ const Store = () => {
                                                     </td>
                                                     <td className="p-4 hidden sm:table-cell">
                                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 text-xs font-semibold">
-                                                            {venta.empleado}
+                                                            {venta.empleado?.nombre || venta.empleado || 'Sistema'}
                                                         </span>
                                                     </td>
                                                     <td className="p-4 text-right">
