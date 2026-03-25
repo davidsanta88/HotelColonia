@@ -7,13 +7,11 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Ruta no especificada' });
     }
 
-    // URL de SmarterASP.net corregida
-    const baseUrl = 'http://hbalconplaza-001-site1.site4future.com';
+    // URL DE DIGITAL OCEAN (Confirmada por el usuario como la actual)
+    const baseUrl = 'https://whale-app-c75fy.ondigitalocean.app';
     
-    // Normalizar el path para asegurar que siempre use /api/ a menos que sea /uploads/
     const cleanPath = path.replace(/^\/?api\//, '');
-    const finalPath = cleanPath.startsWith('uploads') ? cleanPath : `api/${cleanPath}`;
-    const targetUrl = `${baseUrl}/${finalPath}`;
+    const targetUrl = `${baseUrl}/api/${cleanPath}`;
 
     try {
         const axiosConfig = {
@@ -22,7 +20,7 @@ export default async function handler(req, res) {
             headers: {
                 'Content-Type': req.headers['content-type'] || 'application/json',
             },
-            responseType: isUpload ? 'arraybuffer' : 'json',
+            data: req.body,
             validateStatus: () => true 
         };
 
@@ -31,15 +29,21 @@ export default async function handler(req, res) {
             axiosConfig.headers['x-auth-token'] = req.headers.authorization;
         }
 
-        if (req.method !== 'GET' && req.method !== 'HEAD' && req.body) {
-            axiosConfig.data = req.body;
-        }
-
         const response = await axios(axiosConfig);
         
-        if (isUpload) {
-            res.setHeader('Content-Type', response.headers['content-type'] || 'image/jpeg');
-            return res.status(response.status).send(Buffer.from(response.data));
+        // Copiar encabezado de tipo de contenido
+        if (response.headers['content-type']) {
+            res.setHeader('Content-Type', response.headers['content-type']);
+        }
+        res.setHeader('X-Proxy-Target', targetUrl);
+
+        if (isUpload || (response.headers['content-type'] && response.headers['content-type'].includes('image'))) {
+             // Si es una imagen o se marcó como upload, devolver como Buffer
+             const bufferResponse = await axios({
+                 ...axiosConfig,
+                 responseType: 'arraybuffer'
+             });
+             return res.status(bufferResponse.status).send(Buffer.from(bufferResponse.data));
         }
 
         return res.status(response.status).json(response.data);
@@ -47,7 +51,7 @@ export default async function handler(req, res) {
     } catch (error) {
         console.error('Proxy Error:', error.message);
         return res.status(500).json({ 
-            error: 'Error de conexión con el backend', 
+            error: 'Error de conexión con DigitalOcean', 
             details: error.message,
             targetUrl
         });
