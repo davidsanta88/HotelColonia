@@ -212,8 +212,8 @@ const Landing = () => {
                         </a>
                     </div>
                     {/* Acceso Admin Discreto */}
-                    <Link to="/login" className="text-[10px] font-black uppercase tracking-widest text-white/5 hover:text-white/40 transition-colors pr-2 mt-1">
-                        Admin
+                    <Link to="/login" className="text-[11px] font-black uppercase tracking-[0.2em] text-white/20 hover:text-white/60 transition-all pr-2 mt-2">
+                        ADMIN
                     </Link>
                 </div>
 
