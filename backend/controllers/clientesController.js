@@ -3,20 +3,23 @@ const Cliente = require('../models/Cliente');
 exports.getClientes = async (req, res) => {
     try {
         const clientes = await Cliente.find().populate('municipio_origen_id', 'nombre');
-        const mappedClientes = clientes.map(c => ({
-            id: c._id,
-            nombre: c.nombre,
-            documento: c.documentoNumero || c.documento,
-            tipo_documento: c.documentoTipo || c.tipo_documento,
-            telefono: c.telefono,
-            email: c.email,
-            municipio_origen_id: c.municipio_origen_id ? c.municipio_origen_id._id : null,
-            municipio_nombre: (c.municipio_origen_id && c.municipio_origen_id.nombre) ? c.municipio_origen_id.nombre : '-',
-            UsuarioCreacion: c.usuarioCreacion,
-            FechaCreacion: c.fechaCreacion,
-            UsuarioModificacion: c.usuarioModificacion,
-            FechaModificacion: c.fechaModificacion
-        }));
+        const mappedClientes = clientes.map(c => {
+            const munObj = c.municipio_origen_id;
+            return {
+                id: c._id,
+                nombre: c.nombre,
+                documento: c.documentoNumber || c.documento,
+                tipo_documento: c.documentoTipo || c.tipo_documento,
+                telefono: c.telefono,
+                email: c.email,
+                municipio_origen_id: munObj ? (munObj._id || munObj) : null,
+                municipio_nombre: munObj?.nombre || '-',
+                UsuarioCreacion: c.usuarioCreacion,
+                FechaCreacion: c.fechaCreacion,
+                UsuarioModificacion: c.usuarioModificacion,
+                FechaModificacion: c.fechaModificacion
+            };
+        });
         res.json(mappedClientes);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -53,7 +56,7 @@ exports.updateCliente = async (req, res) => {
             tipo_documento,
             telefono,
             email,
-            municipio_origen_id,
+            municipio_origen_id: (municipio_origen_id === '' || !municipio_origen_id) ? null : municipio_origen_id,
             usuarioModificacion: req.userName,
             fechaModificacion: Date.now()
         }, { new: true });
