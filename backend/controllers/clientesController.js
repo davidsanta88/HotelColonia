@@ -11,13 +11,14 @@ exports.getClientes = async (req, res) => {
 
 exports.createCliente = async (req, res) => {
     try {
-        const { nombre, documento, tipo_documento, telefono, email } = req.body;
+        const { nombre, documento, tipo_documento, telefono, email, municipio_origen_id } = req.body;
         const newCliente = new Cliente({
             nombre,
-            documento,
-            tipoDocumento: tipo_documento,
+            documentoNumero: documento,
+            documentoTipo: tipo_documento,
             telefono,
             email,
+            ciudad: municipio_origen_id, // Map municipio to ciudad for now or add to model
             usuarioCreacion: req.userName
         });
         await newCliente.save();
@@ -30,8 +31,14 @@ exports.createCliente = async (req, res) => {
 exports.updateCliente = async (req, res) => {
     try {
         const { id } = req.params;
+        const { nombre, documento, tipo_documento, telefono, email, municipio_origen_id } = req.body;
         const updated = await Cliente.findByIdAndUpdate(id, {
-            ...req.body,
+            nombre,
+            documentoNumero: documento,
+            documentoTipo: tipo_documento,
+            telefono,
+            email,
+            ciudad: municipio_origen_id,
             usuarioModificacion: req.userName,
             fechaModificacion: Date.now()
         }, { new: true });
