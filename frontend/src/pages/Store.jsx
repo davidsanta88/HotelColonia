@@ -140,11 +140,11 @@ const Store = () => {
         try {
             const response = await api.get(`/ventas/${venta.id}`);
             const items = response.data.map(d => ({
-                id: d.producto_id,
-                nombre: d.producto_nombre,
-                precio: parseFloat(d.precio),
-                cantidad: d.cantidad,
-                subtotal: parseFloat(d.subtotal)
+                id: d.producto_id || (d.producto && d.producto._id ? d.producto._id : d.producto),
+                nombre: d.producto_nombre || d.productoNombre || 'Producto Desconocido',
+                precio: parseFloat(d.precio || d.precioUnitario || 0),
+                cantidad: d.cantidad || 1,
+                subtotal: parseFloat(d.subtotal || 0)
             }));
             setEditVenta(venta);
             setEditItems(items);
@@ -173,10 +173,23 @@ const Store = () => {
         if (editItems.length === 0) return Swal.fire('Aviso', 'La venta debe tener al menos un producto', 'warning');
         setSavingEdit(true);
         try {
+            // Bypass logic: The DigitalOcean backend blindly calls `findByIdAndUpdate(req.body)`.
+            // We must inject the EXACT MongoDB field names into the request body to force the update
+            // while preserving the new names for when the server deploys properly later.
+            const itemsMappedForDO = editItems.map(i => ({
+                producto: i.id,
+                productoNombre: i.nombre,
+                precioUnitario: i.precio,
+                cantidad: i.cantidad,
+                subtotal: i.subtotal
+            }));
+
             await api.put(`/ventas/${editVenta.id}`, {
-                productos: editItems,
+                productos: editItems, // New schema
+                items: itemsMappedForDO, // Old DO schema
                 total: totalEdit,
-                medio_pago_id: editMedioPago || null
+                medio_pago_id: editMedioPago || null, // New schema
+                medioPago: editMedioPago || null // Old DO Schema
             });
             Swal.fire('Éxito', 'Venta actualizada correctamente', 'success');
             setShowEditModal(false);
@@ -535,8 +548,8 @@ const Store = () => {
                                     {ventaDetalles.map((detalle, i) => (
                                         <div key={i} className="flex justify-between items-center text-sm border-b border-dashed border-gray-200 pb-3">
                                             <div className="flex-1">
-                                                <p className="font-bold text-gray-800">{detalle.producto_nombre}</p>
-                                                <p className="text-xs text-gray-500 mt-0.5">{detalle.cantidad}x ${formatCurrency(detalle.precio)} c/u</p>
+                                                <p className="font-bold text-gray-800">{detalle.producto_nombre || detalle.productoNombre || 'Producto Desconocido'}</p>
+                                                <p className="text-xs text-gray-500 mt-0.5">{detalle.cantidad}x ${formatCurrency(detalle.precio || detalle.precioUnitario)} c/u</p>
                                             </div>
                                             <div className="font-black text-gray-900">
                                                 ${formatCurrency(detalle.subtotal)}
