@@ -5,6 +5,12 @@ require('dotenv').config();
 const connectDB = require('./config/db');
 
 // Iniciar app
+const fs = require('fs');
+const uploadDir = path.join(__dirname, 'uploads', 'productos');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const app = express();
 
 // Conectar a MongoDB
@@ -35,13 +41,13 @@ const auditMiddleware = require('./middleware/auditMiddleware');
 const { verifyToken } = require('./middleware/auth');
 
 // Root route for initial health check
-app.get('/', (req, res) => res.send('Hotel System API is running (v1.2.3)'));
+app.get('/', (req, res) => res.send('Hotel System API is running (v1.2.4)'));
 
 // Ping route for deployment verification (Versioned)
 app.get('/api/ping', (req, res) => {
     res.json({ 
         status: 'UP', 
-        version: '1.2.3 (Ultimate Compatibility)', 
+        version: '1.2.4 (Ultimate Compatibility)', 
         time: new Date().toISOString()
     });
 });

@@ -1,5 +1,11 @@
 import axios from 'axios';
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async function handler(req, res) {
     const { path, isUpload } = req.query;
     
@@ -33,8 +39,10 @@ export default async function handler(req, res) {
             headers: {
                 'Content-Type': req.headers['content-type'] || 'application/json',
             },
-            data: req.body,
-            validateStatus: () => true 
+            data: req.method !== 'GET' && req.method !== 'HEAD' ? req : undefined,
+            validateStatus: () => true,
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity
         };
 
         // Enviar el JWT que viene del cliente en el header 'x-auth-token' que espera el backend
