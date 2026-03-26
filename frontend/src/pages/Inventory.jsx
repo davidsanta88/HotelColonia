@@ -3,7 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import api, { API_BASE_URL } from '../services/api';
 import Swal from 'sweetalert2';
 import { Package, History, AlertTriangle, Plus, Trash2, Edit, PackagePlus } from 'lucide-react';
-import { formatCurrency, cleanNumericValue } from '../utils/format';
+import { formatCurrency, cleanNumericValue, getImageUrl } from '../utils/format';
 import { usePermissions } from '../hooks/usePermissions';
 
 const ToggleSwitch = ({ checked, onChange }) => (
@@ -348,7 +348,7 @@ const Inventory = () => {
                                             <div className="h-12 w-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center relative group">
                                                 {prod.imagen_url ? (
                                                     <img 
-                                                        src={`${API_BASE_URL}${prod.imagen_url}`} 
+                                                        src={getImageUrl(prod.imagen_url, API_BASE_URL)} 
                                                         alt={prod.nombre} 
                                                         className="w-full h-full object-cover rounded-xl"
                                                     />

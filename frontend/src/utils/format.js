@@ -39,3 +39,17 @@ export const cleanNumericValue = (val) => {
     const numeric = parseFloat(finalStr);
     return isNaN(numeric) ? 0 : numeric;
 };
+
+/**
+ * Resolves an image URL, handling both absolute paths (Cloudinary) and relative paths (Local)
+ * @param {string} url - The image URL or path from the database
+ * @param {string} baseUrl - The API base URL for relative paths
+ * @returns {string} - The corrected full URL
+ */
+export const getImageUrl = (url, baseUrl = '') => {
+    if (!url) return '';
+    // If it's already an absolute URL (starts with http), return it as is
+    if (url.startsWith('http')) return url;
+    // Otherwise, prepend the base URL
+    return `${baseUrl}${url}`;
+};

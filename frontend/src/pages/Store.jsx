@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api, { API_BASE_URL } from '../services/api';
 import Swal from 'sweetalert2';
 import { ShoppingCart, Check, History, Eye, X, Receipt, Pencil, Trash2, Plus, Minus } from 'lucide-react';
-import { formatCurrency } from '../utils/format';
+import { formatCurrency, getImageUrl } from '../utils/format';
 
 const Store = () => {
     const [productos, setProductos] = useState([]);
@@ -269,7 +269,7 @@ const Store = () => {
                                 <div className="h-24 -mx-3 -mt-3 mb-2 bg-gray-50 flex items-center justify-center relative border-b border-gray-100 overflow-hidden rounded-t-xl group">
                                     {prod.imagen_url ? (
                                         <img
-                                            src={`${API_BASE_URL}${prod.imagen_url}`}
+                                            src={getImageUrl(prod.imagen_url, API_BASE_URL)}
                                             alt={prod.nombre}
                                             className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform"
                                         />

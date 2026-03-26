@@ -5,16 +5,8 @@ const { verifyToken, isAdmin } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 
-// Configuración de Multer para fotos de habitaciones
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/habitaciones/');
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'room-' + uniqueSuffix + path.extname(file.originalname));
-    }
-});
+// Configuración de Multer para fotos de habitaciones (Memory Storage para Cloudinary)
+const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 

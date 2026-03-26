@@ -3,7 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
 import Swal from 'sweetalert2';
 import { Plus, Edit2, Trash2, Search, LayoutGrid, List, ChevronLeft, ChevronRight, Camera, X } from 'lucide-react';
-import { formatCurrency, cleanNumericValue } from '../utils/format';
+import { formatCurrency, cleanNumericValue, getImageUrl } from '../utils/format';
 import { usePermissions } from '../hooks/usePermissions';
 
 const Carousel = ({ photos }) => {
@@ -23,7 +23,7 @@ const Carousel = ({ photos }) => {
     return (
         <div className="relative w-full h-80 rounded-xl overflow-hidden group shadow-md">
             <img 
-                src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${photos[currentIndex]}`} 
+                src={getImageUrl(photos[currentIndex], import.meta.env.VITE_API_URL || 'http://localhost:5000')} 
                 alt="Habitación" 
                 className="w-full h-full object-cover transition-all duration-500"
             />
