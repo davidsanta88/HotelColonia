@@ -10,8 +10,21 @@ export default async function handler(req, res) {
     // URL DE DIGITAL OCEAN (Confirmada por el usuario como la actual)
     const baseUrl = 'https://whale-app-c75fy.ondigitalocean.app';
     
-    const cleanPath = path.replace(/^\/?api\//, '');
-    const targetUrl = `${baseUrl}/api/${cleanPath}`;
+    // The original `path` from `req.query` is used to construct the base target path.
+    // `req.url` includes the full path and query string from the client's request to this proxy.
+    // We need to ensure the `/api/` prefix is maintained for the backend.
+    // The `path` query parameter already represents the backend path, e.g., 'users/1'.
+    // So, the target URL should be `${baseUrl}/api/${path}`.
+    // Then, we append the timestamp to bypass caching.
+    
+    // Construct the base target URL using the 'path' query parameter
+    let targetUrl = `${baseUrl}/api/${path}`;
+
+    // Append the timestamp to bypass caching
+    targetUrl += targetUrl.includes('?') ? '&' : '?';
+    targetUrl += `v=${Date.now()}`;
+    
+    console.log(`Proxying ${req.method} to: ${targetUrl}`);
 
     try {
         const axiosConfig = {
