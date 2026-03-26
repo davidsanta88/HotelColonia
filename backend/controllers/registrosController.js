@@ -144,10 +144,68 @@ exports.createRegistro = async (req, res) => {
 
         await newReg.save();
         
-        // Actualizar estado de habitación
-        await Habitacion.findByIdAndUpdate(habitacion_id, { estado: 'ocupada' });
+        // 2. Marcar habitación como ocupada (USANDO ObjectId)
+        const EstadoHabitacion = require('../models/EstadoHabitacion');
+        const estadoOcupada = await EstadoHabitacion.findOne({ nombre: /ocupada/i });
+        if (estadoOcupada) {
+            await Habitacion.findByIdAndUpdate(habitacion_id, { 
+                estado: estadoOcupada._id,
+                estadoLimpieza: 'En Uso'
+            });
+        }
 
         res.status(201).json({ message: 'Registro creado con éxito', registro: newReg });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.checkout = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const registro = await Registro.findById(id);
+        if (!registro) return res.status(404).json({ message: 'Registro no encontrado' });
+
+        // 1. Finalizar registro
+        registro.estado = 'finalizado';
+        registro.fechaSalida = Date.now();
+        await registro.save();
+
+        // 2. Liberar habitación (Marcar como disponible pero SUCIA)
+        const EstadoHabitacion = require('../models/EstadoHabitacion');
+        const estadoDisponible = await EstadoHabitacion.findOne({ nombre: /disponible/i });
+        
+        await Habitacion.findByIdAndUpdate(registro.habitacion, { 
+            estado: estadoDisponible ? estadoDisponible._id : undefined,
+            estadoLimpieza: 'Sucia'
+        });
+
+        res.json({ message: 'Check-out realizado con éxito' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.anular = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const registro = await Registro.findById(id);
+        if (!registro) return res.status(404).json({ message: 'Registro no encontrado' });
+
+        // 1. Anular registro
+        registro.estado = 'cancelado';
+        await registro.save();
+
+        // 2. Liberar habitación (Volver a disponible y LIMPIA si fue error)
+        const EstadoHabitacion = require('../models/EstadoHabitacion');
+        const estadoDisponible = await EstadoHabitacion.findOne({ nombre: /disponible/i });
+        
+        await Habitacion.findByIdAndUpdate(registro.habitacion, { 
+            estado: estadoDisponible ? estadoDisponible._id : undefined,
+            estadoLimpieza: 'Limpia'
+        });
+
+        res.json({ message: 'Registro anulado con éxito' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
