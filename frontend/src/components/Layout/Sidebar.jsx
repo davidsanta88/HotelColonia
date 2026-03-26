@@ -57,7 +57,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         {
             title: 'Recepción y Reservas',
             items: [
-                { name: 'Nueva Reserva', path: '/solicitud-reserva', icon: <Plus size={20} />, code: 'reservas' },
                 { name: 'Check-in Digital QR', path: '/checkin-digital', icon: <QrCode size={20} />, code: 'checkin_digital' }
             ]
         },
