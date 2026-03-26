@@ -153,11 +153,12 @@ exports.getGastosPorPeriodo = async (req, res) => {
             {
                 $group: {
                     _id: { $dateToString: { format: "%Y-%m-%d", date: "$fecha" } },
-                    total: { $sum: "$monto" },
-                    count: { $sum: 1 }
+                    total_gastos: { $sum: "$monto" },
+                    num_gastos: { $sum: 1 }
                 }
             },
-            { $sort: { _id: 1 } }
+            { $sort: { _id: 1 } },
+            { $project: { fecha: "$_id", total_gastos: 1, num_gastos: 1, _id: 0 } }
         ]);
         res.json(report);
     } catch (err) {
@@ -171,10 +172,12 @@ exports.getGastosPorCategoria = async (req, res) => {
             {
                 $group: {
                     _id: "$categoria",
-                    total: { $sum: "$monto" }
+                    total: { $sum: "$monto" },
+                    cantidad: { $sum: 1 }
                 }
             },
-            { $sort: { total: -1 } }
+            { $sort: { total: -1 } },
+            { $project: { categoria: "$_id", total: 1, cantidad: 1, _id: 0 } }
         ]);
         res.json(report);
     } catch (err) {
@@ -188,12 +191,24 @@ exports.getVentasMensuales = async (req, res) => {
             {
                 $group: {
                     _id: { $dateToString: { format: "%Y-%m", date: "$fecha" } },
-                    total: { $sum: "$total" }
+                    total_ventas: { $sum: "$total" }
                 }
             },
-            { $sort: { _id: 1 } }
+            { $sort: { _id: 1 } },
+            { $limit: 6 }
         ]);
-        res.json(report);
+
+        const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+        const mapped = report.map(r => {
+            const [year, month] = r._id.split('-');
+            return {
+                mes: r._id,
+                mes_nombre: `${meses[parseInt(month)-1]} ${year.slice(2)}`,
+                total_ventas: r.total_ventas
+            };
+        });
+
+        res.json(mapped);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -201,14 +216,24 @@ exports.getVentasMensuales = async (req, res) => {
 
 exports.getIngresosHospedaje = async (req, res) => {
     try {
+        const { inicio, fin } = req.query;
+        const filter = {};
+        if (inicio || fin) {
+            filter.fechaCreacion = {};
+            if (inicio) filter.fechaCreacion.$gte = new Date(inicio);
+            if (fin) filter.fechaCreacion.$lte = new Date(fin + 'T23:59:59');
+        }
+
         const report = await Registro.aggregate([
+            { $match: filter },
             {
                 $group: {
-                    _id: { $dateToString: { format: "%Y-%m", date: "$fechaCreacion" } },
-                    total: { $sum: "$total" }
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$fechaCreacion" } },
+                    total_hospedaje: { $sum: "$total" }
                 }
             },
-            { $sort: { _id: 1 } }
+            { $sort: { _id: 1 } },
+            { $project: { fecha: "$_id", total_hospedaje: 1, _id: 0 } }
         ]);
         res.json(report);
     } catch (err) {
