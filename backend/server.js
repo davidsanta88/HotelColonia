@@ -33,6 +33,9 @@ app.use((req, res, next) => {
 const auditMiddleware = require('./middleware/auditMiddleware');
 const { verifyToken } = require('./middleware/auth');
 
+// Root route for initial health check
+app.get('/', (req, res) => res.send('Hotel System API is running (v1.2.0)'));
+
 // Ping route for deployment verification (Versioned)
 app.get('/api/ping', (req, res) => {
     res.json({ 
