@@ -84,12 +84,10 @@ const AppRoutes = () => {
                 <Route path="notas" element={<PrivateRoute code="notas"><Notas /></PrivateRoute>} />
                 <Route path="solicitudes" element={<Solicitudes />} />
                 <Route path="notificaciones" element={<PrivateRoute><ConfigNotificaciones /></PrivateRoute>} />
-                <Route path="aseo" element={<PrivateRoute><Housekeeping /></PrivateRoute>} />
                 <Route path="auditoria" element={<PrivateRoute><AuditLogs /></PrivateRoute>} />
                 <Route path="mantenimiento" element={<PrivateRoute><Mantenimiento /></PrivateRoute>} />
                 <Route path="checkin-digital" element={<PrivateRoute><CheckinAdmin /></PrivateRoute>} />
                 <Route path="estadisticas" element={<PrivateRoute><Estadisticas /></PrivateRoute>} />
-                <Route path="solicitud-reserva" element={<PrivateRoute code="reservas"><Reservas /></PrivateRoute>} />
             </Route>
             <Route path="/checkin" element={<CheckinPublico />} />
         </Routes>
