@@ -1,26 +1,28 @@
 const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
 
-// Prioritize CLOUDINARY_URL if available (Standard on many cloud platforms)
-if (process.env.CLOUDINARY_URL) {
+const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
+const api_key = process.env.CLOUDINARY_API_KEY;
+const api_secret = process.env.CLOUDINARY_API_SECRET;
+const cl_url = process.env.CLOUDINARY_URL;
+
+console.log('[CLOUDINARY-INIT] Environment Check:');
+console.log(`- CLOUDINARY_URL: ${cl_url ? 'PRESENT' : 'MISSING'}`);
+console.log(`- CLOUDINARY_CLOUD_NAME: ${cloud_name ? 'PRESENT' : 'MISSING'}`);
+console.log(`- CLOUDINARY_API_KEY: ${api_key ? 'PRESENT' : 'MISSING'}`);
+console.log(`- CLOUDINARY_API_SECRET: ${api_secret ? 'PRESENT' : 'MISSING'}`);
+
+if (cl_url) {
+    cloudinary.config({ secure: true });
+} else if (cloud_name && api_key && api_secret) {
     cloudinary.config({
+        cloud_name,
+        api_key,
+        api_secret,
         secure: true
     });
-    console.log('[CLOUDINARY] Configured using CLOUDINARY_URL environment variable.');
 } else {
-    // Fallback to individual keys
-    cloudinary.config({
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY,
-        api_secret: process.env.CLOUDINARY_API_SECRET,
-        secure: true
-    });
-    
-    if (process.env.CLOUDINARY_API_KEY) {
-        console.log('[CLOUDINARY] Configured using individual API keys.');
-    } else {
-        console.warn('[CLOUDINARY] WARNING: No configuration (CLOUDINARY_URL or keys) found! Image uploads will fail.');
-    }
+    console.error('[CLOUDINARY-INIT] ERROR: Incomplete configuration. Uploads will fail.');
 }
 
 module.exports = cloudinary;

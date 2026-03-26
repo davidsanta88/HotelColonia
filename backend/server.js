@@ -49,7 +49,13 @@ app.get('/api/ping', (req, res) => {
     res.json({ 
         status: 'UP', 
         version: '1.2.11 (Ultimate Compatibility)', 
-        time: new Date().toISOString()
+        time: new Date().toISOString(),
+        cloudinary: {
+            url: process.env.CLOUDINARY_URL ? 'PRESENT' : 'MISSING',
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'PRESENT' : 'MISSING',
+            api_key: process.env.CLOUDINARY_API_KEY ? 'PRESENT' : 'MISSING',
+            api_secret: process.env.CLOUDINARY_API_SECRET ? 'PRESENT' : 'MISSING'
+        }
     });
 });
 
