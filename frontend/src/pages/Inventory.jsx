@@ -18,6 +18,21 @@ const ToggleSwitch = ({ checked, onChange }) => (
     </button>
 );
 
+const ProductImage = ({ src, alt, className = "w-full h-full object-cover rounded-xl" }) => {
+    const [error, setError] = React.useState(false);
+    if (!src || error) {
+        return <Package className="text-gray-300" size={20} />;
+    }
+    return (
+        <img 
+            src={getImageUrl(src, API_BASE_URL)} 
+            alt={alt} 
+            className={className}
+            onError={() => setError(true)}
+        />
+    );
+};
+
 const Inventory = () => {
     const { user } = useContext(AuthContext);
     const { canEdit, canDelete } = usePermissions('inventario');
@@ -346,15 +361,7 @@ const Inventory = () => {
                                     <tr key={prod.id} className={`transition-colors ${prod.activo === false || prod.activo === 0 ? 'opacity-50 bg-gray-50' : 'hover:bg-gray-50'}`}>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="h-12 w-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center relative group">
-                                                {prod.imagen_url ? (
-                                                    <img 
-                                                        src={getImageUrl(prod.imagen_url, API_BASE_URL)} 
-                                                        alt={prod.nombre} 
-                                                        className="w-full h-full object-cover rounded-xl"
-                                                    />
-                                                ) : (
-                                                    <Package className="text-gray-300" size={20} />
-                                                )}
+                                                <ProductImage src={prod.imagen_url} alt={prod.nombre} />
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900 text-sm">{prod.nombre}</td>

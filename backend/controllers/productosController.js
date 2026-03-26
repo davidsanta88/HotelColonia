@@ -32,6 +32,7 @@ exports.createProducto = async (req, res) => {
         if (req.file) {
             const result = await streamUpload(req.file.buffer);
             imagen_url = result.secure_url;
+            console.log(`[CLOUDINARY] Product image uploaded: ${imagen_url}`);
         }
 
         const newProd = new Producto({
@@ -77,6 +78,7 @@ exports.updateProducto = async (req, res) => {
         if (req.file) {
             const result = await streamUpload(req.file.buffer);
             updateData.imagenUrl = result.secure_url;
+            console.log(`[CLOUDINARY] Product image updated: ${updateData.imagenUrl}`);
         }
 
         const updated = await Producto.findByIdAndUpdate(id, updateData, { new: true });
@@ -159,6 +161,7 @@ exports.uploadImagen = async (req, res) => {
             return res.status(404).json({ message: 'Producto no encontrado' });
         }
 
+        console.log(`[CLOUDINARY] Manual image upload success: ${result.secure_url}`);
         res.json({ message: 'Imagen subida con éxito', producto: product });
     } catch (err) {
         res.status(500).json({ message: err.message });

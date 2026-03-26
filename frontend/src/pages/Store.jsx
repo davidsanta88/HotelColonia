@@ -1,8 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import api, { API_BASE_URL } from '../services/api';
 import Swal from 'sweetalert2';
-import { ShoppingCart, Check, History, Eye, X, Receipt, Pencil, Trash2, Plus, Minus } from 'lucide-react';
 import { formatCurrency, getImageUrl } from '../utils/format';
+import { Package, ShoppingCart, Check, History, Eye, X, Receipt, Pencil, Trash2, Plus, Minus } from 'lucide-react';
+
+const ProductImage = ({ src, alt, className = "w-full h-full object-contain p-2 group-hover:scale-105 transition-transform" }) => {
+    const [error, setError] = React.useState(false);
+    if (!src || error) {
+        return <ShoppingCart size={40} className="text-gray-300" />;
+    }
+    return (
+        <img 
+            src={getImageUrl(src, API_BASE_URL)} 
+            alt={alt} 
+            className={className}
+            onError={() => setError(true)}
+        />
+    );
+};
 
 const Store = () => {
     const [productos, setProductos] = useState([]);
@@ -265,17 +280,8 @@ const Store = () => {
                             <div key={prod.id}
                                  className={`card p-3 transition-all flex flex-col justify-between h-[220px] relative border-2 ${cant > 0 ? 'border-primary-400 shadow-md bg-primary-50/10' : 'border-transparent hover:border-primary-200 hover:shadow-lg'}`}>
 
-                                {/* Imagen */}
                                 <div className="h-24 -mx-3 -mt-3 mb-2 bg-gray-50 flex items-center justify-center relative border-b border-gray-100 overflow-hidden rounded-t-xl group">
-                                    {prod.imagen_url ? (
-                                        <img
-                                            src={getImageUrl(prod.imagen_url, API_BASE_URL)}
-                                            alt={prod.nombre}
-                                            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform"
-                                        />
-                                    ) : (
-                                        <ShoppingCart size={40} className="text-gray-300" />
-                                    )}
+                                    <ProductImage src={prod.imagen_url} alt={prod.nombre} />
                                 </div>
 
                                 {/* Info */}
