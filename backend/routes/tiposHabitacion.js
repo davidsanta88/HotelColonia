@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const tiposHabitacionController = require('../controllers/tiposHabitacionController');
-const auth = require('../middleware/auth');
-const verifyToken = auth.verifyToken;
-const isAdmin = auth.isAdmin;
+const { verifyToken, isAdmin } = require('../middleware/auth');
 
 router.use(verifyToken); // Todas las rutas requieren autenticación
 

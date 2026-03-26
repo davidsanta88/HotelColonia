@@ -33,12 +33,15 @@ app.use((req, res, next) => {
 const auditMiddleware = require('./middleware/auditMiddleware');
 const { verifyToken } = require('./middleware/auth');
 
-// 0. DIAGNOSTICS
-app.get('/api/ping', (req, res) => res.json({ 
-    status: 'ok', 
-    time: new Date().toISOString(), 
-    version: '1.1.0 (Defensive Fixes)' 
-}));
+// Ping route for deployment verification (Versioned)
+app.get('/api/ping', (req, res) => {
+    res.json({ 
+        status: 'UP', 
+        version: '1.2.0 (Ultimate Compatibility)', 
+        time: new Date().toISOString(),
+        db: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+    });
+});
 
 // 1. PUBLIC ROUTES (No Token)
 app.use('/api/auth', require('./routes/auth'));
