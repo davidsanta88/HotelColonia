@@ -1,7 +1,5 @@
 const Nota = require('../models/Nota');
 
-const Nota = require('../models/Nota');
-
 exports.getAll = async (req, res) => {
     try {
         // Buscar notas enviadas POR el usuario O dirigidas AL usuario (o a todos)

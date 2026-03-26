@@ -1,5 +1,19 @@
 const Producto = require('../models/Producto');
-const fs = require('fs');
+const cloudinary = require('../config/cloudinary');
+
+// Helper para subir buffer a Cloudinary
+const streamUpload = (buffer) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder: 'productos' },
+            (error, result) => {
+                if (result) resolve(result);
+                else reject(error);
+            }
+        );
+        stream.end(buffer);
+    });
+};
 
 exports.getProductos = async (req, res) => {
     try {
@@ -12,12 +26,13 @@ exports.getProductos = async (req, res) => {
 
 exports.createProducto = async (req, res) => {
     try {
-        console.log('[DEBUG] createProducto BODY:', req.body);
-        console.log('[DEBUG] createProducto FILE:', req.file);
         const { nombre, categoria, precio, precio_compra, margen, stock, stock_minimo, descripcion, tipo_inventario } = req.body;
 
-
-        const imagen_url = req.file ? `/uploads/productos/${req.file.filename}` : null;
+        let imagen_url = null;
+        if (req.file) {
+            const result = await streamUpload(req.file.buffer);
+            imagen_url = result.secure_url;
+        }
 
         const newProd = new Producto({
             nombre: nombre.trim(),
@@ -33,7 +48,6 @@ exports.createProducto = async (req, res) => {
             usuarioCreacion: req.userName
         });
 
-
         await newProd.save();
         res.status(201).json({ message: 'Producto creado con éxito', producto: newProd });
     } catch (err) {
@@ -43,13 +57,8 @@ exports.createProducto = async (req, res) => {
 
 exports.updateProducto = async (req, res) => {
     try {
-        console.log('[DEBUG] updateProducto BODY:', req.body);
-        console.log('[DEBUG] updateProducto FILE:', req.file);
         const { id } = req.params;
         const { nombre, categoria, precio, precio_compra, margen, stock, stock_minimo, descripcion, tipo_inventario } = req.body;
-
-
-        const imagen_url = req.file ? `/uploads/productos/${req.file.filename}` : null;
 
         const updateData = {
             nombre: nombre.trim(),
@@ -65,8 +74,10 @@ exports.updateProducto = async (req, res) => {
             fechaModificacion: Date.now()
         };
 
-
-        if (imagen_url) updateData.imagenUrl = imagen_url;
+        if (req.file) {
+            const result = await streamUpload(req.file.buffer);
+            updateData.imagenUrl = result.secure_url;
+        }
 
         const updated = await Producto.findByIdAndUpdate(id, updateData, { new: true });
         res.json({ message: 'Producto actualizado con éxito', producto: updated });
@@ -92,7 +103,6 @@ exports.toggleActivo = async (req, res) => {
 exports.deleteProducto = async (req, res) => {
     try {
         const { id } = req.params;
-        // En MongoDB podrías verificar si el producto está referenciado en Ventas antes de borrar
         await Producto.findByIdAndDelete(id);
         res.json({ message: 'Producto eliminado' });
     } catch (err) {
@@ -138,9 +148,9 @@ exports.uploadImagen = async (req, res) => {
             return res.status(400).json({ message: 'No se subió ninguna imagen' });
         }
 
-        const imagen_url = `/uploads/productos/${req.file.filename}`;
+        const result = await streamUpload(req.file.buffer);
         const product = await Producto.findByIdAndUpdate(id, { 
-            imagenUrl: imagen_url,
+            imagenUrl: result.secure_url,
             usuarioModificacion: req.userName,
             fechaModificacion: Date.now()
         }, { new: true });
