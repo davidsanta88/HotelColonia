@@ -163,7 +163,8 @@ const Reservas = () => {
         setShowDetailModal(true);
         try {
             const res = await api.get(`/reservas/${r.id}/abonos`);
-            setAbonos(res.data);
+            // Mapear el ID de subdocumento de Mongo (_id) a lo que espera la UI (id)
+            setAbonos(res.data.map(a => ({ ...a, id: a._id || a.id })));
         } catch (err) {
             console.error('Error cargando abonos', err);
         }
@@ -210,7 +211,8 @@ const Reservas = () => {
                 api.get(`/reservas/${selectedReserva.id}/abonos`),
                 api.get('/reservas')
             ]);
-            setAbonos(resAbonos.data);
+            // Mapear IDs tras borrar
+            setAbonos(resAbonos.data.map(a => ({ ...a, id: a._id || a.id })));
             const updated = resReservas.data.find(r => r.id === selectedReserva.id);
             if (updated) setSelectedReserva(updated);
             setReservas(resReservas.data);

@@ -32,8 +32,8 @@ router.post('/', async (req, res) => {
         };
 
         reserva.abonos.push(nuevoAbono);
-        // Actualizar el valor_abonado acumulado (nombre correcto en el modelo)
-        reserva.valor_abonado = (reserva.valor_abonado || 0) + parseFloat(monto);
+        // Recalcular el valor_abonado completo para evitar desincronización
+        reserva.valor_abonado = reserva.abonos.reduce((total, a) => total + (parseFloat(a.monto) || 0), 0);
         
         await reserva.save();
         res.status(201).json({ message: 'Abono registrado correctamente', abonos: reserva.abonos });
@@ -51,8 +51,9 @@ router.delete('/:abonoId', async (req, res) => {
 
         const abono = reserva.abonos.id(abonoId);
         if (abono) {
-            reserva.valor_abonado = Math.max((reserva.valor_abonado || 0) - (parseFloat(abono.monto) || 0), 0);
-            abono.remove();
+            // Eliminar el abono y recalcular el total completo
+            reserva.abonos.pull(abonoId);
+            reserva.valor_abonado = reserva.abonos.reduce((total, a) => total + (parseFloat(a.monto) || 0), 0);
             await reserva.save();
         }
         
