@@ -2,8 +2,6 @@ const Municipio = require('../models/Municipio');
 
 exports.getMunicipios = async (req, res) => {
     try {
-        // Asegurar que todos tengan visualizar en true como pidió el usuario
-        await Municipio.updateMany({ visualizar: false }, { visualizar: true });
         const municipios = await Municipio.find().sort({ nombre: 1 });
         res.json(municipios);
     } catch (err) {
