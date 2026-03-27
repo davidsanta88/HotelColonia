@@ -1,4 +1,19 @@
 const Gasto = require('../models/Gasto');
+const cloudinary = require('../config/cloudinary');
+
+// Helper para subir buffer a Cloudinary
+const streamUpload = (buffer) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder: 'gastos' },
+            (error, result) => {
+                if (result) resolve(result);
+                else reject(error);
+            }
+        );
+        stream.end(buffer);
+    });
+};
 
 const gastosController = {
     getAllGastos: async (req, res) => {
@@ -25,13 +40,22 @@ const gastosController = {
     createGasto: async (req, res) => {
         try {
             const { concepto, categoria_id, monto, notas, fecha_gasto } = req.body;
+            
+            let comprobante_url = null;
+            if (req.file) {
+                const result = await streamUpload(req.file.buffer);
+                comprobante_url = result.secure_url;
+                console.log(`[CLOUDINARY] Expense image uploaded: ${comprobante_url}`);
+            }
+
             const newGasto = new Gasto({
                 descripcion: concepto,
                 categoria: categoria_id,
-                monto,
+                monto: parseFloat(monto) || 0,
                 observaciones: notas,
                 fecha: fecha_gasto || Date.now(),
-                usuario: req.userId
+                usuario: req.userId,
+                comprobante_url
             });
             await newGasto.save();
             res.status(201).json(newGasto);
@@ -43,7 +67,21 @@ const gastosController = {
     updateGasto: async (req, res) => {
         try {
             const { id } = req.params;
-            const updated = await Gasto.findByIdAndUpdate(id, req.body, { new: true });
+            const updateData = { ...req.body };
+            
+            // Mapeo de campos si vienen del frontend con nombres distintos
+            if (updateData.concepto) updateData.descripcion = updateData.concepto;
+            if (updateData.notas) updateData.observaciones = updateData.notas;
+            if (updateData.fecha_gasto) updateData.fecha = updateData.fecha_gasto;
+            if (updateData.categoria_id) updateData.categoria = updateData.categoria_id;
+
+            if (req.file) {
+                const result = await streamUpload(req.file.buffer);
+                updateData.comprobante_url = result.secure_url;
+                console.log(`[CLOUDINARY] Expense image updated: ${updateData.comprobante_url}`);
+            }
+
+            const updated = await Gasto.findByIdAndUpdate(id, updateData, { new: true });
             res.json(updated);
         } catch (error) {
             res.status(500).json({ message: 'Error al actualizar gasto', error: error.message });

@@ -198,7 +198,7 @@ const Notas = () => {
                                         </button>
                                     )}
                                     {canDelete && (
-                                        <button onClick={() => handleDelete(nota)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
+                                        <button onClick={() => handleDelete(nota.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
                                             <Trash2 size={16} />
                                         </button>
                                     )}

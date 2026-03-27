@@ -30,6 +30,16 @@ const solicitudesController = {
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
+    },
+
+    eliminarSolicitud: async (req, res) => {
+        try {
+            const { id } = req.params;
+            await SolicitudReserva.findByIdAndDelete(id);
+            res.json({ message: 'Solicitud eliminada' });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     }
 };
 

@@ -9,5 +9,6 @@ router.post('/', solicitudesController.crearSolicitud);
 // Rutas protegidas para administrador
 router.get('/', verifyToken, solicitudesController.getSolicitudes);
 router.put('/:id', verifyToken, solicitudesController.actualizarEstado);
+router.delete('/:id', verifyToken, solicitudesController.eliminarSolicitud);
 
 module.exports = router;

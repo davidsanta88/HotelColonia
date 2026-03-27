@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Phone, Mail, User, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { Phone, Mail, User, Calendar, CheckCircle, Clock, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import Swal from 'sweetalert2';
 
 const Solicitudes = () => {
     const [solicitudes, setSolicitudes] = useState([]);
@@ -31,6 +32,28 @@ const Solicitudes = () => {
         }
     };
 
+    const handleDelete = async (id) => {
+        const result = await Swal.fire({
+            title: '¿Eliminar solicitud?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await api.delete(`/solicitudes/${id}`);
+                Swal.fire('Eliminado!', 'La solicitud ha sido borrada.', 'success');
+                fetchSolicitudes();
+            } catch (error) {
+                Swal.fire('Error', 'No se pudo eliminar la solicitud', 'error');
+            }
+        }
+    };
+
     if (loading) return <div className="p-10 text-center animate-pulse text-gray-400 font-bold uppercase tracking-widest">Cargando solicitudes...</div>;
 
     return (
@@ -43,7 +66,7 @@ const Solicitudes = () => {
                 <div className="bg-primary-50 px-4 py-2 rounded-xl border border-primary-100 flex items-center gap-2">
                     <span className="w-2 h-2 bg-primary-600 rounded-full animate-ping" />
                     <span className="text-xs font-black text-primary-700 uppercase tracking-widest">
-                        {solicitudes.filter(s => s.estado === 'PENDIENTE').length} Pendientes
+                        {solicitudes.filter(s => s.estado?.toLowerCase() === 'pendiente').length} Pendientes
                     </span>
                 </div>
             </div>
@@ -55,7 +78,7 @@ const Solicitudes = () => {
                     </div>
                 ) : (
                     solicitudes.map((s) => (
-                        <div key={s.id} className={`bg-white rounded-2xl p-6 shadow-sm border-l-8 transition-all hover:shadow-md ${s.estado === 'PENDIENTE' ? 'border-accent-400' : 'border-gray-200'}`}>
+                        <div key={s.id} className={`bg-white rounded-2xl p-6 shadow-sm border-l-8 transition-all hover:shadow-md ${s.estado?.toLowerCase() === 'pendiente' ? 'border-accent-400' : 'border-gray-200'}`}>
                             <div className="flex flex-col lg:flex-row justify-between gap-6">
                                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                     <div className="flex items-start gap-3">
@@ -119,9 +142,9 @@ const Solicitudes = () => {
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    {s.estado === 'PENDIENTE' ? (
+                                    {(s.estado?.toLowerCase() === 'pendiente') ? (
                                         <button 
-                                            onClick={() => cambiarEstado(s.id, 'CONTACTADO')}
+                                            onClick={() => cambiarEstado(s.id, 'contactado')}
                                             className="whitespace-nowrap px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-primary-900/20"
                                         >
                                             Marcar como Contactado
@@ -132,6 +155,14 @@ const Solicitudes = () => {
                                             <span className="font-black text-xs uppercase tracking-widest">Contactado</span>
                                         </div>
                                     )}
+
+                                    <button 
+                                        onClick={() => handleDelete(s.id)}
+                                        className="p-3 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all"
+                                        title="Eliminar Solicitud"
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
                                 </div>
                             </div>
                             
