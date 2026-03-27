@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import api from '../services/api';
 import { Plus, Edit2, Trash2, Search, MessageSquare } from 'lucide-react';
+import Select from 'react-select';
 import Swal from 'sweetalert2';
 import { usePermissions } from '../hooks/usePermissions';
 
@@ -107,6 +105,41 @@ const Clientes = () => {
         c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
         c.documento.includes(searchTerm)
     );
+
+    // Opciones para el buscador de municipios
+    const municipioOptions = municipios
+        .filter(m => m.visualizar)
+        .map(m => ({
+            value: m.id,
+            label: m.nombre
+        }));
+
+    const selectedMunicipioOption = municipioOptions.find(opt => String(opt.value) === String(currentCliente.municipio_origen_id)) || null;
+
+    const selectStyles = {
+        control: (base, state) => ({
+            ...base,
+            border: state.isFocused ? '1px solid #3b82f6' : '1px solid #e5e7eb',
+            borderRadius: '0.75rem',
+            padding: '2px',
+            fontSize: '14px',
+            boxShadow: 'none',
+            '&:hover': { border: '1px solid #3b82f6' }
+        }),
+        option: (base, state) => ({
+            ...base,
+            fontSize: '13px',
+            backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#eff6ff' : 'white',
+            color: state.isSelected ? 'white' : '#374151',
+            padding: '10px'
+        }),
+        menu: (base) => ({
+            ...base,
+            borderRadius: '0.75rem',
+            overflow: 'hidden',
+            zIndex: 60
+        })
+    };
 
     if (loading) return <div className="p-8 text-center text-gray-500">Cargando clientes...</div>;
 
@@ -294,16 +327,15 @@ const Clientes = () => {
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Lugar de Origen</label>
-                                <select
-                                    className="input-field"
-                                    value={currentCliente.municipio_origen_id}
-                                    onChange={e => setCurrentCliente({...currentCliente, municipio_origen_id: e.target.value})}
-                                >
-                                    <option value="">Seleccione lugar de origen...</option>
-                                    {municipios.filter(m => m.visualizar).map(m => (
-                                        <option key={m.id} value={m.id}>{m.nombre}</option>
-                                    ))}
-                                </select>
+                                <Select
+                                    placeholder="Buscar ciudad/municipio..."
+                                    options={municipioOptions}
+                                    value={selectedMunicipioOption}
+                                    onChange={(opt) => setCurrentCliente({...currentCliente, municipio_origen_id: opt ? opt.value : ''})}
+                                    styles={selectStyles}
+                                    noOptionsMessage={() => "No se encontró el municipio"}
+                                    isClearable
+                                />
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-3 mt-6">
