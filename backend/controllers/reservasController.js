@@ -55,8 +55,21 @@ exports.createReserva = async (req, res) => {
             fechaInicio: fecha_entrada || rest.fechaInicio,
             fechaFin: fecha_salida || rest.fechaFin,
             usuarioCreacion: req.userName,
-            habitaciones: []
+            habitaciones: [],
+            abonos: []
         };
+
+        // Automatically register initial deposit in history if present
+        const montoInicial = parseFloat(payload.valor_abonado) || 0;
+        if (montoInicial > 0) {
+            payload.abonos = [{
+                monto: montoInicial,
+                medio_pago: 'Efectivo', // Default or from rest if present
+                notas: 'Abono inicial al registrar la reserva',
+                usuario_nombre: req.userName,
+                fecha: new Date()
+            }];
+        }
 
         if (habitaciones && Array.isArray(habitaciones)) {
             for (const h of habitaciones) {
