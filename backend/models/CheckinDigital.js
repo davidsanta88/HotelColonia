@@ -10,6 +10,7 @@ const checkinDigitalSchema = new mongoose.Schema({
     habitacionNumero: String,
     tipoDocumento: String,
     municipioId: { type: mongoose.Schema.Types.ObjectId, ref: 'Municipio' },
+    notas: { type: String, default: '' },
     estado: { type: String, enum: ['PENDIENTE', 'PROCESADO', 'CANCELADO'], default: 'PENDIENTE' },
     createdAt: { type: Date, default: Date.now }
 });

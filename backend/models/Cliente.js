@@ -8,6 +8,7 @@ const clienteSchema = new mongoose.Schema({
     telefono: String,
     direccion: String,
     municipio_origen_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Municipio' },
+    observaciones: String,
     fechaCreacion: { type: Date, default: Date.now },
     usuarioCreacion: String,
     usuarioModificacion: String,

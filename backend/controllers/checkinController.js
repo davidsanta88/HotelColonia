@@ -49,7 +49,8 @@ const checkinController = {
                         telefono: updated.celular,
                         documento: updated.documento,
                         tipo_documento: updated.tipoDocumento ? updated.tipoDocumento.toUpperCase() : 'CC',
-                        municipio_origen_id: updated.municipioId || null
+                        municipio_origen_id: updated.municipioId || null,
+                        observaciones: updated.notas || ''
                     },
                     { upsert: true, new: true }
                 );

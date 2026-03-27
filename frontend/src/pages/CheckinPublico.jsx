@@ -250,6 +250,20 @@ const CheckinPublico = () => {
                             </div>
                         </div>
 
+                        <div className="group space-y-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Notas / Observaciones Especiales</label>
+                            <div className="relative">
+                                <Mail className="absolute left-4 top-4 text-slate-300 group-focus-within:text-slate-950 transition-colors" size={18} />
+                                <textarea 
+                                    rows="3"
+                                    placeholder="Ej: Llegaré tarde, necesito cuna..."
+                                    value={formData.notas}
+                                    onChange={e => setFormData({...formData, notas: e.target.value})}
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-5 py-4 text-sm outline-none focus:bg-white focus:border-slate-900 transition-all font-medium"
+                                />
+                            </div>
+                        </div>
+
                         {status === 'ERROR' && (
                             <p className="text-red-500 text-xs font-bold text-center py-2 bg-red-50 rounded-xl border border-red-100 animate-in shake">
                                 {message}
