@@ -52,7 +52,7 @@ exports.getClientes = async (req, res) => {
 exports.createCliente = async (req, res) => {
     try {
         const payload = req.body;
-        const nombre = payload.nombre;
+        const nombre = payload.nombre ? payload.nombre.toUpperCase() : '';
         const documento = payload.documento || payload.documentoNumero;
         const tipo_documento = payload.tipo_documento || payload.documentoTipo;
         const telefono = payload.telefono;
@@ -96,7 +96,7 @@ exports.updateCliente = async (req, res) => {
         const cliente = await Cliente.findById(id);
         if (!cliente) return res.status(404).json({ message: 'Cliente no encontrado' });
 
-        cliente.nombre = payload.nombre;
+        cliente.nombre = payload.nombre ? payload.nombre.toUpperCase() : '';
         cliente.documento = payload.documento || payload.documentoNumero;
         cliente.tipo_documento = payload.tipo_documento || payload.documentoTipo;
         cliente.telefono = payload.telefono;

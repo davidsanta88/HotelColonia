@@ -45,9 +45,11 @@ const checkinController = {
                 await Cliente.findOneAndUpdate(
                     { documento: updated.documento },
                     { 
-                        nombre: updated.nombre,
+                        nombre: updated.nombre.toUpperCase(),
                         telefono: updated.celular,
-                        documento: updated.documento
+                        documento: updated.documento,
+                        tipo_documento: updated.tipoDocumento ? updated.tipoDocumento.toUpperCase() : 'CC',
+                        municipio_origen_id: updated.municipioId || null
                     },
                     { upsert: true, new: true }
                 );

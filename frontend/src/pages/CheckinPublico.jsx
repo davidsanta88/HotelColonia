@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
     User, 
@@ -17,21 +17,43 @@ const CheckinPublico = () => {
     const [formData, setFormData] = useState({
         nombre: '',
         documento: '',
+        tipoDocumento: 'CC',
         celular: '',
         correo: '',
         procedencia: '',
+        municipioId: '',
         fechaLlegada: new Date().toISOString().split('T')[0],
         habitacionNumero: ''
     });
     const [status, setStatus] = useState('IDLE'); // IDLE, LOADING, SUCCESS, ERROR
     const [message, setMessage] = useState('');
+    const [municipios, setMunicipios] = useState([]);
+
+    useEffect(() => {
+        const fetchMunicipios = async () => {
+            try {
+                const res = await axios.get('/api/municipios/public');
+                setMunicipios(res.data);
+            } catch (err) {
+                console.error('Error fetching municipios:', err);
+            }
+        };
+        fetchMunicipios();
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Buscar el nombre del municipio para guardarlo también en procedencia (compatibilidad)
+        const mun = municipios.find(m => m._id === formData.municipioId);
+        const submitData = {
+            ...formData,
+            procedencia: mun ? mun.nombre : formData.procedencia
+        };
+
         setStatus('LOADING');
         try {
-            // Usamos una ruta relativa para que funcione en cualquier dominio (local o nube)
-            await axios.post('/api/checkin-digital/public', formData);
+            await axios.post('/api/checkin-digital/public', submitData);
             setStatus('SUCCESS');
         } catch (err) {
             console.error('Error in public checkin:', err);
@@ -66,8 +88,8 @@ const CheckinPublico = () => {
     return (
         <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background decoration */}
-            <div className="absolute top-0 left-0 w-64 h-64 bg-primary-600/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-600/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
+            <div className="absolute top-0 left-0 w-64 h-64 bg-slate-800/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute bottom-0 right-0 w-96 h-96 bg-slate-800/20 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
 
             <div className="w-full max-w-md bg-white rounded-[3rem] shadow-2xl overflow-hidden relative z-10 animate-in slide-in-from-bottom-8 duration-700">
                 <div className="bg-slate-900 p-8 text-center space-y-2">
@@ -87,16 +109,31 @@ const CheckinPublico = () => {
                                 <input 
                                     required
                                     type="text" 
-                                    placeholder="Juan Pérez"
+                                    placeholder="JUAN PÉREZ"
                                     value={formData.nombre}
-                                    onChange={e => setFormData({...formData, nombre: e.target.value})}
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-5 py-4 text-sm outline-none focus:bg-white focus:border-slate-900 transition-all font-medium"
+                                    onChange={e => setFormData({...formData, nombre: e.target.value.toUpperCase()})}
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-5 py-4 text-sm outline-none focus:bg-white focus:border-slate-900 transition-all font-bold"
                                 />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="group space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Doc.</label>
+                                <select 
+                                    required
+                                    value={formData.tipoDocumento}
+                                    onChange={e => setFormData({...formData, tipoDocumento: e.target.value})}
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-4 text-sm outline-none focus:bg-white focus:border-slate-900 transition-all font-bold appearance-none cursor-pointer"
+                                >
+                                    <option value="CC">CÉDULA</option>
+                                    <option value="CE">EXTRANJERÍA</option>
+                                    <option value="PASAPORTE">PASAPORTE</option>
+                                    <option value="TI">T. IDENTIDAD</option>
+                                    <option value="NIT">NIT</option>
+                                </select>
+                            </div>
+                            <div className="group space-y-1 text-left">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Documento</label>
                                 <div className="relative">
                                     <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-950 transition-colors" size={18} />
@@ -110,34 +147,38 @@ const CheckinPublico = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="group space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Celular</label>
-                                <div className="relative">
-                                    <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-950 transition-colors" size={18} />
-                                    <input 
-                                        required
-                                        type="tel" 
-                                        placeholder="321..."
-                                        value={formData.celular}
-                                        onChange={e => setFormData({...formData, celular: e.target.value})}
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-5 py-4 text-sm outline-none focus:bg-white focus:border-slate-900 transition-all font-medium"
-                                    />
-                                </div>
+                        </div>
+
+                        <div className="group space-y-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Celular</label>
+                            <div className="relative">
+                                <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-950 transition-colors" size={18} />
+                                <input 
+                                    required
+                                    type="tel" 
+                                    placeholder="321..."
+                                    value={formData.celular}
+                                    onChange={e => setFormData({...formData, celular: e.target.value})}
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-5 py-4 text-sm outline-none focus:bg-white focus:border-slate-900 transition-all font-medium"
+                                />
                             </div>
                         </div>
 
                         <div className="group space-y-1">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ciudad de Procedencia</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ciudad de Origen / Municipio</label>
                             <div className="relative">
                                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-950 transition-colors" size={18} />
-                                <input 
+                                <select 
                                     required
-                                    type="text" 
-                                    placeholder="Bogotá, Manizales..."
-                                    value={formData.procedencia}
-                                    onChange={e => setFormData({...formData, procedencia: e.target.value})}
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-5 py-4 text-sm outline-none focus:bg-white focus:border-slate-900 transition-all font-medium"
-                                />
+                                    value={formData.municipioId}
+                                    onChange={e => setFormData({...formData, municipioId: e.target.value})}
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-5 py-4 text-sm outline-none focus:bg-white focus:border-slate-900 transition-all font-bold appearance-none cursor-pointer"
+                                >
+                                    <option value="">Selecciona tu ciudad...</option>
+                                    {municipios.map(m => (
+                                        <option key={m._id} value={m._id}>{m.nombre}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 

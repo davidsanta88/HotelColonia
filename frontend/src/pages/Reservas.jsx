@@ -586,10 +586,10 @@ const Reservas = () => {
                                                         value={formData.nuevoCliente.tipo_documento}
                                                         onChange={(e) => setFormData({...formData, nuevoCliente: {...formData.nuevoCliente, tipo_documento: e.target.value}})}
                                                     >
-                                                        <option value="CC">Cédula de Ciudadanía</option>
-                                                        <option value="CE">Cédula de Extranjería</option>
-                                                        <option value="TI">Tarjeta de Identidad</option>
-                                                        <option value="PP">Pasaporte</option>
+                                                        <option value="CC">CÉDULA DE CIUDADANÍA</option>
+                                                        <option value="CE">CÉDULA DE EXTRANJERÍA</option>
+                                                        <option value="TI">TARJETA DE IDENTIDAD</option>
+                                                        <option value="PP">PASAPORTE</option>
                                                     </select>
                                                 </div>
                                                 <div>

@@ -3,6 +3,7 @@ const router = express.Router();
 const municipiosController = require('../controllers/municipiosController');
 const { verifyToken, checkPermission } = require('../middleware/auth');
 
+router.get('/public', municipiosController.getPublicMunicipios);
 router.get('/', verifyToken, municipiosController.getMunicipios);
 router.post('/', [verifyToken, checkPermission('municipios', 'can_edit')], municipiosController.createMunicipio);
 router.put('/:id', [verifyToken, checkPermission('municipios', 'can_edit')], municipiosController.updateMunicipio);

@@ -252,10 +252,10 @@ const Clientes = () => {
                                         value={currentCliente.tipo_documento}
                                         onChange={e => setCurrentCliente({...currentCliente, tipo_documento: e.target.value})}
                                     >
-                                        <option value="CC">Cédula</option>
-                                        <option value="CE">Extranjería</option>
-                                        <option value="PASAPORTE">Pasaporte</option>
-                                        <option value="TI">T. Identidad</option>
+                                        <option value="CC">CÉDULA</option>
+                                        <option value="CE">EXTRANJERÍA</option>
+                                        <option value="PASAPORTE">PASAPORTE</option>
+                                        <option value="TI">T. IDENTIDAD</option>
                                         <option value="NIT">NIT</option>
                                     </select>
                                 </div>

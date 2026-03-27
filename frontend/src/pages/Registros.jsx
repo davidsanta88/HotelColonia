@@ -352,7 +352,7 @@ const Registros = () => {
         const diffTime = outDate - inDate;
         const diffDays = Math.max(Math.ceil(diffTime / (1000 * 60 * 60 * 24)), 1); // Al menos 1 noche
         
-        // Determinar precio según cantidad de personas (1 a 6)
+        // Determinar precio según
         const numPersonas = Math.min(Math.max(listLength, 1), 6);
         const pNoche = parseFloat(hab[`precio_${numPersonas}`]) || parseFloat(hab.precio_1) || 0;
         
@@ -594,12 +594,12 @@ const Registros = () => {
                                     <div className="sm:col-span-4">
                                         <label className="block text-xs font-medium text-gray-500 mb-1">Tipo Doc.</label>
                                         <select className="input-field text-sm" value={guestForm.tipo_documento} onChange={e => setGuestForm({...guestForm, tipo_documento: e.target.value})}>
-                                            <option value="CC">Cédula</option>
-                                            <option value="CE">Extranjería</option>
-                                            <option value="PASAPORTE">Pasaporte</option>
-                                            <option value="TI">T. Identidad</option>
+                                            <option value="CC">CÉDULA</option>
+                                            <option value="CE">EXTRANJERÍA</option>
+                                            <option value="PASAPORTE">PASAPORTE</option>
+                                            <option value="TI">T. IDENTIDAD</option>
                                             <option value="NIT">NIT</option>
-                                        </select>
+                                                                       </select>
                                     </div>
                                     <div className="sm:col-span-4">
                                         <label className="block text-xs font-medium text-gray-500 mb-1">Documento *</label>
