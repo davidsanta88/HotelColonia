@@ -126,7 +126,7 @@ const Landing = () => {
                     fecha: '', 
                     notas: '' 
                 }); 
-            }, 3000);
+            }, 5000);
         } catch (err) {
             console.error(err);
         } finally {
@@ -273,13 +273,13 @@ const Landing = () => {
                             <p className="text-white/50 text-xs mb-6">Déjanos tus datos y nos pondremos en contacto contigo para confirmar tu estadía.</p>
 
                             {sent ? (
-                                <div className="py-12 flex flex-col items-center text-center space-y-4">
-                                    <div className="w-16 h-16 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    <div className="py-20 flex flex-col items-center text-center space-y-6">
+                                        <div className="w-24 h-24 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
+                                        </div>
+                                        <h4 className="text-3xl font-black text-white">¡Reserva finalizada!</h4>
+                                        <p className="text-white/60 text-lg font-medium max-w-sm">Lo estaremos contactando lo más pronto posible. Gracias por elegirnos.</p>
                                     </div>
-                                    <h4 className="text-lg font-bold text-white">¡Reserva finalizada!</h4>
-                                    <p className="text-white/40 text-[10px]">Lo estaremos contactando lo más pronto posible. Gracias por elegirnos.</p>
-                                </div>
                             ) : (
                                 <form onSubmit={handleSumbit} className="space-y-3">
                                     <div className="grid grid-cols-2 gap-3">

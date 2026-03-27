@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { Phone, Mail, User, Calendar, CheckCircle, Clock, Trash2, UserPlus, FileText } from 'lucide-react';
