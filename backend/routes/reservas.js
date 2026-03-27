@@ -10,6 +10,7 @@ router.get('/', reservasController.getAllReservas);
 router.post('/', reservasController.createReserva);
 router.put('/:id', reservasController.updateReserva);
 router.patch('/:id/estado', reservasController.updateReservaStatus);
+router.delete('/:id', reservasController.deleteReserva);
 
 // Abonos sub-routes
 router.use('/:id/abonos', reservasAbonosRouter);
