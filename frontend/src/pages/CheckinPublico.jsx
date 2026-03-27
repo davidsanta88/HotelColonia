@@ -159,21 +159,6 @@ const CheckinPublico = () => {
                 <div className="p-8">
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="group space-y-1">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Habitación asignada</label>
-                            <div className="relative">
-                                <Hotel size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-950 transition-colors" />
-                                <input 
-                                    required
-                                    type="text" 
-                                    placeholder="Ej: 201"
-                                    value={formData.habitacionNumero}
-                                    onChange={e => setFormData({...formData, habitacionNumero: e.target.value})}
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-5 py-4 text-sm outline-none focus:bg-white focus:border-slate-900 transition-all font-medium"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="group space-y-1">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre Completo</label>
                             <div className="relative">
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-950 transition-colors" size={18} />
@@ -230,6 +215,21 @@ const CheckinPublico = () => {
                                     placeholder="321..."
                                     value={formData.celular}
                                     onChange={e => setFormData({...formData, celular: e.target.value})}
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-5 py-4 text-sm outline-none focus:bg-white focus:border-slate-900 transition-all font-medium"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="group space-y-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Habitación asignada</label>
+                            <div className="relative">
+                                <Hotel size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-950 transition-colors" />
+                                <input 
+                                    required
+                                    type="text" 
+                                    placeholder="Ej: 201"
+                                    value={formData.habitacionNumero}
+                                    onChange={e => setFormData({...formData, habitacionNumero: e.target.value})}
                                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-5 py-4 text-sm outline-none focus:bg-white focus:border-slate-900 transition-all font-medium"
                                 />
                             </div>

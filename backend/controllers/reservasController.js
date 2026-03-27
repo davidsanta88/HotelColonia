@@ -7,7 +7,7 @@ exports.getReservas = async (req, res) => {
             .populate('cliente')
             .populate('habitacion') // legacy
             .populate('habitaciones.habitacion') // new
-            .sort({ fecha_entrada: 1, fechaInicio: 1 });
+            .sort({ fechaCreacion: -1 });
         
         // Ensure every reservation has expected fields even if not migrated
         const formatted = reservas.map(r => {

@@ -2,7 +2,7 @@ const Cliente = require('../models/Cliente');
 
 exports.getClientes = async (req, res) => {
     try {
-        const clientes = await Cliente.find().populate('municipio_origen_id', 'nombre');
+        const clientes = await Cliente.find().populate('municipio_origen_id', 'nombre').sort({ fechaCreacion: -1 });
         const mappedClientes = [];
         for (const cRaw of clientes) {
             const c = cRaw.toObject ? cRaw.toObject() : cRaw;
