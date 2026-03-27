@@ -18,6 +18,10 @@ import { es } from 'date-fns/locale';
 const CheckinAdmin = () => {
     const [checkins, setCheckins] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showQrModal, setShowQrModal] = useState(false);
+
+    const publicUrl = `https://hotelbalconplaza.com/checkin`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(publicUrl)}`;
 
     useEffect(() => {
         fetchCheckins();
@@ -61,12 +65,22 @@ const CheckinAdmin = () => {
                     <p className="text-sm text-gray-500 mt-1">Solicitudes de ingreso enviadas por huéspedes desde su móvil</p>
                 </div>
                 
-                <button 
-                    onClick={fetchCheckins}
-                    className="p-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
-                >
-                    <RefreshCw size={20} className="text-gray-600" />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={() => setShowQrModal(true)}
+                        className="btn-primary py-2.5 px-6 flex items-center gap-2 shadow-lg hover:-translate-y-1 transition-all"
+                    >
+                        <QrCode size={20} />
+                        Ver Código QR
+                    </button>
+                    <button 
+                        onClick={fetchCheckins}
+                        className="p-2.5 bg-white border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
+                        title="Refrescar Lista"
+                    >
+                        <RefreshCw size={20} className="text-gray-400" />
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -129,6 +143,55 @@ const CheckinAdmin = () => {
                     <QrCode size={64} className="mx-auto text-gray-100 mb-6" />
                     <h3 className="text-xl font-black text-gray-900 tracking-tight">Sin registros pendientes</h3>
                     <p className="text-gray-400 text-sm font-medium mt-1">Los registros enviados vía QR aparecerán aquí.</p>
+                </div>
+            )}
+
+            {/* Modal de Código QR */}
+            {showQrModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="p-8 text-center space-y-6">
+                            <div className="space-y-2">
+                                <h3 className="text-2xl font-black text-gray-900">Código QR para Huéspedes</h3>
+                                <p className="text-sm text-gray-500 px-4">Muestra este código al huésped para que llene su ficha de ingreso digitalmente</p>
+                            </div>
+
+                            <div className="bg-gray-50 p-6 rounded-[2rem] border-2 border-dashed border-gray-200 inline-block mx-auto relative group">
+                                <img 
+                                    src={qrUrl} 
+                                    alt="QR Checkin" 
+                                    className="w-64 h-64 object-contain"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/40">
+                                   <Smartphone size={32} className="text-primary-600 animate-bounce" />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4 pt-4">
+                                <div className="space-y-2 text-center">
+                                    <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto text-xs font-black">1</div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Escanea</p>
+                                </div>
+                                <div className="space-y-2 text-center">
+                                    <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center mx-auto text-xs font-black">2</div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Registra</p>
+                                </div>
+                                <div className="space-y-2 text-center">
+                                    <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto text-xs font-black">3</div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Procesa</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-gray-50 border-t border-gray-100">
+                            <button 
+                                onClick={() => setShowQrModal(false)}
+                                className="w-full bg-slate-900 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl hover:bg-slate-800 transition-all"
+                            >
+                                Entendido
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
