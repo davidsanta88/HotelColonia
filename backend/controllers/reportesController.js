@@ -102,7 +102,7 @@ exports.getResumenGeneral = async (req, res) => {
         ]);
         const ventas_hoy = ventas_hoy_res[0] ? ventas_hoy_res[0].total : 0;
 
-        // Sumar pagos de registros realizados hoy
+        // Sumar pagos de registros recibidos hoy (Caja Real)
         const pagos_hospedaje_hoy = await Registro.aggregate([
             { $unwind: "$pagos" },
             { $match: { "pagos.fecha": { $gte: hoy, $lt: mañana } } },
@@ -305,17 +305,18 @@ exports.getIngresosHospedaje = async (req, res) => {
         const { inicio, fin } = req.query;
         const filter = {};
         if (inicio || fin) {
-            filter.fechaCreacion = {};
-            if (inicio) filter.fechaCreacion.$gte = new Date(inicio);
-            if (fin) filter.fechaCreacion.$lte = new Date(fin + 'T23:59:59');
+            filter["pagos.fecha"] = {};
+            if (inicio) filter["pagos.fecha"].$gte = new Date(inicio);
+            if (fin) filter["pagos.fecha"].$lte = new Date(fin + 'T23:59:59');
         }
 
         const report = await Registro.aggregate([
+            { $unwind: "$pagos" },
             { $match: filter },
             {
                 $group: {
-                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$fechaCreacion" } },
-                    total_hospedaje: { $sum: "$total" }
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$pagos.fecha" } },
+                    total_hospedaje: { $sum: "$pagos.monto" }
                 }
             },
             { $sort: { _id: 1 } },

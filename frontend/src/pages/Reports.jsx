@@ -65,26 +65,39 @@ const Reports = () => {
 
     const fetchAll = useCallback(async () => {
         setLoading(true);
+        const q = `inicio=${dates.inicio}&fin=${dates.fin}`;
+        
+        // Peticiones individuales para que una falla no bloquee a las demás
+        const fetchItem = async (url) => {
+            try {
+                const res = await api.get(url);
+                return res.data;
+            } catch (err) {
+                console.error(`Error en reporte ${url}:`, err);
+                return Array.isArray(await api.defaults.baseURL) ? [] : null; // Fallback seguro
+            }
+        };
+
         try {
-            const q = `inicio=${dates.inicio}&fin=${dates.fin}`;
             const [rVentas, rGastos, rHosp, rCat, rMensual, rTop, rResumen, rManual] = await Promise.all([
-                api.get(`/reportes/ventas?${q}`),
-                api.get(`/reportes/gastos-periodo?${q}`),
-                api.get(`/reportes/ingresos-hospedaje?${q}`),
-                api.get(`/reportes/gastos-categoria?${q}`),
-                api.get('/reportes/ventas-mensuales'),
-                api.get('/reportes/productos-mas-vendidos'),
-                api.get('/reportes/resumen'),
-                api.get(`/reportes/ingresos-manuales?${q}`),
+                fetchItem(`/reportes/ventas?${q}`),
+                fetchItem(`/reportes/gastos-periodo?${q}`),
+                fetchItem(`/reportes/ingresos-hospedaje?${q}`),
+                fetchItem(`/reportes/gastos-categoria?${q}`),
+                fetchItem(`/reportes/ventas-mensuales`),
+                fetchItem(`/reportes/productos-mas-vendidos`),
+                fetchItem(`/reportes/resumen`),
+                fetchItem(`/reportes/ingresos-manuales?${q}`),
             ]);
-            setVentasDiarias(rVentas.data);
-            setGastosDiarios(rGastos.data);
-            setHospedajeDiario(rHosp.data);
-            setManualIncomesDiarios(rManual.data || []);
-            setGastosCat(rCat.data);
-            setVentasMensuales(rMensual.data);
-            setProductosTop(rTop.data.slice(0, 8));
-            setResumen(rResumen.data);
+
+            setVentasDiarias(rVentas || []);
+            setGastosDiarios(rGastos || []);
+            setHospedajeDiario(rHosp || []);
+            setManualIncomesDiarios(rManual || []);
+            setGastosCat(rCat || []);
+            setVentasMensuales(rMensual || []);
+            setProductosTop((rTop || []).slice(0, 8));
+            setResumen(rResumen);
         } catch (e) {
             console.error('Error cargando analytics:', e);
         } finally {
