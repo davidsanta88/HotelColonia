@@ -13,8 +13,9 @@ import {
     RefreshCw,
     QrCode
 } from 'lucide-react';
-import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Swal from 'sweetalert2';
+import { Trash2 } from 'lucide-react';
 
 const CheckinAdmin = () => {
     const navigate = useNavigate();
@@ -45,22 +46,50 @@ const CheckinAdmin = () => {
         try {
             await api.put(`/checkin-digital/${id}`, { estado: status });
             if (status === 'PROCESADO') {
+                await Swal.fire({
+                    icon: 'success',
+                    title: '¡Procesado!',
+                    text: 'El registro se ha procesado con éxito. Ya puedes encontrarlo en la pantalla de Clientes.',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
                 navigate('/clientes');
             } else {
                 fetchCheckins();
             }
         } catch (err) {
             console.error('Error updating status:', err);
+            Swal.fire('Error', 'No se pudo procesar el registro', 'error');
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('¿Seguro que deseas eliminar este registro del historial?')) return;
+        const result = await Swal.fire({
+            title: '¿Eliminar registro?',
+            text: 'Esta acción no se puede deshacer y el registro desaparecerá del todo.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) return;
+
         try {
             await api.delete(`/checkin-digital/${id}`);
-            fetchCheckins();
+            setCheckins(prev => prev.filter(c => c._id !== id && c.id !== id));
+            Swal.fire({
+                icon: 'success',
+                title: 'Eliminado',
+                text: 'El registro ha sido eliminado correctamente.',
+                timer: 1500,
+                showConfirmButton: false
+            });
         } catch (err) {
             console.error('Error deleting checkin:', err);
+            Swal.fire('Error', 'No se pudo eliminar el registro', 'error');
         }
     };
 
@@ -156,8 +185,8 @@ const CheckinAdmin = () => {
 
                         <div className="p-4 bg-gray-50 border-t border-gray-100 grid grid-cols-2 gap-4">
                             <button 
-                                onClick={() => handleStatus(item.id, 'PROCESADO')}
-                                className="bg-white border border-gray-200 text-gray-400 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:text-red-500 hover:bg-white transition-all flex items-center justify-center gap-2"
+                                onClick={() => handleDelete(item._id || item.id)}
+                                className="bg-white border border-gray-200 text-gray-400 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:text-red-500 hover:border-red-100 hover:bg-red-50 transition-all flex items-center justify-center gap-2"
                             >
                                 <XCircle size={16} />
                                 Descartar
