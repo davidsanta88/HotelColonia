@@ -290,12 +290,6 @@ const Landing = () => {
                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-accent-500/50 transition-all text-sm uppercase" />
                                         </div>
                                         <div>
-                                            <label className="block text-[9px] font-black uppercase tracking-widest text-white/40 mb-1.5 ml-1">Celular / WhatsApp</label>
-                                            <input type="tel" required placeholder="+57 ---" 
-                                                   value={formData.celular} onChange={e => setFormData({...formData, celular: e.target.value})}
-                                                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-accent-500/50 transition-all text-sm" />
-                                        </div>
-                                        <div>
                                             <label className="block text-[9px] font-black uppercase tracking-widest text-white/40 mb-1.5 ml-1">Tipo de Documento</label>
                                             <select 
                                                 value={formData.tipoDocumento} 
@@ -313,6 +307,12 @@ const Landing = () => {
                                             <label className="block text-[9px] font-black uppercase tracking-widest text-white/40 mb-1.5 ml-1">Número de Documento</label>
                                             <input type="text" required placeholder="N° Documento" 
                                                    value={formData.documento} onChange={e => setFormData({...formData, documento: e.target.value})}
+                                                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-accent-500/50 transition-all text-sm" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[9px] font-black uppercase tracking-widest text-white/40 mb-1.5 ml-1">Celular / WhatsApp</label>
+                                            <input type="tel" required placeholder="+57 ---" 
+                                                   value={formData.celular} onChange={e => setFormData({...formData, celular: e.target.value})}
                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-accent-500/50 transition-all text-sm" />
                                         </div>
                                         <div>
