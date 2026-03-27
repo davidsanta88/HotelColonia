@@ -6,7 +6,7 @@ exports.getRegistros = async (req, res) => {
     try {
         const registros = await Registro.find()
             .populate('habitacion', 'numero')
-            .populate('cliente', 'nombre documento')
+            .populate('cliente', 'nombre documento telefono')
             .sort({ fechaCreacion: -1 });
         
         // Mapeo para compatibilidad total con el frontend
@@ -19,6 +19,7 @@ exports.getRegistros = async (req, res) => {
                 fecha_salida: raw.fecha_salida || raw.fechaSalida || raw.fechaEntrada || raw.fechaCreacion,
                 nombre_cliente: raw.nombre_cliente || (raw.cliente ? raw.cliente.nombre : 'Sín Nombre'),
                 documento_cliente: raw.documento_cliente || (raw.cliente ? raw.cliente.documento : '-'),
+                telefono_cliente: raw.telefono_cliente || (raw.cliente ? raw.cliente.telefono : ''),
                 numero_habitacion: raw.numero_habitacion || (raw.habitacion ? raw.habitacion.numero : '?'),
                 tipo_registro_nombre: raw.tipo_registro_nombre || 'Formal'
             };
@@ -34,7 +35,7 @@ exports.getActiveRegistros = async (req, res) => {
     try {
         const registros = await Registro.find({ estado: 'activo' })
             .populate('habitacion', 'numero')
-            .populate('cliente', 'nombre documento')
+            .populate('cliente', 'nombre documento telefono')
             .sort({ fechaCreacion: -1 });
             
         const mapped = registros.map(r => {
@@ -46,6 +47,7 @@ exports.getActiveRegistros = async (req, res) => {
                 fecha_salida: raw.fecha_salida || raw.fechaSalida || raw.fechaEntrada || raw.fechaCreacion,
                 nombre_cliente: raw.nombre_cliente || (raw.cliente ? raw.cliente.nombre : 'Sín Nombre'),
                 documento_cliente: raw.documento_cliente || (raw.cliente ? raw.cliente.documento : '-'),
+                telefono_cliente: raw.telefono_cliente || (raw.cliente ? raw.cliente.telefono : ''),
                 numero_habitacion: raw.numero_habitacion || (raw.habitacion ? raw.habitacion.numero : '?')
             };
         });

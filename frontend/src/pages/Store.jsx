@@ -221,6 +221,32 @@ const Store = () => {
         }
     };
 
+    const handleDeleteVenta = async (id) => {
+        const result = await Swal.fire({
+            title: '¿Eliminar venta?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await api.delete(`/ventas/${id}`);
+                Swal.fire('Eliminada!', 'La venta ha sido eliminada.', 'success');
+                // Refrescar historial
+                const response = await api.get('/ventas');
+                setVentasHistorial(response.data);
+                if (selectedVenta?.id === id) setSelectedVenta(null);
+            } catch (error) {
+                Swal.fire('Error', 'No se pudo eliminar la venta', 'error');
+            }
+        }
+    };
+
     const productosFiltrados = productos.filter(p => 
         p.tipo_inventario === 'venta' && 
         (p.activo === true || p.activo === 1) &&
@@ -520,6 +546,13 @@ const Store = () => {
                                                                 title="Editar Venta"
                                                             >
                                                                 <Pencil size={18} />
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleDeleteVenta(venta.id)}
+                                                                className="inline-flex items-center justify-center p-2 text-red-600 hover:text-white hover:bg-red-500 rounded-lg transition-all"
+                                                                title="Eliminar Venta"
+                                                            >
+                                                                <Trash2 size={18} />
                                                             </button>
                                                         </div>
                                                     </td>

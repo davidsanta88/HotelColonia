@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Swal from 'sweetalert2';
 import { format } from 'date-fns';
-import { Plus, CheckCircle, XCircle, Search, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, Search, Eye, Edit, Trash2, Phone, MessageCircle } from 'lucide-react';
 import { formatCurrency, cleanNumericValue } from '../utils/format';
 import useTableData from '../hooks/useTableData';
 import Pagination from '../components/common/Pagination';
@@ -469,8 +469,23 @@ const Registros = () => {
                                 {registros.map((res) => (
                                     <tr key={res.id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">{res.nombre_cliente}</div>
-                                            <div className="text-sm text-gray-500">ID: {res.id}</div>
+                                            <div className="text-sm font-bold text-gray-900 uppercase">{res.nombre_cliente}</div>
+                                            {res.telefono_cliente && (
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <div className="text-xs text-blue-600 flex items-center gap-1">
+                                                        <Phone size={10} /> {res.telefono_cliente}
+                                                    </div>
+                                                    <a 
+                                                        href={`https://wa.me/${res.telefono_cliente.replace(/\D/g, '')}`} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="text-green-500 hover:text-green-600 transition-colors"
+                                                        title="Contactar por WhatsApp"
+                                                    >
+                                                        <MessageCircle size={14} />
+                                                    </a>
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{res.numero_habitacion}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

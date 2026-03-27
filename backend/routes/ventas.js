@@ -11,5 +11,6 @@ router.put('/:id', verifyToken, ventasController.updateVenta);
 // Consumos por habitación
 router.post('/consumo', verifyToken, ventasController.createConsumoHabitacion);
 router.get('/consumo/:registro_id', verifyToken, ventasController.getConsumosByRegistro);
+router.delete('/:id', verifyToken, ventasController.deleteVenta);
 
 module.exports = router;
