@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Select from 'react-select';
 import { 
     User, 
     Smartphone, 
@@ -28,12 +29,18 @@ const CheckinPublico = () => {
     const [status, setStatus] = useState('IDLE'); // IDLE, LOADING, SUCCESS, ERROR
     const [message, setMessage] = useState('');
     const [municipios, setMunicipios] = useState([]);
+    const [selectedMunicipio, setSelectedMunicipio] = useState(null);
 
     useEffect(() => {
         const fetchMunicipios = async () => {
             try {
                 const res = await axios.get('/api/municipios/public');
-                setMunicipios(res.data);
+                // Formatear para react-select
+                const options = res.data.map(m => ({
+                    value: m._id,
+                    label: m.nombre // Ya viene como "DEPARTAMENTO - MUNICIPIO"
+                }));
+                setMunicipios(options);
             } catch (err) {
                 console.error('Error fetching municipios:', err);
             }
@@ -44,12 +51,17 @@ const CheckinPublico = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Buscar el nombre del municipio para guardarlo también en procedencia (compatibilidad)
-        const mun = municipios.find(m => m._id === formData.municipioId);
         const submitData = {
             ...formData,
-            procedencia: mun ? mun.nombre : formData.procedencia
+            municipioId: selectedMunicipio ? selectedMunicipio.value : '',
+            procedencia: selectedMunicipio ? selectedMunicipio.label : ''
         };
+
+        if (!submitData.municipioId) {
+            setStatus('ERROR');
+            setMessage('Por favor selecciona tu ciudad de procedencia.');
+            return;
+        }
 
         setStatus('LOADING');
         try {
@@ -60,6 +72,49 @@ const CheckinPublico = () => {
             setStatus('ERROR');
             setMessage('Hubo un error al enviar el registro. Por favor, intenta de nuevo.');
         }
+    };
+
+    // Estilos personalizados para react-select
+    const customStyles = {
+        control: (base, state) => ({
+            ...base,
+            backgroundColor: '#f8fafc', // slate-50
+            border: state.isFocused ? '1px solid #0f172a' : '1px solid #f1f5f9',
+            borderRadius: '1rem',
+            padding: '4px 8px 4px 40px',
+            fontSize: '0.875rem',
+            boxShadow: 'none',
+            '&:hover': {
+                border: '1px solid #0f172a'
+            }
+        }),
+        option: (base, state) => ({
+            ...base,
+            backgroundColor: state.isSelected ? '#0f172a' : state.isFocused ? '#f1f5f9' : 'white',
+            color: state.isSelected ? 'white' : '#475569',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            padding: '12px'
+        }),
+        placeholder: (base) => ({
+            ...base,
+            color: '#cbd5e1',
+            fontWeight: '500'
+        }),
+        singleValue: (base) => ({
+            ...base,
+            color: '#0f172a',
+            fontWeight: '700',
+            textTransform: 'uppercase'
+        }),
+        menu: (base) => ({
+            ...base,
+            borderRadius: '1.5rem',
+            overflow: 'hidden',
+            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+            border: '1px solid #f1f5f9'
+        })
     };
 
     if (status === 'SUCCESS') {
@@ -167,18 +222,16 @@ const CheckinPublico = () => {
                         <div className="group space-y-1">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ciudad de Origen / Municipio</label>
                             <div className="relative">
-                                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-950 transition-colors" size={18} />
-                                <select 
-                                    required
-                                    value={formData.municipioId}
-                                    onChange={e => setFormData({...formData, municipioId: e.target.value})}
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-5 py-4 text-sm outline-none focus:bg-white focus:border-slate-900 transition-all font-bold appearance-none cursor-pointer"
-                                >
-                                    <option value="">Selecciona tu ciudad...</option>
-                                    {municipios.map(m => (
-                                        <option key={m._id} value={m._id}>{m.nombre}</option>
-                                    ))}
-                                </select>
+                                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 z-10" size={18} />
+                                <Select 
+                                    placeholder="Busca tu ciudad..."
+                                    options={municipios}
+                                    value={selectedMunicipio}
+                                    onChange={setSelectedMunicipio}
+                                    styles={customStyles}
+                                    noOptionsMessage={() => "No se encontró el municipio"}
+                                    className="relative z-0"
+                                />
                             </div>
                         </div>
 
