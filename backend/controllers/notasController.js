@@ -13,7 +13,7 @@ exports.getAll = async (req, res) => {
 
         const list = await Nota.find(query)
             .populate('usuario', 'nombre')
-            .populate('usuarioDestino', 'nombre')
+            .populate('usuariosDestino', 'nombre')
             .sort({ fechaAlerta: -1, fecha: -1 });
 
         // Mapeo para el frontend (Snake_case)
@@ -27,9 +27,9 @@ exports.getAll = async (req, res) => {
                 fecha_alerta: doc.fechaAlerta || doc.fecha,
                 usuario_creacion_id: doc.usuario?._id || '',
                 usuario_creacion_nombre: doc.usuario?.nombre || 'Personal',
-                usuario_destino_id: doc.usuarioDestino?._id || null,
-                usuario_destino_nombre: doc.usuarioDestino?.nombre || 'Todos',
-                leida: doc.leida || false
+                usuarios_destino: doc.usuariosDestino?.map(u => ({ id: u._id, nombre: u.nombre })) || [],
+                leida: doc.leidasPor?.some(uid => uid.toString() === req.userId) || false,
+                leidas_por: doc.leidasPor || []
             };
         });
 
@@ -46,7 +46,7 @@ exports.create = async (req, res) => {
             descripcion: req.body.descripcion,
             prioridad: req.body.prioridad || 'Normal',
             fechaAlerta: req.body.fecha_alerta || new Date(),
-            usuarioDestino: req.body.usuario_destino_id || null,
+            usuariosDestino: req.body.usuarios_destino_ids || (req.body.usuario_destino_id ? [req.body.usuario_destino_id] : []),
             usuario: req.userId
         };
 
@@ -65,7 +65,7 @@ exports.update = async (req, res) => {
         
         // Aliasing
         if (update.fecha_alerta) update.fechaAlerta = update.fecha_alerta;
-        if (update.usuario_destino_id) update.usuarioDestino = update.usuario_destino_id;
+        if (update.usuarios_destino_ids) update.usuariosDestino = update.usuarios_destino_ids;
 
         const updated = await Nota.findByIdAndUpdate(id, update, { new: true });
         res.json(updated);
@@ -88,11 +88,16 @@ exports.delete = async (req, res) => {
 exports.getMyAlerts = async (req, res) => {
     try {
         const query = {
-            $or: [
-                { usuarioDestino: req.userId },
-                { usuarioDestino: null }
-            ],
-            leida: { $ne: true }
+            $and: [
+                {
+                    $or: [
+                        { usuariosDestino: req.userId }, 
+                        { usuariosDestino: { $size: 0 } }, // For everyone
+                        { usuariosDestino: null }
+                    ]
+                },
+                { leidasPor: { $ne: req.userId } } // Not read by this user
+            ]
         };
 
         const list = await Nota.find(query)
@@ -108,7 +113,7 @@ exports.getMyAlerts = async (req, res) => {
                 prioridad: doc.prioridad || 'Normal',
                 fecha_alerta: doc.fechaAlerta || doc.fecha,
                 usuario_creacion_nombre: doc.usuario?.nombre || 'Personal',
-                leida: doc.leida || false
+                leida: false
             };
         });
 
@@ -121,7 +126,9 @@ exports.getMyAlerts = async (req, res) => {
 exports.markAsRead = async (req, res) => {
     try {
         const { id } = req.params;
-        await Nota.findByIdAndUpdate(id, { leida: true });
+        await Nota.findByIdAndUpdate(id, { 
+            $addToSet: { leidasPor: req.userId } 
+        });
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ message: err.message });

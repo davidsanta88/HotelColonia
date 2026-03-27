@@ -6,8 +6,8 @@ const notaSchema = new mongoose.Schema({
     prioridad: { type: String, enum: ['Normal', 'Alta', 'Urgente'], default: 'Normal' },
     fechaAlerta: { type: Date, default: Date.now },
     usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true }, // Creador
-    usuarioDestino: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null }, // Null = Todos
-    leida: { type: Boolean, default: false },
+    usuariosDestino: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' }], // Array = Uno o Varios. Vacío = Todos.
+    leidasPor: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' }], // Track individual read status
     fecha: { type: Date, default: Date.now }
 });
 

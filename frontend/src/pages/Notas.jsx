@@ -20,7 +20,7 @@ const Notas = () => {
         titulo: '',
         descripcion: '',
         fecha_alerta: new Date().toISOString().split('T')[0],
-        usuario_destino_id: '',
+        usuarios_destino_ids: [],
         prioridad: 'Normal'
     });
 
@@ -93,7 +93,7 @@ const Notas = () => {
             titulo: nota.titulo,
             descripcion: nota.descripcion,
             fecha_alerta: nota.fecha_alerta.split('T')[0],
-            usuario_destino_id: nota.usuario_destino_id || '',
+            usuarios_destino_ids: nota.usuarios_destino?.map(u => u.id) || [],
             prioridad: nota.prioridad
         });
         setShowModal(true);
@@ -105,7 +105,7 @@ const Notas = () => {
             titulo: '',
             descripcion: '',
             fecha_alerta: new Date().toISOString().split('T')[0],
-            usuario_destino_id: '',
+            usuarios_destino_ids: [],
             prioridad: 'Normal'
         });
     };
@@ -115,7 +115,10 @@ const Notas = () => {
                             n.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
         
         if (filter === 'sent') return matchesSearch && n.usuario_creacion_id === user.id;
-        if (filter === 'received') return matchesSearch && (n.usuario_destino_id === user.id || n.usuario_destino_id === null);
+        if (filter === 'received') {
+            const isForMe = n.usuarios_destino?.some(u => u.id === user.id) || n.usuarios_destino?.length === 0;
+            return matchesSearch && isForMe;
+        }
         return matchesSearch;
     });
 
@@ -211,9 +214,9 @@ const Notas = () => {
                             </p>
                             
                             <div className="mt-6 pt-6 border-t border-gray-50 space-y-3">
-                                <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                    <Users size={12} className="text-blue-500" />
-                                    Para: {nota.usuario_destino_nombre || 'Todos'}
+                                <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest leading-relaxed">
+                                    <Users size={12} className="text-blue-500 shrink-0" />
+                                    <span>Para: {nota.usuarios_destino?.length > 0 ? nota.usuarios_destino.map(u => u.nombre).join(', ') : 'Todos los usuarios'}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
                                     <User size={12} className="text-emerald-500" />
@@ -297,17 +300,43 @@ const Notas = () => {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Asignar a:</label>
-                                <select 
-                                    className="w-full px-4 py-3 rounded-2xl border border-gray-100 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none font-bold text-gray-700"
-                                    value={formData.usuario_destino_id}
-                                    onChange={(e) => setFormData({...formData, usuario_destino_id: e.target.value})}
-                                >
-                                    <option value="">Todos los usuarios</option>
-                                    {usuarios.map(u => (
-                                        <option key={u.id} value={u.id}>{u.nombre}</option>
-                                    ))}
-                                </select>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Asignar a (Uno o Varios):</label>
+                                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 max-h-40 overflow-y-auto space-y-2 custom-scrollbar">
+                                    <label className="flex items-center gap-3 p-2 hover:bg-white rounded-xl transition-colors cursor-pointer group">
+                                        <input 
+                                            type="checkbox" 
+                                            className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            checked={formData.usuarios_destino_ids.length === 0}
+                                            onChange={() => setFormData({...formData, usuarios_destino_ids: []})}
+                                        />
+                                        <span className={`text-sm font-bold ${formData.usuarios_destino_ids.length === 0 ? 'text-blue-600' : 'text-gray-500'}`}>TODOS LOS USUARIOS</span>
+                                    </label>
+                                    <div className="border-t border-gray-200 my-2 pt-2">
+                                        {usuarios.map(u => (
+                                            <label key={u.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-xl transition-colors cursor-pointer group">
+                                                <input 
+                                                    type="checkbox" 
+                                                    className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                    checked={formData.usuarios_destino_ids.includes(u.id)}
+                                                    onChange={(e) => {
+                                                        const ids = e.target.checked 
+                                                            ? [...formData.usuarios_destino_ids, u.id]
+                                                            : formData.usuarios_destino_ids.filter(id => id !== u.id);
+                                                        setFormData({...formData, usuarios_destino_ids: ids});
+                                                    }}
+                                                />
+                                                <span className={`text-sm font-bold ${formData.usuarios_destino_ids.includes(u.id) ? 'text-gray-800' : 'text-gray-500'}`}>
+                                                    {u.nombre}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                                <p className="text-[10px] text-gray-400 mt-2 font-bold uppercase tracking-wider">
+                                    {formData.usuarios_destino_ids.length === 0 
+                                      ? '⚠️ Seleccionado para TODOS' 
+                                      : `Seleccionados: ${formData.usuarios_destino_ids.length} usuarios`}
+                                </p>
                             </div>
 
                             <div className="flex gap-3 pt-4">
