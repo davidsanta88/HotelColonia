@@ -209,30 +209,38 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
             title: '¿Confirmar Check-out?',
             html: `
                 <div class="text-left space-y-3">
-                    <p class="text-sm text-gray-600">La habitación pasará a estado 'Pendiente por asear'.</p>
+                    <p class="text-xs text-gray-500">La habitación pasará a estado 'Pendiente por asear'.</p>
                     ${saldo > 0 ? `
-                        <div class="bg-red-50 border-2 border-red-500 p-5 rounded-2xl text-red-700 shadow-xl animate-pulse">
-                            <div class="flex items-center gap-3 mb-2 justify-center">
-                                <span class="bg-red-500 text-white p-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
-                                <strong class="text-base font-black uppercase tracking-tighter">¡SALDO PENDIENTE!</strong>
+                        <div class="bg-red-50 border-2 border-red-500 p-4 rounded-2xl text-red-700 shadow-lg animate-pulse">
+                            <div class="flex items-center gap-2 mb-1 justify-center">
+                                <span class="bg-red-500 text-white p-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+                                <strong class="text-sm font-black uppercase tracking-tight">¡SALDO PENDIENTE!</strong>
                             </div>
-                            <p class="text-3xl font-black text-center mb-1">$${formatCurrency(saldo)}</p>
-                            <p class="text-[10px] font-bold text-center opacity-80 uppercase tracking-widest leading-tight">ES NECESARIO REGISTRAR EL COBRO ANTES DE CONTINUAR</p>
+                            <p class="text-2xl font-black text-center mb-1">$${formatCurrency(saldo)}</p>
+                            <p class="text-[9px] font-bold text-center opacity-80 uppercase tracking-widest leading-tight">REGISTRAR COBRO ANTES DE SALIDA</p>
                         </div>
                     ` : ''}
-                    <div class="mt-4">
-                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Notas de Salida (Opcional):</label>
+                    <div class="mt-2">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Notas (Opcional):</label>
                     </div>
                 </div>
             `,
             input: 'textarea',
-            inputPlaceholder: 'Escriba observaciones de la salida aquí...',
+            inputPlaceholder: 'Observaciones aquí...',
             icon: saldo > 0 ? 'warning' : 'question',
+            width: '350px',
             showCancelButton: true,
             confirmButtonColor: saldo > 0 ? '#ef4444' : '#3b82f6',
             cancelButtonColor: '#6b7280',
-            confirmButtonText: saldo > 0 ? 'Sí, salir con saldo' : 'Sí, finalizar estancia',
-            cancelButtonText: 'Cancelar'
+            confirmButtonText: saldo > 0 ? 'Sí, salir con saldo' : 'Sí, Salir',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'rounded-3xl shadow-2xl border border-gray-100',
+                title: 'text-lg font-black text-gray-800',
+                htmlContainer: 'text-xs font-medium',
+                confirmButton: 'rounded-xl font-black uppercase tracking-widest text-[9px] px-4 py-2.5 transition-transform active:scale-95',
+                cancelButton: 'rounded-xl font-black uppercase tracking-widest text-[9px] px-4 py-2.5 transition-transform active:scale-95'
+            }
         });
 
         if (isConfirmed) {

@@ -250,19 +250,27 @@ const MapaHabitaciones = () => {
                             <p class="text-[11px] font-bold text-center opacity-80 uppercase tracking-widest">DEBE COBRAR ANTES DE LIBERAR LA HABITACIÓN</p>
                         </div>
                     ` : ''}
-                    <div class="mt-4">
-                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Notas de Salida (Opcional):</label>
+                    <div class="mt-2">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Notas (Opcional):</label>
                     </div>
                 </div>
             `,
             input: 'textarea',
-            inputPlaceholder: 'Escriba observaciones de la salida aquí...',
-            icon: tieneSaldo ? 'warning' : 'question',
+            inputPlaceholder: 'Escriba observaciones aquí...',
+            icon: (saldo || 0) > 0 ? 'warning' : 'question',
+            width: '350px',
             showCancelButton: true,
-            confirmButtonColor: tieneSaldo ? '#f59e0b' : '#3b82f6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: tieneSaldo ? 'Sí, salir con saldo' : 'Sí, Salida',
-            cancelButtonText: 'Cancelar'
+            confirmButtonColor: (saldo || 0) > 0 ? '#ef4444' : '#3b82f6',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: (saldo || 0) > 0 ? 'Sí, salir con saldo' : 'Sí, finalizar estancia',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'rounded-3xl shadow-2xl border border-gray-100',
+                title: 'text-lg font-black text-gray-800',
+                htmlContainer: 'text-xs font-medium',
+                confirmButton: 'rounded-xl font-black uppercase tracking-widest text-[10px] px-4 py-2 transition-transform active:scale-95',
+                cancelButton: 'rounded-xl font-black uppercase tracking-widest text-[10px] px-4 py-2 transition-transform active:scale-95'
+            }
         });
 
         if (isConfirmed) {
