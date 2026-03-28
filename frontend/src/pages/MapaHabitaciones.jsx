@@ -232,42 +232,37 @@ const MapaHabitaciones = () => {
         }
     };
 
-    const handleQuickCheckout = async (habId, registroId, saldo = 0) => {
-        const tieneSaldo = saldo > 0;
+    const handleQuickCheckout = async (habId, registroId, saldo) => {
+        const tieneSaldo = (saldo || 0) > 0;
         
-        const result = await Swal.fire({
-            title: tieneSaldo ? '¡Atención! Saldo Pendiente' : '¿Realizar Check-out?',
-            html: tieneSaldo 
-                ? `<div class="text-left p-2 bg-orange-50 rounded-lg border border-orange-200">
-                    <p class="font-bold text-orange-800 text-sm">Esta habitación aún tiene un saldo de:</p>
-                    <p class="text-2xl font-black text-orange-600 my-1">${formatCurrency(saldo)}</p>
-                    <p class="text-xs text-gray-500">¿Está seguro de liberar la habitación sin registrar el pago?</p>
-                   </div>`
-                : "Esta acción liberará la habitación y la marcará para aseo.",
+        const { value: notasSalida, isConfirmed } = await Swal.fire({
+            title: '¿Realizar Check-out?',
+            html: `
+                <div class="text-left space-y-3">
+                    <p class="text-sm text-gray-600">Esta acción liberará la habitación y la marcará para aseo.</p>
+                    ${tieneSaldo ? `
+                        <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-amber-700 text-xs">
+                            <strong>¡Atención! Saldo Pendiente:</strong> $${formatCurrency(saldo)}
+                        </div>
+                    ` : ''}
+                    <div class="mt-4">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Notas de Salida (Opcional):</label>
+                    </div>
+                </div>
+            `,
+            input: 'textarea',
+            inputPlaceholder: 'Escriba observaciones de la salida aquí...',
             icon: tieneSaldo ? 'warning' : 'question',
             showCancelButton: true,
-            confirmButtonColor: tieneSaldo ? '#f59e0b' : '#3085d6',
+            confirmButtonColor: tieneSaldo ? '#f59e0b' : '#3b82f6',
             cancelButtonColor: '#d33',
             confirmButtonText: tieneSaldo ? 'Sí, salir con saldo' : 'Sí, Salida',
             cancelButtonText: 'Cancelar'
         });
 
-        if (result.isConfirmed) {
+        if (isConfirmed) {
             try {
-                // Preguntar por notas de salida
-                const { value: notasSalida } = await Swal.fire({
-                    title: 'Notas de Salida',
-                    input: 'textarea',
-                    inputPlaceholder: 'Escriba observaciones del check-out (opcional)...',
-                    inputAttributes: {
-                        'aria-label': 'Notas de salida'
-                    },
-                    showCancelButton: true,
-                    confirmButtonText: 'Finalizar Check-out',
-                    cancelButtonText: 'Omitir notas',
-                    confirmButtonColor: '#3b82f6',
-                });
-
+                Swal.fire({ title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 await api.put(`/registros/checkout/${registroId}`, { notasSalida: notasSalida || '' });
                 Swal.fire('Éxito', 'Check-out realizado', 'success');
                 fetchMapa();

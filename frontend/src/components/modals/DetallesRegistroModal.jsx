@@ -205,46 +205,35 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
             };
 
     const handleCheckout = async () => {
-        const result = await Swal.fire({
+        const { value: notasSalida, isConfirmed } = await Swal.fire({
             title: '¿Confirmar Check-out?',
-            text: "La habitación pasará a estado 'Pendiente por asear'.",
-            icon: 'question',
+            html: `
+                <div class="text-left space-y-3">
+                    <p class="text-sm text-gray-600">La habitación pasará a estado 'Pendiente por asear'.</p>
+                    ${saldo > 0 ? `
+                        <div class="bg-red-50 border border-red-200 p-3 rounded-xl text-red-700 text-xs shadow-sm">
+                            <strong class="block mb-1">¡Atención! Saldo Pendiente:</strong>
+                            El huésped tiene un saldo de <span class="font-black">$${formatCurrency(saldo)}</span>.
+                        </div>
+                    ` : ''}
+                    <div class="mt-4">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Notas de Salida (Opcional):</label>
+                    </div>
+                </div>
+            `,
+            input: 'textarea',
+            inputPlaceholder: 'Escriba observaciones de la salida aquí...',
+            icon: saldo > 0 ? 'warning' : 'question',
             showCancelButton: true,
-            confirmButtonColor: '#3b82f6',
+            confirmButtonColor: saldo > 0 ? '#ef4444' : '#3b82f6',
             cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Sí, finalizar estancia',
+            confirmButtonText: saldo > 0 ? 'Sí, salir con saldo' : 'Sí, finalizar estancia',
             cancelButtonText: 'Cancelar'
         });
 
-        if (result.isConfirmed) {
+        if (isConfirmed) {
             try {
-                // Check balance
-                if (saldo > 0) {
-                    const balanceResult = await Swal.fire({
-                        title: 'Saldo Pendiente',
-                        text: `El huésped tiene un saldo de $${formatCurrency(saldo)}. ¿Desea continuar con el checkout de todos modos?`,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#ef4444',
-                        confirmButtonText: 'Sí, continuar',
-                        cancelButtonText: 'Cancelar'
-                    });
-                    if (!balanceResult.isConfirmed) return;
-                }
-
                 Swal.fire({ title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                
-                // Pedir notas de salida
-                const { value: notasSalida } = await Swal.fire({
-                    title: 'Notas de Salida',
-                    input: 'textarea',
-                    inputPlaceholder: 'Observaciones del check-out (opcional)...',
-                    showCancelButton: true,
-                    confirmButtonText: 'Finalizar',
-                    cancelButtonText: 'Omitir',
-                    confirmButtonColor: '#3b82f6'
-                });
-
                 await api.put(`/registros/checkout/${registroId}`, { notasSalida: notasSalida || '' });
                 Swal.fire('Éxito', 'Check-out realizado. Habitación lista para aseo.', 'success');
                 if (onSuccess) onSuccess();
