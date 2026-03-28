@@ -10,6 +10,8 @@ const registroSchema = new mongoose.Schema({
     pagos: [{
         monto: Number,
         medio: String,
+        notas: String,
+        usuario_nombre: String,
         fecha: { type: Date, default: Date.now }
     }],
     huespedes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Cliente' }],

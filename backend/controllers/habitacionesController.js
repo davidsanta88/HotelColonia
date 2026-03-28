@@ -112,7 +112,12 @@ exports.getMapaVisual = async (req, res) => {
             let estadoVisual = 'disponible';
             let color = 'green';
 
-            if (hab.estadoLimpieza && hab.estadoLimpieza.toUpperCase() === 'SUCIA') {
+            const esSucia = hab.estadoLimpieza && (
+                hab.estadoLimpieza.toUpperCase() === 'SUCIA' || 
+                hab.estadoLimpieza.toUpperCase() === 'PENDIENTE POR ASEAR'
+            );
+
+            if (esSucia) {
                 // PRIORIDAD 1: SI ESTÁ SUCIA, MOSTRAR AZUL (Independiente de si hay alguien)
                 estadoVisual = 'por_asear';
                 color = 'blue';

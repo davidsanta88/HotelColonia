@@ -3,11 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import Swal from 'sweetalert2';
 import { format } from 'date-fns';
-import { Plus, CheckCircle, XCircle, Search, Eye, Edit, Trash2, Phone, MessageCircle } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, Search, Eye, Edit, Trash2, Phone, MessageCircle, Info } from 'lucide-react';
 import RegistroModal from '../components/modals/RegistroModal';
 import { formatCurrency, cleanNumericValue } from '../utils/format';
-import useTableData from '../hooks/useTableData';
-import Pagination from '../components/common/Pagination';
 
 const Registros = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -39,6 +37,11 @@ const Registros = () => {
         municipio_origen_id: '' 
     });
     
+    // New state for Abonos
+    const [abonos, setAbonos] = useState([]);
+    const [showAbonoForm, setShowAbonoForm] = useState(false);
+    const [abonoForm, setAbonoForm] = useState({ monto: '', medio: '', notas: '' });
+    
     // Form state
     const [formData, setFormData] = useState({
         habitacion_id: '',
@@ -50,7 +53,6 @@ const Registros = () => {
         notas: '',
         tipo_registro_id: ''
     });
-
 
     const [huespedesList, setHuespedesList] = useState([]);
     const [guestForm, setGuestForm] = useState({ 
@@ -67,7 +69,6 @@ const Registros = () => {
     }, []);
 
     useEffect(() => {
-        // Handle query params for pre-selecting room from Visual Map
         const roomToSelect = searchParams.get('habitacionId');
         const isNew = searchParams.get('nueva');
         
@@ -82,16 +83,14 @@ const Registros = () => {
                 fecha_salida: fechaOut
             }));
             
-            calculateTotal(roomToSelect, fechaIn, fechaOut, 0); // 0 initial guests
             setShowModal(true);
             
-            // Clean params after reading
             const newSearchParams = new URLSearchParams(searchParams);
             newSearchParams.delete('nueva');
             newSearchParams.delete('habitacionId');
             setSearchParams(newSearchParams);
         }
-    }, [habitaciones, searchParams]);
+    }, [habitaciones, searchParams, setSearchParams]);
 
     const fetchData = async () => {
         try {
@@ -118,63 +117,56 @@ const Registros = () => {
         }
     };
 
-    const handleSave = async (e) => {
-        e.preventDefault();
-        try {
-            if (huespedesList.length === 0) {
-                return Swal.fire('Atención', 'Debe agregar al menos un huésped al registro', 'warning');
-            }
-            
-            Swal.fire({ title: 'Procesando...', text: 'Registrando información, por favor espere...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-            
-            // Bypass logic for old backend deployed on DigitalOcean
-            const processedHuespedesIds = [];
-            for (const h of huespedesList) {
-                if (h.id || h._id) {
-                    processedHuespedesIds.push(h.id || h._id);
-                } else {
-                    // Check local cache first
-                    const existing = clientes.find(c => c.documento === h.documento || c.documentoNumero === h.documento);
-                    if (existing && (existing.id || existing._id)) {
-                        processedHuespedesIds.push(existing.id || existing._id);
-                    } else {
-                        // Dynamically create client
-                        const res = await api.post('/clientes', h);
-                        processedHuespedesIds.push(res.data.id || res.data._id);
-                    }
-                }
-            }
-
-            const dataToSave = {
-                ...formData,
-                cliente_id: processedHuespedesIds[0],
-                huespedes: processedHuespedesIds,
-                observaciones: formData.notas // old backend expects observaciones
-            };
-            
-            await api.post('/registros', dataToSave);
-            
-            Swal.close();
-            Swal.fire('Éxito', 'Registro creado', 'success');
-            setShowModal(false);
-            fetchData();
-        } catch (error) {
-            Swal.close();
-            Swal.fire('Error', error.response?.data?.message || 'Error al guardar el registro', 'error');
-        }
-    };
-
     const updateStatus = async (id, estado) => {
         try {
             await api.put(`/registros/${id}`, { estado });
             Swal.fire('Actualizado', `Registro marcado como ${estado}`, 'success');
-            if (showDetailsModal) {
+            if (showDetailsModal && selectedRegistroDetails?.id === id) {
                 const resDet = await api.get(`/registros/${id}`);
                 setSelectedRegistroDetails(resDet.data);
             }
             fetchData();
         } catch (error) {
             Swal.fire('Error', 'No se pudo actualizar el estado', 'error');
+        }
+    };
+
+    const handleCheckout = async (id) => {
+        const result = await Swal.fire({
+            title: '¿Confirmar Check-out?',
+            text: "La habitación pasará a estado 'Pendiente por asear'.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3b82f6',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, finalizar estancia',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                // Check if there is a remaining balance
+                if (selectedRegistroDetails && (selectedRegistroDetails.total + consumos.reduce((acc, c) => acc + (c.cantidad * c.precio), 0) - (selectedRegistroDetails.valor_pagado || 0) > 0)) {
+                    const balanceResult = await Swal.fire({
+                        title: 'Saldo Pendiente',
+                        text: "El huésped aún tiene un saldo por pagar. ¿Desea continuar con el checkout de todos modos?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        confirmButtonText: 'Sí, continuar',
+                        cancelButtonText: 'Ir a pagos'
+                    });
+                    if (!balanceResult.isConfirmed) return;
+                }
+
+                Swal.fire({ title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                await api.put(`/registros/checkout/${id}`);
+                Swal.fire('Éxito', 'Check-out realizado. Habitación lista para aseo.', 'success');
+                fetchData();
+                if (showDetailsModal) setShowDetailsModal(false);
+            } catch (error) {
+                Swal.fire('Error', error.response?.data?.message || 'No se pudo procesar el check-out', 'error');
+            }
         }
     };
 
@@ -186,13 +178,12 @@ const Registros = () => {
             
             Swal.fire({ title: 'Procesando...', text: 'Actualizando registro, por favor espere...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
-            // Bypass logic for old backend 
             const processedHuespedesIds = [];
             for (const h of editData.huespedes) {
                 if (h.id || h._id) {
                     processedHuespedesIds.push(h.id || h._id);
                 } else {
-                    const existing = clientes.find(c => c.documento === h.documento || c.documentoNumero === h.documento);
+                    const existing = clientes.find(c => c.documento === h.documento);
                     if (existing && (existing.id || existing._id)) {
                         processedHuespedesIds.push(existing.id || existing._id);
                     } else {
@@ -212,7 +203,7 @@ const Registros = () => {
             await api.put(`/registros/${selectedRegistroDetails.id}`, dataToUpdate);
             
             Swal.close();
-            Swal.fire('Exito', 'Registro actualizado correctamente', 'success');
+            Swal.fire('Éxito', 'Registro actualizado correctamente', 'success');
             setIsEditing(false);
             const resDet = await api.get(`/registros/${selectedRegistroDetails.id}`);
             setSelectedRegistroDetails(resDet.data);
@@ -225,16 +216,77 @@ const Registros = () => {
 
     const handleViewDetails = async (id) => {
         try {
-            const [resDet, resCons] = await Promise.all([
+            const [resDet, resCons, resAbonos] = await Promise.all([
                 api.get(`/registros/${id}`),
-                api.get(`/ventas/consumo/${id}`)
+                api.get(`/ventas/consumo/${id}`),
+                api.get(`/registros/${id}/pagos`)
             ]);
             setSelectedRegistroDetails(resDet.data);
             setConsumos(resCons.data);
+            setAbonos(resAbonos.data);
             setIsEditing(false);
             setShowDetailsModal(true);
+            setShowAbonoForm(false);
+            setAbonoForm({ monto: '', medio: '', notas: '' });
         } catch (error) {
             Swal.fire('Error', 'No se pudieron cargar los detalles del registro.', 'error');
+        }
+    };
+
+    const handleAddAbono = async (e) => {
+        e.preventDefault();
+        try {
+            if (!abonoForm.monto || !abonoForm.medio) {
+                return Swal.fire('Atención', 'Monto y medio de pago son obligatorios', 'warning');
+            }
+            
+            await api.post(`/registros/${selectedRegistroDetails.id}/pagos`, abonoForm);
+            
+            const [resAbonos, resDet] = await Promise.all([
+                api.get(`/registros/${selectedRegistroDetails.id}/pagos`),
+                api.get(`/registros/${selectedRegistroDetails.id}`)
+            ]);
+            
+            setAbonos(resAbonos.data);
+            setSelectedRegistroDetails(resDet.data);
+            setShowAbonoForm(false);
+            setAbonoForm({ monto: '', medio: '', notas: '' });
+            fetchData();
+            
+            Swal.fire({ icon: 'success', title: 'Abono registrado', timer: 1500, showConfirmButton: false });
+        } catch (error) {
+            Swal.fire('Error', 'No se pudo registrar el abono', 'error');
+        }
+    };
+
+    const handleDeleteAbono = async (pagoId) => {
+        const result = await Swal.fire({
+            title: '¿Eliminar abono?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await api.delete(`/registros/${selectedRegistroDetails.id}/pagos/${pagoId}`);
+                
+                const [resAbonos, resDet] = await Promise.all([
+                    api.get(`/registros/${selectedRegistroDetails.id}/pagos`),
+                    api.get(`/registros/${selectedRegistroDetails.id}`)
+                ]);
+                
+                setAbonos(resAbonos.data);
+                setSelectedRegistroDetails(resDet.data);
+                fetchData();
+                
+                Swal.fire('Eliminado', 'El abono ha sido eliminado', 'success');
+            } catch (error) {
+                Swal.fire('Error', 'No se pudo eliminar el abono', 'error');
+            }
         }
     };
 
@@ -283,7 +335,6 @@ const Registros = () => {
         let newData = { ...editData, [name]: value };
         
         if (name === 'habitacion_id' || name === 'fecha_ingreso' || name === 'fecha_salida') {
-            // Recalculate total for edit mode
             const hab = habitaciones.find(h => String(h.id || h._id) === String(newData.habitacion_id));
             if (hab && newData.fecha_ingreso && newData.fecha_salida) {
                 const inDate = new Date(newData.fecha_ingreso);
@@ -305,10 +356,7 @@ const Registros = () => {
     const handleAddGuestEdit = () => {
         if (!guestEditForm.nombre || !guestEditForm.documento) return;
         const newList = [...editData.huespedes, guestEditForm];
-        setEditData({ ...editData, huespedes: newList });
-        setGuestEditForm({ nombre: '', documento: '', tipo_documento: 'CC', telefono: '', email: '', municipio_origen_id: '' });
         
-        // Trigger total recalculation by calling handleEditFormChange with a dummy event or manual update
         const hab = habitaciones.find(h => String(h.id || h._id) === String(editData.habitacion_id));
         if (hab && editData.fecha_ingreso && editData.fecha_salida) {
             const inDate = new Date(editData.fecha_ingreso);
@@ -317,8 +365,11 @@ const Registros = () => {
             const numPersonas = Math.min(Math.max(newList.length, 1), 6);
             const pNoche = parseFloat(hab[`precio_${numPersonas}`]) || parseFloat(hab.precio_1) || 0;
             const rawTotal = (pNoche * diffDays);
-            setEditData(prev => ({ ...prev, huespedes: newList, total: rawTotal.toFixed(2), valor_cobrado: rawTotal.toFixed(2) }));
+            setEditData({ ...editData, huespedes: newList, total: rawTotal.toFixed(2), valor_cobrado: rawTotal.toFixed(2) });
+        } else {
+            setEditData({ ...editData, huespedes: newList });
         }
+        setGuestEditForm({ nombre: '', documento: '', tipo_documento: 'CC', telefono: '', email: '', municipio_origen_id: '' });
     };
 
     const handleRemoveGuestEdit = (index) => {
@@ -353,13 +404,14 @@ const Registros = () => {
             
             Swal.fire('Éxito', 'Consumo registrado', 'success');
             
-            // Recargar consumos y productos (para stock)
-            const [resCons, resProd] = await Promise.all([
+            const [resCons, resProd, resDet] = await Promise.all([
                 api.get(`/ventas/consumo/${selectedRegistroDetails.id}`),
-                api.get('/productos')
+                api.get('/productos'),
+                api.get(`/registros/${selectedRegistroDetails.id}`)
             ]);
             setConsumos(resCons.data);
             setProductos(resProd.data);
+            setSelectedRegistroDetails(resDet.data);
             setShowConsumoForm(false);
             setSelectedProducto('');
             setCantidadConsumo(1);
@@ -367,97 +419,6 @@ const Registros = () => {
             Swal.fire('Error', 'No se pudo registrar el consumo', 'error');
         }
     };
-
-    const calculateTotal = (habId, fechaIn, fechaOut, listLength = huespedesList.length) => {
-        if (!habId || !fechaIn || !fechaOut) return;
-        const hab = habitaciones.find(h => String(h.id || h._id) === String(habId));
-        if (!hab) return;
-        
-        const inDate = new Date(fechaIn);
-        const outDate = new Date(fechaOut);
-        
-        // Ensure outDate >= inDate
-        if (outDate < inDate) return;
-
-        const diffTime = outDate - inDate;
-        const diffDays = Math.max(Math.ceil(diffTime / (1000 * 60 * 60 * 24)), 1); // Al menos 1 noche
-        
-        // Determinar precio según
-        const numPersonas = Math.min(Math.max(listLength, 1), 6);
-        const pNoche = parseFloat(hab[`precio_${numPersonas}`]) || parseFloat(hab.precio_1) || 0;
-        
-        const rawTotal = (pNoche * diffDays);
-        setFormData(prev => ({ 
-            ...prev, 
-            total: rawTotal.toFixed(2),
-            valor_cobrado: rawTotal.toFixed(2) // Por defecto el valor cargado es el mismo total
-        }));
-    };
-
-    const handleFormChange = (e) => {
-        const { name, value } = e.target;
-        
-        let newFormData = { ...formData, [name]: value };
-        
-        // Date validation
-        if (name === 'fecha_ingreso' && newFormData.fecha_salida) {
-            if (new Date(value) > new Date(newFormData.fecha_salida)) {
-                newFormData.fecha_salida = value; 
-            }
-        }
-        if (name === 'fecha_salida' && newFormData.fecha_ingreso) {
-            if (new Date(value) < new Date(newFormData.fecha_ingreso)) {
-                Swal.fire('Advertencia', 'La fecha de check-out no puede ser anterior al check-in.', 'warning');
-                return; 
-            }
-        }
-
-        setFormData(newFormData);
-        
-        if (name === 'habitacion_id' || name === 'fecha_ingreso' || name === 'fecha_salida') {
-            calculateTotal(newFormData.habitacion_id, newFormData.fecha_ingreso, newFormData.fecha_salida);
-        }
-    };
-
-    const handleClienteSelect = (cliente) => {
-        setSelectedCliente(cliente);
-        setGuestForm({
-            id: cliente.id,
-            nombre: cliente.nombre,
-            documento: cliente.documento,
-            tipo_documento: cliente.tipo_documento || 'CC',
-            telefono: cliente.telefono || '',
-            email: cliente.email || '',
-            municipio_origen_id: cliente.municipio_origen_id || ''
-        });
-        setClienteSearch('');
-    };
-
-    const handleAddGuest = () => {
-        if (!guestForm.nombre || !guestForm.documento) {
-            return Swal.fire('Error', 'El nombre y documento del huésped son obligatorios', 'error');
-        }
-        if (huespedesList.find(h => h.documento === guestForm.documento)) {
-            return Swal.fire('Error', 'Este huésped ya está en la lista', 'error');
-        }
-        
-        const newList = [...huespedesList, guestForm];
-        setHuespedesList(newList);
-        calculateTotal(formData.habitacion_id, formData.fecha_ingreso, formData.fecha_salida, newList.length);
-        
-        setGuestForm({ nombre: '', documento: '', tipo_documento: 'CC', telefono: '', email: '', municipio_origen_id: '' });
-        setSelectedCliente(null);
-    };
-
-    const handleRemoveGuest = (index) => {
-        const newList = huespedesList.filter((_, i) => i !== index);
-        setHuespedesList(newList);
-        calculateTotal(formData.habitacion_id, formData.fecha_ingreso, formData.fecha_salida, newList.length);
-    };
-
-    const filteredClientes = clienteSearch.length > 0 
-        ? clientes.filter(c => c.nombre.toLowerCase().includes(clienteSearch.toLowerCase()) || c.documento.includes(clienteSearch))
-        : [];
 
     return (
         <div className="space-y-6">
@@ -467,11 +428,8 @@ const Registros = () => {
                     <p className="text-sm text-gray-500">Gestione los ingresos y el alojamiento diario</p>
                 </div>
                 <button onClick={() => {
-                    setFormData({ habitacion_id: '', fecha_ingreso: '', fecha_salida: '', total: '', medio_pago_id: '', valor_cobrado: '', valor_pagado: '', tipo_registro_id: '' });
+                    setFormData({ habitacion_id: '', fecha_ingreso: '', fecha_salida: '', total: '', medio_pago_id: '', valor_cobrado: '', notas: '', tipo_registro_id: '' });
                     setHuespedesList([]);
-                    setGuestForm({ nombre: '', documento: '', tipo_documento: 'CC', telefono: '', email: '', municipio_origen_id: '' });
-                    setSelectedCliente(null);
-                    setClienteSearch('');
                     setShowModal(true);
                 }} className="btn-primary flex items-center space-x-2">
                     <Plus size={18} />
@@ -548,7 +506,7 @@ const Registros = () => {
                                                 </>
                                             )}
                                             {res.estado === 'activa' && (
-                                                <button onClick={() => updateStatus(res.id, 'completada')} className="text-blue-600 hover:text-blue-900 mx-1" title="Check-out">
+                                                <button onClick={() => handleCheckout(res.id)} className="text-blue-600 hover:text-blue-900 mx-1 font-bold text-xs uppercase" title="Realizar Check-out">
                                                     Check-out
                                                 </button>
                                             )}
@@ -571,7 +529,6 @@ const Registros = () => {
                 )}
             </div>
 
-            {/* Registro Modal Reutilizado */}
             <RegistroModal 
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
@@ -582,15 +539,14 @@ const Registros = () => {
                 }}
             />
 
-            {/* View Details Modal remains inline for now as it's specific to this view */}
             {showDetailsModal && selectedRegistroDetails && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-                    <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-2xl">
+                    <div className="bg-white p-6 md:p-8 rounded-xl shadow-xl w-full max-w-4xl m-4">
                         <div className="flex justify-between items-center mb-6 border-b pb-2">
-                            <h2 className="text-2xl font-bold text-gray-800">Detalles del Registro #{selectedRegistroDetails.id}</h2>
+                            <h2 className="text-2xl font-bold text-gray-800 truncate">Detalles Registro #{selectedRegistroDetails.id}</h2>
                             <div className="flex items-center gap-2">
                                 {!isEditing && (
-                                    <button onClick={startEditing} className="flex items-center gap-1 bg-primary-50 text-primary-600 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors border border-primary-200" title="Editar Registro">
+                                    <button onClick={startEditing} className="flex items-center gap-1 bg-primary-50 text-primary-600 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors border border-primary-200">
                                         <Edit size={16} />
                                         <span className="text-xs font-bold uppercase">Editar</span>
                                     </button>
@@ -603,314 +559,263 @@ const Registros = () => {
                                 </span>
                             </div>
                         </div>
-                        
-                        <div className="space-y-6">
-                            {/* General Details */}
-                            <div>
-                                <h3 className="font-semibold text-gray-700 border-b pb-1 mb-3">Información General</h3>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div>
-                                        <span className="text-gray-500 block">Habitación</span>
-                                        {isEditing ? (
-                                            <select name="habitacion_id" className="input-field py-1" value={editData.habitacion_id} onChange={handleEditFormChange}>
-                                                {habitaciones.map(h => (
-                                                    <option key={h.id} value={h.id}>#{h.numero} - {h.tipo_nombre} ({h.estado_nombre})</option>
-                                                ))}
-                                            </select>
-                                        ) : (
-                                            <span className="font-medium text-gray-900">#{selectedRegistroDetails.numero_habitacion}</span>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-500 block">Fechas</span>
-                                        {isEditing ? (
-                                            <div className="flex gap-2">
-                                                <input type="date" name="fecha_ingreso" className="input-field py-1 text-xs" value={editData.fecha_ingreso} onChange={handleEditFormChange} />
-                                                <input type="date" name="fecha_salida" className="input-field py-1 text-xs" value={editData.fecha_salida} onChange={handleEditFormChange} />
-                                            </div>
-                                        ) : (
-                                            <span className="font-medium text-gray-900">
-                                                {format(new Date(selectedRegistroDetails.fecha_ingreso), 'dd/MM/yyyy')} 
-                                                {' - '}
-                                                {format(new Date(selectedRegistroDetails.fecha_salida), 'dd/MM/yyyy')}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="col-span-2">
-                                        <span className="text-gray-500 block">Titular (Responsable)</span>
-                                        <span className="font-medium text-gray-900">{selectedRegistroDetails.nombre_cliente} - {selectedRegistroDetails.documento_cliente}</span>
-                                    </div>
-                                    <div className="col-span-2">
-                                        <span className="text-gray-500 block">Tipo de Registro</span>
-                                        {isEditing ? (
-                                            <select name="tipo_registro_id" className="input-field py-1" value={editData.tipo_registro_id} onChange={handleEditFormChange}>
-                                                {tiposRegistro.map(t => (
-                                                    <option key={t.id} value={t.id}>{t.nombre}</option>
-                                                ))}
-                                            </select>
-                                        ) : (
-                                            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded border border-blue-100 uppercase">
-                                                {selectedRegistroDetails.tipo_registro_nombre || 'Formal'}
-                                            </span>
-                                        )}
+
+                        {!isEditing && (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                                <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                    <div className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">Total Estancia</div>
+                                    <div className="text-lg font-black text-gray-800">${formatCurrency(selectedRegistroDetails.total)}</div>
+                                </div>
+                                <div className="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                                    <div className="text-[10px] font-bold text-blue-400 uppercase mb-0.5">Consumos</div>
+                                    <div className="text-lg font-black text-blue-800">
+                                        ${formatCurrency(consumos.reduce((acc, c) => acc + (c.cantidad * c.precio), 0))}
                                     </div>
                                 </div>
-                            </div>
-                            
-                            {/* billing */}
-                            <div>
-                                <h3 className="font-semibold text-gray-700 border-b pb-1 mb-3">Alojamiento y Pagos</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                    <div>
-                                        <span className="text-gray-500 block text-xs">Total Estancia ($)</span>
-                                        {isEditing ? (
-                                            <input type="text" className="input-field py-1 bg-white" value={formatCurrency(editData.total)} readOnly />
-                                        ) : (
-                                            <span className="font-medium text-gray-900">${formatCurrency(selectedRegistroDetails.valor_cobrado)}</span>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-500 block text-xs">A Cobrar ($)</span>
-                                        {isEditing ? (
-                                            <input
-                                                type="text"
-                                                inputMode="numeric"
-                                                name="valor_cobrado"
-                                                className="input-field py-1 bg-white"
-                                                value={editData.valor_cobrado === 0 ? '' : editData.valor_cobrado}
-                                                onChange={e => {
-                                                    const raw = e.target.value.replace(/[^0-9.]/g, '');
-                                                    setEditData({...editData, valor_cobrado: raw});
-                                                }}
-                                            />
-                                        ) : (
-                                            <span className="font-medium text-gray-900">${formatCurrency(selectedRegistroDetails.valor_cobrado)}</span>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-500 block text-xs">Medio de Pago</span>
-                                        {isEditing ? (
-                                            <select name="medio_pago_id" className="input-field py-1 bg-white" value={editData.medio_pago_id} onChange={handleEditFormChange}>
-                                                <option value="">Por definir...</option>
-                                                {mediosPago.map(mp => <option key={mp.id} value={mp.id}>{mp.nombre}</option>)}
-                                            </select>
-                                        ) : (
-                                            <span className="font-medium text-gray-900 text-xs uppercase">{selectedRegistroDetails.medio_pago_nombre || 'No registrado'}</span>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-500 block text-xs">Estado</span>
-                                        {isEditing ? (
-                                            <select name="estado" className="input-field py-1 bg-white" value={editData.estado} onChange={handleEditFormChange}>
-                                                <option value="pendiente">Pendiente</option>
-                                                <option value="activa">Activa</option>
-                                                <option value="completada">Completada</option>
-                                                <option value="cancelada">Cancelada</option>
-                                            </select>
-                                        ) : (
-                                            <span className="font-medium text-gray-900 text-xs uppercase">{selectedRegistroDetails.estado}</span>
-                                        )}
-                                    </div>
-                                    <div className="md:col-span-4 mt-2 pt-2 border-t border-gray-200">
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="text-gray-500 text-xs">Alojamiento:</span>
-                                            <span className="font-bold text-gray-900">${formatCurrency(selectedRegistroDetails.valor_cobrado)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="text-gray-500 text-xs">Total Consumos:</span>
-                                            <span className="font-bold text-gray-900">${formatCurrency(consumos.reduce((acc, c) => acc + (c.cantidad * c.precio), 0))}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center pt-2 border-t border-dashed border-gray-300">
-                                            <span className="text-sm font-black text-primary-700 uppercase">Total General:</span>
-                                            <span className="text-lg font-black text-primary-700">${formatCurrency(
-                                                parseFloat(selectedRegistroDetails.valor_cobrado) + 
-                                                consumos.reduce((acc, c) => acc + (c.cantidad * c.precio), 0)
-                                            )}</span>
-                                        </div>
-                                    </div>
-                                    <div className="md:col-span-4 mt-2 pt-2">
-                                        <span className="text-gray-500 block text-xs">Notas / Observaciones</span>
-                                        {isEditing ? (
-                                            <textarea name="notas" className="input-field py-1 bg-white" rows="2" value={editData.notas} onChange={handleEditFormChange}></textarea>
-                                        ) : (
-                                            <span className="font-medium text-gray-900 text-xs mt-0.5 block whitespace-pre-line">{selectedRegistroDetails.notas || 'Ninguna'}</span>
-                                        )}
+                                <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                                    <div className="text-[10px] font-bold text-emerald-400 uppercase mb-0.5">Abonado</div>
+                                    <div className="text-lg font-black text-emerald-800">
+                                        ${formatCurrency(selectedRegistroDetails.valor_pagado || 0)}
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Consumos - Hidden if editing for simplicity, or just read-only */}
-                            {!isEditing && (
-                                <div>
-                                    <div className="flex justify-between items-center border-b pb-1 mb-3">
-                                        <h3 className="font-semibold text-gray-700">Consumos de la Habitación</h3>
-                                        {selectedRegistroDetails.estado === 'activa' && (
-                                            <button 
-                                                onClick={() => setShowConsumoForm(!showConsumoForm)}
-                                                className="text-primary-600 hover:text-primary-800 text-xs font-bold flex items-center gap-1"
-                                            >
-                                                <Plus size={14} /> {showConsumoForm ? 'Cerrar' : 'Agregar Consumo'}
-                                            </button>
-                                        )}
+                                <div className={`p-3 rounded-xl border ${ (selectedRegistroDetails.total + consumos.reduce((acc, c) => acc + (c.cantidad * c.precio), 0) - (selectedRegistroDetails.valor_pagado || 0) > 0) ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
+                                    <div className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">Saldo</div>
+                                    <div className={`text-lg font-black ${(selectedRegistroDetails.total + consumos.reduce((acc, c) => acc + (c.cantidad * c.precio), 0) - (selectedRegistroDetails.valor_pagado || 0) > 0) ? 'text-red-600' : 'text-green-600'}`}>
+                                        ${formatCurrency(Math.max(0, selectedRegistroDetails.total + consumos.reduce((acc, c) => acc + (c.cantidad * c.precio), 0) - (selectedRegistroDetails.valor_pagado || 0)))}
                                     </div>
-
-                                {showConsumoForm && (
-                                    <div className="bg-primary-50 p-4 rounded-lg border border-primary-100 mb-4 animate-in fade-in slide-in-from-top-2">
-                                        <div className="grid grid-cols-12 gap-3 items-end">
-                                            <div className="col-span-7">
-                                                <label className="block text-[10px] font-bold text-primary-700 uppercase mb-1">Producto</label>
-                                                <select 
-                                                    className="input-field text-sm bg-white" 
-                                                    value={selectedProducto} 
-                                                    onChange={e => setSelectedProducto(e.target.value)}
-                                                >
-                                                    <option value="">Seleccione producto...</option>
-                                                    {productos.filter(p => p.stock > 0 && p.tipo_inventario === 'venta').map(p => (
-                                                        <option key={p.id} value={p.id}>{p.nombre} (${formatCurrency(p.precio)}) - Stock: {p.stock}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <div className="col-span-3">
-                                                <label className="block text-[10px] font-bold text-primary-700 uppercase mb-1">Cant.</label>
-                                                <input 
-                                                    type="number" 
-                                                    min="1" 
-                                                    className="input-field text-sm bg-white" 
-                                                    value={cantidadConsumo} 
-                                                    onChange={e => setCantidadConsumo(e.target.value)} 
-                                                />
-                                            </div>
-                                            <div className="col-span-2">
-                                                <button 
-                                                    onClick={handleAddConsumo}
-                                                    disabled={!selectedProducto}
-                                                    className="btn-primary w-full h-[38px] flex items-center justify-center"
-                                                >
-                                                    <Plus size={18} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="max-h-48 overflow-y-auto rounded-lg border border-gray-100">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-500 uppercase">Producto</th>
-                                                <th className="px-4 py-2 text-center text-[10px] font-bold text-gray-500 uppercase">Cant.</th>
-                                                <th className="px-4 py-2 text-right text-[10px] font-bold text-gray-500 uppercase">Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {consumos.map((c, i) => (
-                                                <tr key={i} className="text-xs">
-                                                    <td className="px-4 py-2 text-gray-900">{c.producto_nombre}</td>
-                                                    <td className="px-4 py-2 text-center text-gray-500">{c.cantidad}</td>
-                                                    <td className="px-4 py-2 text-right font-medium text-gray-900">${formatCurrency(c.cantidad * c.precio)}</td>
-                                                </tr>
-                                            ))}
-                                            {consumos.length === 0 && (
-                                                <tr>
-                                                    <td colSpan="3" className="px-4 py-6 text-center text-gray-400 italic">No hay consumos registrados</td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
                                 </div>
                             </div>
                         )}
 
-                            {/* Guests */}
-                            <div>
-                                <h3 className="font-semibold text-gray-700 border-b pb-1 mb-3">
-                                    Participantes ({isEditing ? editData.huespedes.length : (selectedRegistroDetails.huespedes?.length || 0)})
-                                </h3>
-                                
-                                {isEditing && (
-                                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
-                                        <div className="relative mb-3">
-                                            <input 
-                                                type="text" 
-                                                placeholder="Buscar cliente existente..." 
-                                                className="input-field pl-10 text-xs py-1.5"
-                                                value={clienteSearch}
-                                                onChange={(e) => setClienteSearch(e.target.value)}
-                                            />
-                                            <Search className="absolute left-3 top-1.5 text-gray-400" size={16} />
-                                            {clienteSearch.length > 0 && (
-                                                <div className="absolute z-[70] w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-y-auto">
-                                                    {filteredClientes.length > 0 ? (
-                                                        filteredClientes.map(cliente => (
-                                                            <div 
-                                                                key={cliente.id} 
-                                                                className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-0 text-xs"
-                                                                onClick={() => {
-                                                                    setGuestEditForm({
-                                                                        id: cliente.id,
-                                                                        nombre: cliente.nombre,
-                                                                        documento: cliente.documento,
-                                                                        tipo_documento: cliente.tipo_documento || 'CC',
-                                                                        telefono: cliente.telefono || '',
-                                                                        email: cliente.email || '',
-                                                                        municipio_origen_id: cliente.municipio_origen_id || ''
-                                                                    });
-                                                                    setClienteSearch('');
-                                                                }}
-                                                            >
-                                                                <div className="font-medium">{cliente.nombre}</div>
-                                                                <div className="text-gray-500">Doc: {cliente.documento}</div>
-                                                            </div>
-                                                        ))
-                                                    ) : (
-                                                        <div className="p-2 text-xs text-gray-500 text-center">No encontrado. Ingresa datos manuales.</div>
-                                                    )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-6">
+                                <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
+                                    <h3 className="font-bold text-gray-700 border-b pb-1 mb-4 text-sm uppercase flex items-center gap-2">
+                                        <Info size={14} className="text-gray-400" /> Información General
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-y-4 text-sm">
+                                        <div>
+                                            <span className="block text-[10px] font-bold text-gray-400 uppercase">Habitación</span>
+                                            <span className="font-bold text-gray-800">#{selectedRegistroDetails.numero_habitacion}</span>
+                                        </div>
+                                        <div>
+                                            <span className="block text-[10px] font-bold text-gray-400 uppercase">Huésped Titular</span>
+                                            <span className="font-bold text-gray-800 truncate block">{selectedRegistroDetails.nombre_cliente}</span>
+                                        </div>
+                                        <div>
+                                            <span className="block text-[10px] font-bold text-gray-400 uppercase">Check-in</span>
+                                            <span className="font-bold text-gray-800">{format(new Date(selectedRegistroDetails.fecha_ingreso), 'dd/MM/yyyy')}</span>
+                                        </div>
+                                        <div>
+                                            <span className="block text-[10px] font-bold text-gray-400 uppercase">Check-out (Est.)</span>
+                                            <span className="font-bold text-gray-800">{format(new Date(selectedRegistroDetails.fecha_salida), 'dd/MM/yyyy')}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {!isEditing && (
+                                    <div className="bg-white p-5 rounded-xl border border-gray-200">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm uppercase">
+                                                <Plus size={14} className="text-emerald-500" /> Historial Abonos
+                                            </h3>
+                                            <button 
+                                                onClick={() => setShowAbonoForm(!showAbonoForm)}
+                                                className="text-white bg-emerald-500 hover:bg-emerald-600 px-3 py-1 rounded-lg text-xs font-bold transition-colors"
+                                            >
+                                                {showAbonoForm ? 'Cerrar' : '+ Nuevo'}
+                                            </button>
+                                        </div>
+
+                                        {showAbonoForm && (
+                                            <form onSubmit={handleAddAbono} className="bg-emerald-50 p-4 rounded-lg border border-emerald-100 mb-4 space-y-3 animate-fade-in">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-emerald-700 uppercase mb-1">Monto ($)</label>
+                                                        <input 
+                                                            type="text" 
+                                                            className="input-field text-sm bg-white" 
+                                                            value={formatCurrency(abonoForm.monto)}
+                                                            onChange={e => setAbonoForm({...abonoForm, monto: cleanNumericValue(e.target.value)})}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-emerald-700 uppercase mb-1">Medio</label>
+                                                        <select 
+                                                            className="input-field text-sm bg-white"
+                                                            value={abonoForm.medio}
+                                                            onChange={e => setAbonoForm({...abonoForm, medio: e.target.value})}
+                                                        >
+                                                            <option value="">...</option>
+                                                            {mediosPago.map(mp => (
+                                                                <option key={mp.id} value={mp.nombre}>{mp.nombre}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="Notas (opcional)"
+                                                    className="input-field text-sm bg-white"
+                                                    value={abonoForm.notas}
+                                                    onChange={e => setAbonoForm({...abonoForm, notas: e.target.value})}
+                                                />
+                                                <button type="submit" className="bg-emerald-600 text-white w-full py-2 rounded-lg font-bold text-xs uppercase hover:bg-emerald-700 transition-colors">
+                                                    Registrar
+                                                </button>
+                                            </form>
+                                        )}
+
+                                        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                            {abonos.map((a, i) => (
+                                                <div key={a._id || i} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100 group">
+                                                    <div>
+                                                        <div className="font-bold text-gray-800 text-sm">${formatCurrency(a.monto)}</div>
+                                                        <div className="text-[10px] text-gray-500 font-medium">
+                                                            {a.medio} • {format(new Date(a.fecha), 'dd/MM HH:mm')}
+                                                        </div>
+                                                        <div className="text-[9px] text-gray-400 italic">{a.usuario_nombre} {a.notas ? `| ${a.notas}` : ''}</div>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => handleDeleteAbono(a._id || a.id)}
+                                                        className="text-red-300 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {abonos.length === 0 && (
+                                                <div className="text-center py-6 text-gray-400 italic text-xs border border-dashed border-gray-200 rounded-lg">
+                                                    Sin abonos
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="grid grid-cols-2 gap-2 mb-2">
-                                            <input type="text" placeholder="Nombre" className="input-field py-1 text-xs" value={guestEditForm.nombre} onChange={e => setGuestEditForm({...guestEditForm, nombre: e.target.value})} />
-                                            <input type="text" placeholder="Documento" className="input-field py-1 text-xs" value={guestEditForm.documento} onChange={e => setGuestEditForm({...guestEditForm, documento: e.target.value})} />
-                                        </div>
-                                        <button onClick={handleAddGuestEdit} className="btn-primary py-1.5 text-xs w-full flex items-center justify-center gap-2">
-                                            <Plus size={14} /> Añadir Huésped
-                                        </button>
                                     </div>
                                 )}
-
-                                <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
-                                    {(isEditing ? editData.huespedes : (selectedRegistroDetails.huespedes || [])).map((h, i) => (
-                                        <div key={h.id || i} className="flex justify-between items-center bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
-                                            <div>
-                                                <div className="font-medium text-sm text-gray-900 flex gap-2 items-center">
-                                                    {h.nombre}
-                                                    {i === 0 && (
-                                                        <span className="px-2 py-0.5 text-[10px] bg-green-100 text-green-800 rounded border border-green-200 uppercase">Titular</span>
-                                                    )}
-                                                </div>
-                                                <div className="text-xs text-gray-500 mt-1">
-                                                    {h.tipo_documento} {h.documento} {h.telefono ? `| Tel: ${h.telefono}` : ''}
-                                                </div>
-                                            </div>
-                                            {isEditing && (
-                                                <button onClick={() => handleRemoveGuestEdit(i)} className="text-red-500 hover:text-red-700">
-                                                    <XCircle size={16} />
-                                                </button>
+                            </div>
+                            
+                            <div className="space-y-6">
+                                <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                                    <h3 className="font-bold text-gray-700 border-b pb-1 mb-4 text-sm uppercase flex items-center gap-2">
+                                        <Info size={14} className="text-gray-400" /> Alojamiento y Pagos
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-4 text-xs">
+                                        <div>
+                                            <span className="text-gray-400 block font-bold uppercase text-[9px]">Total Estancia</span>
+                                            {isEditing ? (
+                                                <input type="text" className="input-field py-1 bg-white" value={formatCurrency(editData.total)} readOnly />
+                                            ) : (
+                                                <span className="font-bold text-gray-900">${formatCurrency(selectedRegistroDetails.total)}</span>
                                             )}
                                         </div>
-                                    ))}
+                                        <div>
+                                            <span className="text-gray-400 block font-bold uppercase text-[9px]">A Cobrar</span>
+                                            {isEditing ? (
+                                                <input type="text" name="valor_cobrado" className="input-field py-1 bg-white" value={editData.valor_cobrado} onChange={handleEditFormChange} />
+                                            ) : (
+                                                <span className="font-bold text-gray-900">${formatCurrency(selectedRegistroDetails.valor_cobrado)}</span>
+                                            )}
+                                        </div>
+                                        <div className="col-span-2">
+                                            <span className="text-gray-400 block font-bold uppercase text-[9px]">Medio Cobro</span>
+                                            <span className="font-bold text-gray-900 uppercase">{selectedRegistroDetails.medio_pago_nombre || 'No asignado'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 pt-4 border-t border-gray-200 space-y-1">
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-gray-500">Subtotal Alojamiento:</span>
+                                            <span className="font-bold">${formatCurrency(selectedRegistroDetails.valor_cobrado)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-gray-500">Total Consumos:</span>
+                                            <span className="font-bold">${formatCurrency(consumos.reduce((acc, c) => acc + (c.cantidad * c.precio), 0))}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center pt-2 border-t border-dashed border-gray-300">
+                                            <span className="text-xs font-black text-primary-700 uppercase">Total General:</span>
+                                            <span className="text-lg font-black text-primary-700">
+                                                ${formatCurrency(parseFloat(selectedRegistroDetails.valor_cobrado) + consumos.reduce((acc, c) => acc + (c.cantidad * c.precio), 0))}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="mt-4">
+                                        <span className="text-gray-400 block font-bold uppercase text-[9px] mb-1">Notas</span>
+                                        {isEditing ? (
+                                            <textarea name="notas" className="input-field py-1 bg-white" rows="2" value={editData.notas} onChange={handleEditFormChange}></textarea>
+                                        ) : (
+                                            <p className="text-[11px] text-gray-600 italic leading-tight">{selectedRegistroDetails.notas || 'Sin notas'}</p>
+                                        )}
+                                    </div>
                                 </div>
+
+                                {!isEditing && (
+                                    <div className="bg-white p-5 rounded-xl border border-gray-200">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm uppercase">
+                                                <Info size={14} className="text-blue-500" /> Consumos Extras
+                                            </h3>
+                                            <button 
+                                                onClick={() => setShowConsumoForm(!showConsumoForm)}
+                                                className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-lg text-xs font-bold transition-colors"
+                                            >
+                                                {showConsumoForm ? 'Cerrar' : '+ Nuevo'}
+                                            </button>
+                                        </div>
+                                        
+                                        {showConsumoForm && (
+                                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-4 animate-fade-in space-y-3">
+                                                <div className="grid grid-cols-12 gap-2">
+                                                    <div className="col-span-8">
+                                                        <select className="input-field text-xs bg-white py-1.5" value={selectedProducto} onChange={e => setSelectedProducto(e.target.value)}>
+                                                            <option value="">Producto...</option>
+                                                            {productos.filter(p => p.stock > 0 && p.tipo_inventario === 'venta').map(p => (
+                                                                <option key={p.id} value={p.id}>{p.nombre} (${formatCurrency(p.precio)})</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    <div className="col-span-4">
+                                                        <input type="number" min="1" className="input-field text-xs bg-white py-1.5" value={cantidadConsumo} onChange={e => setCantidadConsumo(e.target.value)} />
+                                                    </div>
+                                                </div>
+                                                <button onClick={handleAddConsumo} disabled={!selectedProducto} className="btn-primary w-full py-2 text-xs uppercase font-bold">Agregar Consumo</button>
+                                            </div>
+                                        )}
+
+                                        <div className="max-h-32 overflow-y-auto rounded-lg border border-gray-100">
+                                            <table className="min-w-full divide-y divide-gray-200 text-[10px]">
+                                                <tbody className="bg-white divide-y divide-gray-200">
+                                                    {consumos.map((c, i) => (
+                                                        <tr key={i}>
+                                                            <td className="px-3 py-2 text-gray-900">{c.producto_nombre}</td>
+                                                            <td className="px-3 py-2 text-center text-gray-500">{c.cantidad}x</td>
+                                                            <td className="px-3 py-2 text-right font-bold">${formatCurrency(c.cantidad * c.precio)}</td>
+                                                        </tr>
+                                                    ))}
+                                                    {consumos.length === 0 && (
+                                                        <tr><td colSpan="3" className="px-3 py-4 text-center text-gray-400 italic">Sin consumos</td></tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        <div className="mt-8 flex justify-end gap-3">
+                        <div className="mt-8 flex justify-end gap-3 pt-4 border-t">
                             {isEditing ? (
                                 <>
-                                    <button onClick={() => setIsEditing(false)} className="btn-secondary">Cancelar</button>
-                                    <button onClick={handleUpdateSave} className="btn-primary">Guardar Cambios</button>
+                                    <button onClick={() => setIsEditing(false)} className="btn-secondary px-6">Cancelar</button>
+                                    <button onClick={handleUpdateSave} className="btn-primary px-8">Guardar</button>
                                 </>
                             ) : (
-                                <button onClick={() => setShowDetailsModal(false)} className="btn-secondary">Cerrar</button>
+                                <div className="flex gap-2">
+                                    {selectedRegistroDetails.estado === 'activa' && (
+                                        <button onClick={() => handleCheckout(selectedRegistroDetails.id)} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold text-xs uppercase transition-colors">
+                                            Check-out
+                                        </button>
+                                    )}
+                                    <button onClick={() => setShowDetailsModal(false)} className="btn-secondary px-8">Cerrar</button>
+                                </div>
                             )}
                         </div>
                     </div>

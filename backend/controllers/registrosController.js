@@ -21,7 +21,8 @@ exports.getRegistros = async (req, res) => {
                 documento_cliente: raw.documento_cliente || (raw.cliente ? raw.cliente.documento : '-'),
                 telefono_cliente: raw.telefono_cliente || (raw.cliente ? raw.cliente.telefono : ''),
                 numero_habitacion: raw.numero_habitacion || (raw.habitacion ? raw.habitacion.numero : '?'),
-                tipo_registro_nombre: raw.tipo_registro_nombre || 'Formal'
+                tipo_registro_nombre: raw.tipo_registro_nombre || 'Formal',
+                valor_pagado: (raw.pagos || []).reduce((acc, p) => acc + (p.monto || 0), 0)
             };
         });
         
@@ -48,7 +49,8 @@ exports.getActiveRegistros = async (req, res) => {
                 nombre_cliente: raw.nombre_cliente || (raw.cliente ? raw.cliente.nombre : 'Sín Nombre'),
                 documento_cliente: raw.documento_cliente || (raw.cliente ? raw.cliente.documento : '-'),
                 telefono_cliente: raw.telefono_cliente || (raw.cliente ? raw.cliente.telefono : ''),
-                numero_habitacion: raw.numero_habitacion || (raw.habitacion ? raw.habitacion.numero : '?')
+                numero_habitacion: raw.numero_habitacion || (raw.habitacion ? raw.habitacion.numero : '?'),
+                valor_pagado: (raw.pagos || []).reduce((acc, p) => acc + (p.monto || 0), 0)
             };
         });
         
@@ -76,7 +78,8 @@ exports.getRegistroById = async (req, res) => {
             fecha_salida: raw.fecha_salida || raw.fechaSalida || raw.fechaEntrada || raw.fechaCreacion,
             nombre_cliente: raw.nombre_cliente || (raw.cliente ? raw.cliente.nombre : 'Sín Nombre'),
             numero_habitacion: raw.numero_habitacion || (raw.habitacion ? raw.habitacion.numero : '?'),
-            notas: raw.notas || raw.observaciones || ''
+            notas: raw.notas || raw.observaciones || '',
+            valor_pagado: (raw.pagos || []).reduce((acc, p) => acc + (p.monto || 0), 0)
         };
         
         res.json(mapped);
@@ -140,9 +143,14 @@ exports.createRegistro = async (req, res) => {
 
         // Add initial payment if medio_pago is provided
         if (medio_pago_id) {
+            const MedioPago = require('../models/MedioPago');
+            const medio = await MedioPago.findById(medio_pago_id);
+            
             newReg.pagos = [{
                 monto: parseFloat(valor_cobrado || total || 0),
-                medio: 'DefinirPorMedio', // Need medio name?
+                medio: medio ? medio.nombre : 'Efectivo',
+                usuario_nombre: req.userName || 'Sistema',
+                notas: 'Pago inicial al registro',
                 fecha: Date.now()
             }];
         }
@@ -176,7 +184,7 @@ exports.checkout = async (req, res) => {
         registro.fechaSalida = Date.now();
         await registro.save();
 
-        // 2. Liberar habitación (Marcar como disponible pero SUCIA)
+        // 2. Liberar habitación (Marcar como disponible pero SUCIA para que pase a azul)
         const EstadoHabitacion = require('../models/EstadoHabitacion');
         const estadoDisponible = await EstadoHabitacion.findOne({ nombre: /disponible/i });
         
