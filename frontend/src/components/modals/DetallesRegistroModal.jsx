@@ -543,7 +543,7 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                                                     <label className="block text-[8px] font-black text-red-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
                                                         <LogOut size={10} /> Notas de Salida (Check-out)
                                                     </label>
-                                                    <div className="bg-red-50/50 p-4 rounded-2xl border border-red-100 italic font-black text-red-900 text-xs shadow-sm min-h-[50px] flex items-center">
+                                                    <div className="bg-red-50/50 p-4 rounded-2xl border border-red-100 italic font-black text-red-900 text-[10px] shadow-sm min-h-[50px] flex items-center px-4">
                                                         {details.notasSalida || 'Sin observaciones registradas al momento de salida.'}
                                                     </div>
                                                 </div>
