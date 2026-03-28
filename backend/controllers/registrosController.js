@@ -134,23 +134,23 @@ exports.createRegistro = async (req, res) => {
             huespedes: huesped_ids,
             fechaEntrada: fecha_ingreso,
             fechaSalida: fecha_salida,
-            total: valor_cobrado !== undefined ? valor_cobrado : total, // Map valor_cobrado if available from the frontend
-            observaciones: notas || observaciones, // frontend uses 'notas'
+            total: total || valor_cobrado || 0, // 'total' is the Negotiated/Real Total
+            observaciones: notas || observaciones,
             usuarioCreacion: req.userName,
             fechaCreacion: Date.now(),
-            estado: 'activo' // Make sure it's created as activo by default initially if checking in. Wait, frontend uses "estado" mostly in put, but let's keep model default. 
+            estado: 'activo'
         });
 
-        // Add initial payment if medio_pago is provided
-        if (medio_pago_id) {
+        // Add initial payment if medio_pago is provided AND valor_cobrado exists
+        if (medio_pago_id && parseFloat(valor_cobrado) > 0) {
             const MedioPago = require('../models/MedioPago');
             const medio = await MedioPago.findById(medio_pago_id);
             
             newReg.pagos = [{
-                monto: parseFloat(valor_cobrado || total || 0),
+                monto: parseFloat(valor_cobrado),
                 medio: medio ? medio.nombre : 'Efectivo',
                 usuario_nombre: req.userName || 'Sistema',
-                notas: 'Pago inicial al registro',
+                notas: 'Abono inicial al registro',
                 fecha: Date.now()
             }];
         }

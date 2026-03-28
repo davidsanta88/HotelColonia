@@ -96,13 +96,22 @@ exports.getMapaVisual = async (req, res) => {
             // 1. Recoger datos informativos (Huésped o Reserva hoy)
             let detalleEstado = '';
             if (registroActivo) {
+                // Obtener consumos vinculados al registro
+                const Venta = require('../models/Venta');
+                const ventas = await Venta.find({ registro: registroActivo._id });
+                const consumosTotal = ventas.reduce((acc, v) => acc + v.total, 0);
+                
                 const totalPagado = registroActivo.pagos.reduce((acc, p) => acc + p.monto, 0);
+                
                 detalleEstado = {
                     huesped: registroActivo.cliente ? registroActivo.cliente.nombre : 'N/A',
                     entrada: registroActivo.fechaEntrada,
                     salida: registroActivo.fechaSalida,
-                    total: registroActivo.total,
-                    pagado: totalPagado
+                    totalEstancia: registroActivo.total,
+                    totalConsumos: consumosTotal,
+                    totalGeneral: registroActivo.total + consumosTotal,
+                    pagado: totalPagado,
+                    saldo: (registroActivo.total + consumosTotal) - totalPagado
                 };
             } else if (reservaHoy) {
                 detalleEstado = `Reserva: ${reservaHoy.cliente ? reservaHoy.cliente.nombre : 'N/A'}`;

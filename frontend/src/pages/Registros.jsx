@@ -717,19 +717,20 @@ const Registros = () => {
                                     </h3>
                                     <div className="grid grid-cols-2 gap-4 text-xs">
                                         <div>
-                                            <span className="text-gray-400 block font-bold uppercase text-[9px]">Total Estancia</span>
+                                            <span className="text-gray-400 block font-bold uppercase text-[9px]">Valor Real a Cobrar (Total)</span>
                                             {isEditing ? (
-                                                <input type="text" className="input-field py-1 bg-white" value={formatCurrency(editData.total)} readOnly />
+                                                <div className="relative mt-1">
+                                                    <DollarSign className="absolute left-2 top-1.5 text-gray-400" size={10} />
+                                                    <input 
+                                                        type="text" 
+                                                        name="total" 
+                                                        className="input-field py-1 pl-6 bg-white border-primary-200 focus:ring-primary-500/20 font-black text-sm" 
+                                                        value={formatCurrency(editData.total)} 
+                                                        onChange={handleEditFormChange} 
+                                                    />
+                                                </div>
                                             ) : (
-                                                <span className="font-bold text-gray-900">${formatCurrency(selectedRegistroDetails.total)}</span>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-400 block font-bold uppercase text-[9px]">A Cobrar</span>
-                                            {isEditing ? (
-                                                <input type="text" name="valor_cobrado" className="input-field py-1 bg-white" value={editData.valor_cobrado} onChange={handleEditFormChange} />
-                                            ) : (
-                                                <span className="font-bold text-gray-900">${formatCurrency(selectedRegistroDetails.valor_cobrado)}</span>
+                                                <span className="font-black text-gray-900 text-lg">${formatCurrency(selectedRegistroDetails.total)}</span>
                                             )}
                                         </div>
                                         <div className="col-span-2">
@@ -739,8 +740,8 @@ const Registros = () => {
                                     </div>
                                     <div className="mt-4 pt-4 border-t border-gray-200 space-y-1">
                                         <div className="flex justify-between text-xs">
-                                            <span className="text-gray-500">Subtotal Alojamiento:</span>
-                                            <span className="font-bold">${formatCurrency(selectedRegistroDetails.valor_cobrado)}</span>
+                                            <span className="text-gray-500">Valor Estancia (Hab.):</span>
+                                            <span className="font-bold">${formatCurrency(selectedRegistroDetails.total)}</span>
                                         </div>
                                         <div className="flex justify-between text-xs">
                                             <span className="text-gray-500">Total Consumos:</span>

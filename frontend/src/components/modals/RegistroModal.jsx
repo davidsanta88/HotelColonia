@@ -45,6 +45,9 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, onSuccess }) => {
         tipo_registro_id: ''
     });
 
+    const [calculatedTotal, setCalculatedTotal] = useState(0);
+    const [isTotalEdited, setIsTotalEdited] = useState(false);
+
     const [huespedesList, setHuespedesList] = useState([]);
     const [guestForm, setGuestForm] = useState({ 
         nombre: '', 
@@ -118,11 +121,16 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, onSuccess }) => {
         const pNoche = parseFloat(hab[`precio_${numPersonas}`]) || parseFloat(hab.precio_1) || 0;
         
         const rawTotal = (pNoche * diffDays);
-        setFormData(prev => ({ 
-            ...prev, 
-            total: rawTotal.toFixed(2),
-            valor_cobrado: rawTotal.toFixed(2)
-        }));
+        setCalculatedTotal(rawTotal);
+        
+        // Solo actualizar el total real si el usuario no lo ha tocado
+        if (!isTotalEdited) {
+            setFormData(prev => ({ 
+                ...prev, 
+                total: rawTotal.toFixed(2),
+                valor_cobrado: rawTotal.toFixed(2)
+            }));
+        }
     };
 
     const handleFormChange = (e) => {
@@ -420,24 +428,31 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, onSuccess }) => {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 bg-emerald-50 rounded-[1.25rem] border border-emerald-100">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-5 bg-emerald-50 rounded-[1.25rem] border border-emerald-100">
                                     <div>
-                                        <label className="text-[8px] font-black uppercase tracking-widest text-emerald-600/60 mb-1 block">Total Sugerido</label>
-                                        <div className="text-xl font-black text-emerald-700">${formatCurrency(formData.total)}</div>
+                                        <label className="text-[8px] font-black uppercase tracking-widest text-emerald-600/60 mb-1 block">1. Valor Sugerido (Sist.)</label>
+                                        <div className="text-xl font-black text-emerald-700/60 transition-all">${formatCurrency(calculatedTotal)}</div>
+                                        <p className="text-[7px] font-bold text-emerald-400 uppercase mt-0.5">Basado en noches</p>
                                     </div>
                                     <div>
-                                        <label className="text-[8px] font-black uppercase tracking-widest text-emerald-600/60 mb-1 block">Medio de Pago</label>
-                                        <select name="medio_pago_id" className="w-full bg-white border border-emerald-200 rounded-lg text-[9px] font-black px-2 py-1.5 outline-none" value={formData.medio_pago_id} onChange={handleFormChange}>
-                                            <option value="">POR DEFINIR...</option>
-                                            {mediosPago.map(mp => (
-                                                <option key={mp.id} value={mp.id}>{mp.nombre.toUpperCase()}</option>
-                                            ))}
-                                        </select>
+                                        <label className="text-[8px] font-black uppercase tracking-widest text-emerald-600/60 mb-1 block">2. Valor Real a Cobrar</label>
+                                        <div className="relative">
+                                            <DollarSign className="absolute left-2 top-2 text-emerald-300" size={12} />
+                                            <input 
+                                                type="text" 
+                                                className="w-full pl-6 pr-2 py-1.5 bg-white border border-emerald-200 rounded-lg text-sm font-black text-emerald-800 outline-none focus:ring-2 ring-emerald-500/20" 
+                                                value={formatCurrency(formData.total)} 
+                                                onChange={(e) => {
+                                                    setIsTotalEdited(true);
+                                                    setFormData(prev => ({ ...prev, total: cleanNumericValue(e.target.value) }));
+                                                }} 
+                                            />
+                                        </div>
+                                        <p className="text-[7px] font-bold text-emerald-400 uppercase mt-0.5 italic">Monto total de estancia</p>
                                     </div>
                                     <div>
                                         <div className="flex justify-between items-center mb-1">
-                                            <label className="text-[8px] font-black uppercase tracking-widest text-emerald-600/60 block">Valor Recibido / Abono Inicial</label>
-                                            <span className="text-[7px] font-bold text-emerald-400 uppercase italic">Puede ser pago parcial</span>
+                                            <label className="text-[8px] font-black uppercase tracking-widest text-emerald-600/60 block">3. Valor Recibido / Abono</label>
                                         </div>
                                         <div className="relative">
                                             <DollarSign className="absolute left-2 top-2 text-emerald-300" size={12} />
@@ -448,6 +463,25 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, onSuccess }) => {
                                                 value={formatCurrency(formData.valor_cobrado)} 
                                                 onChange={(e) => setFormData(prev => ({ ...prev, valor_cobrado: cleanNumericValue(e.target.value) }))} 
                                             />
+                                        </div>
+                                        <p className="text-[7px] font-bold text-emerald-400 uppercase mt-0.5 italic">Pago inicial hoy</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[8px] font-black uppercase tracking-widest text-emerald-600/60 mb-1 block">Medio de Pago</label>
+                                        <select name="medio_pago_id" className="w-full bg-white border border-emerald-200 rounded-lg text-[9px] font-black px-2 py-2 outline-none" value={formData.medio_pago_id} onChange={handleFormChange}>
+                                            <option value="">POR DEFINIR...</option>
+                                            {mediosPago.map(mp => (
+                                                <option key={mp.id} value={mp.id}>{mp.nombre.toUpperCase()}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-1 mb-2 block">Saldo Restante al Ingreso</label>
+                                        <div className={`px-4 py-2 rounded-xl font-black text-sm border ${ (parseFloat(formData.total) - parseFloat(formData.valor_cobrado) > 0) ? 'bg-red-50 border-red-100 text-red-600' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
+                                            ${formatCurrency(Math.max(0, parseFloat(formData.total) - parseFloat(formData.valor_cobrado)))}
                                         </div>
                                     </div>
                                 </div>
