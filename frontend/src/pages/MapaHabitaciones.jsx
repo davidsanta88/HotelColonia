@@ -238,20 +238,20 @@ const MapaHabitaciones = () => {
         const result = await Swal.fire({
             title: '¿Realizar Check-out?',
             html: `
-                <div class="text-left space-y-3">
-                    <p class="text-base text-gray-600 font-medium">Esta acción liberará la habitación y la marcará para aseo.</p>
+                <div class="text-left space-y-4">
+                    <p class="text-lg text-gray-700 font-bold">Esta acción liberará la habitación y la marcará para aseo.</p>
                     ${tieneSaldo ? `
-                        <div class="bg-red-50 border-2 border-red-500 p-5 rounded-2xl text-red-700 shadow-lg animate-pulse">
+                        <div class="bg-red-50 border-2 border-red-500 p-6 rounded-2xl text-red-700 shadow-lg animate-pulse">
                             <div class="flex items-center gap-3 mb-2 justify-center">
-                                <span class="bg-red-500 text-white p-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
-                                <strong class="text-xl font-black uppercase tracking-tighter">¡SALDO PENDIENTE!</strong>
+                                <span class="bg-red-500 text-white p-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+                                <strong class="text-2xl font-black uppercase tracking-tighter">¡SALDO PENDIENTE!</strong>
                             </div>
-                            <p class="text-3xl font-black text-center mb-1">$${formatCurrency(saldo)}</p>
-                            <p class="text-xs font-bold text-center opacity-90 uppercase tracking-widest">DEBE COBRAR ANTES DE LIBERAR LA HABITACIÓN</p>
+                            <p class="text-4xl font-black text-center mb-1">$${formatCurrency(saldo)}</p>
+                            <p class="text-sm font-bold text-center opacity-90 uppercase tracking-widest">DEBE COBRAR ANTES DE LIBERAR LA HABITACIÓN</p>
                         </div>
                     ` : ''}
                     <div class="mt-2">
-                        <label class="block text-xs font-black text-gray-400 uppercase mb-1">Notas de salida (Opcional):</label>
+                        <label class="block text-sm font-black text-gray-400 uppercase mb-1 tracking-wider">Notas de salida (Opcional):</label>
                     </div>
                 </div>
             `,
@@ -266,10 +266,10 @@ const MapaHabitaciones = () => {
             cancelButtonText: 'Cancelar',
             customClass: {
                 popup: 'rounded-3xl shadow-2xl border border-gray-100',
-                title: 'text-xl font-black text-gray-800',
-                htmlContainer: 'text-sm font-medium',
-                confirmButton: 'rounded-xl font-black uppercase tracking-widest text-xs px-6 py-3 transition-transform active:scale-95',
-                cancelButton: 'rounded-xl font-black uppercase tracking-widest text-xs px-6 py-3 transition-transform active:scale-95'
+                title: 'text-2xl font-black text-gray-800',
+                htmlContainer: 'text-base font-medium',
+                confirmButton: 'rounded-xl font-black uppercase tracking-widest text-sm px-8 py-4 transition-transform active:scale-95',
+                cancelButton: 'rounded-xl font-black uppercase tracking-widest text-sm px-8 py-4 transition-transform active:scale-95'
             }
         });
 
