@@ -203,11 +203,14 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, onSuccess }) => {
 
             const dataToSave = {
                 ...formData,
+                total: parseFloat(formData.total) || 0,
+                valor_cobrado: parseFloat(formData.valor_cobrado) || 0,
                 cliente_id: processedHuespedesIds[0],
                 huespedes: processedHuespedesIds,
                 observaciones: formData.notas
             };
             
+            console.log('[DEBUG] Enviando Registro:', dataToSave);
             await api.post('/registros', dataToSave);
             
             Swal.close();

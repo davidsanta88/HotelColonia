@@ -343,8 +343,15 @@ const Registros = () => {
 
     const handleEditFormChange = (e) => {
         const { name, value } = e.target;
-        let newData = { ...editData, [name]: value };
-        
+        if (name === 'total') {
+            setEditData(prev => ({ ...prev, [name]: cleanNumericValue(value) }));
+        } else {
+            setEditData(prev => ({ ...prev, [name]: value }));
+        }
+    };
+
+    const handleEditFormChangeLogic = (newData) => {
+        const { name } = newData;
         if (name === 'habitacion_id' || name === 'fecha_ingreso' || name === 'fecha_salida') {
             const hab = habitaciones.find(h => String(h.id || h._id) === String(newData.habitacion_id));
             if (hab && newData.fecha_ingreso && newData.fecha_salida) {

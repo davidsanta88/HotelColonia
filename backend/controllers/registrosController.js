@@ -88,9 +88,20 @@ exports.getRegistroById = async (req, res) => {
     }
 };
 
+// Auxiliar para limpiar strings con formato (puntos de miles) antes de convertir a número
+const cleanNumber = (val) => {
+    if (val === null || val === undefined || val === '') return 0;
+    if (typeof val === 'number') return val;
+    // Eliminar puntos de miles y cambiar coma por punto decimal si existe
+    const cleaned = val.toString().replace(/\./g, '').replace(',', '.');
+    return parseFloat(cleaned) || 0;
+};
+
 exports.createRegistro = async (req, res) => {
     try {
         const { habitacion_id, fecha_ingreso, fecha_salida, huespedes, total, observaciones, notas, medio_pago_id, valor_cobrado, tipo_registro_id } = req.body;
+        
+        console.log(`[CREATE REGISTRO] Raw Total: ${total} | Raw Abono: ${valor_cobrado}`);
 
         if (!huespedes || huespedes.length === 0) {
             return res.status(400).json({ message: 'Se requiere al menos un huésped' });
@@ -127,8 +138,10 @@ exports.createRegistro = async (req, res) => {
         }
 
         const titular_id = huesped_ids[0];
-        const totalNum = parseFloat(total) || 0;
-        const abonoInicial = parseFloat(valor_cobrado) || 0;
+        const totalNum = cleanNumber(total);
+        const abonoInicial = cleanNumber(valor_cobrado);
+
+        console.log(`[CREATE REGISTRO] Parsed Total: ${totalNum} | Parsed Abono: ${abonoInicial}`);
 
         const newReg = new Registro({
             habitacion: habitacion_id,
@@ -139,7 +152,7 @@ exports.createRegistro = async (req, res) => {
             total: totalNum,
             observaciones: observaciones || notas,
             tipo_registro: tipo_registro_id || undefined,
-            estado: 'activa',
+            estado: 'activo',
             medio_pago: medio_pago_id || undefined,
             valor_cobrado: abonoInicial
         });
@@ -170,8 +183,9 @@ exports.createRegistro = async (req, res) => {
             });
         }
 
-        res.status(201).json({ message: 'Registro creado con éxito', registro: newReg });
+        res.status(201).json({ message: 'Registro creado', registro: newReg });
     } catch (err) {
+        console.error('[CREATE ERROR]', err);
         res.status(500).json({ message: err.message });
     }
 };
