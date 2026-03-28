@@ -293,16 +293,16 @@ const MapaHabitaciones = () => {
                                                     <div className="flex items-center gap-1"><LogOut size={10} /> {new Date(hab.detalleEstado.salida).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' })}</div>
                                                     <div className="col-span-2 pt-1 mt-1 border-t border-gray-100 flex justify-between text-[8px] uppercase tracking-tighter">
                                                         <span>Aloj. + Consumos:</span>
-                                                        <span className="font-black text-gray-700">${formatCurrency(hab.detalleEstado.totalGeneral)}</span>
+                                                        <span className="font-black text-gray-700">${formatCurrency(hab.detalleEstado.totalGeneral || 0)}</span>
                                                     </div>
                                                     <div className="col-span-2 flex justify-between text-[8px] uppercase tracking-tighter">
                                                         <span>Abonado:</span>
-                                                        <span className="font-black text-emerald-600">${formatCurrency(hab.detalleEstado.pagado)}</span>
+                                                        <span className="font-black text-emerald-600">${formatCurrency(hab.detalleEstado.pagado || 0)}</span>
                                                     </div>
                                                 </div>
-                                                <div className={`mt-1 p-1.5 rounded-lg flex justify-between items-center text-[10px] font-black ${hab.detalleEstado.saldo > 0 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                <div className={`mt-1 p-1.5 rounded-lg flex justify-between items-center text-[10px] font-black ${ (hab.detalleEstado.saldo || 0) > 0 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-emerald-100 text-emerald-700'}`}>
                                                     <div className="flex items-center gap-1"><DollarSign size={10} /> SALDO:</div>
-                                                    <div>${formatCurrency(hab.detalleEstado.saldo)}</div>
+                                                    <div>${formatCurrency(hab.detalleEstado.saldo || 0)}</div>
                                                 </div>
                                                 <button 
                                                     onClick={(e) => {
