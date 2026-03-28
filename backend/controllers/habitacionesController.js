@@ -113,7 +113,7 @@ exports.getMapaVisual = async (req, res) => {
                 estadoVisual = 'reservada';
                 color = 'yellow';
                 detalleEstado = `Reserva: ${reservaHoy.cliente ? reservaHoy.cliente.nombre : 'N/A'}`;
-            } else if (hab.estadoLimpieza === 'Sucia') {
+            } else if (hab.estadoLimpieza && hab.estadoLimpieza.toUpperCase() === 'SUCIA') {
                 estadoVisual = 'por_asear';
                 color = 'blue';
             }

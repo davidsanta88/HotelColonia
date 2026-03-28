@@ -66,6 +66,7 @@ const MapaHabitaciones = () => {
     };
 
     const isClean = (status) => status && status.toUpperCase() === 'LIMPIA';
+    const isDirty = (status) => status && status.toUpperCase() === 'SUCIA';
 
     const filteredHabitaciones = habitaciones.filter(h => {
         if (filter === 'todas') return true;
@@ -218,12 +219,12 @@ const MapaHabitaciones = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-2">
                 {filteredHabitaciones.map((hab) => {
                     const styles = getStatusStyles(hab.estadoVisual);
-                    const isRoomDirty = hab.estadoLimpieza && hab.estadoLimpieza.toUpperCase() === 'SUCIA';
                     
                     return (
                         <div 
                             key={hab.id}
-                            className={`group relative transition-all duration-300 transform hover:-translate-y-1`}
+                            onClick={() => handleRoomClick(hab)}
+                            className={`group relative transition-all duration-300 transform hover:-translate-y-1 cursor-pointer`}
                         >
                             <div className={`h-full bg-white rounded-2xl shadow-sm border-2 ${styles.border} overflow-hidden flex flex-col`}>
                                 {/* Card Header / Icon area */}
@@ -236,21 +237,24 @@ const MapaHabitaciones = () => {
                                         }}
                                         disabled={updating === hab.id}
                                         className={`absolute top-1 right-1 p-1 rounded-md transition-all shadow-sm border ${
-                                            isRoomDirty 
+                                            isDirty(hab.estadoLimpieza) 
                                             ? 'bg-orange-500 border-orange-400 text-white hover:bg-orange-600' 
                                             : 'bg-emerald-500 border-emerald-400 text-white hover:bg-emerald-600'
                                         }`}
-                                        title={isRoomDirty ? 'Marcar como Limpia' : 'Marcar como Sucia'}
+                                        title={isDirty(hab.estadoLimpieza) ? 'Marcar como Limpia' : 'Marcar como Sucia'}
                                     >
-                                        {updating === hab.id ? <Loader2 size={10} className="animate-spin" /> : (isRoomDirty ? <RefreshCw size={10} /> : <Brush size={10} />)}
+                                        {updating === hab.id ? <Loader2 size={10} className="animate-spin" /> : (isDirty(hab.estadoLimpieza) ? <RefreshCw size={10} /> : <Brush size={10} />)}
                                     </button>
 
                                     <div className={`p-1.5 rounded-lg bg-white shadow-sm ${styles.icon} transition-transform group-hover:scale-110 duration-500`}>
                                         <Hotel size={20} strokeWidth={2.5} />
                                     </div>
                                     <h2 className="text-sm font-black text-gray-950 tracking-tighter text-center leading-none">Hab {hab.numero}</h2>
-                                    <span className={`px-1.5 py-0.5 rounded-full text-[7px] font-black uppercase tracking-[0.05em] ${styles.badge}`}>
+                                    <span className={`px-1.5 py-0.5 rounded-full text-[7px] font-black uppercase tracking-[0.05em] flex items-center gap-1 ${styles.badge}`}>
                                         {hab.estadoVisual.replace('_', ' ')}
+                                        {isDirty(hab.estadoLimpieza) && hab.estadoVisual === 'ocupada' && (
+                                            <span className="w-1 h-1 bg-orange-500 rounded-full animate-pulse" title="Requiere aseo"></span>
+                                        )}
                                     </span>
                                 </div>
 
@@ -312,17 +316,6 @@ const MapaHabitaciones = () => {
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Footer Action */}
-                                <button 
-                                    onClick={() => handleRoomClick(hab)}
-                                    className={`w-full p-2 text-center border-t border-gray-100 transition-all duration-300 group-hover:bg-gray-950`}
-                                >
-                                    <span className={`text-[8px] font-black uppercase tracking-[0.1em] ${styles.text} group-hover:text-white flex items-center justify-center gap-1`}>
-                                        {hab.estadoVisual === 'ocupada' ? 'VER' : 'ALQUILAR'}
-                                        <ChevronRight size={12} strokeWidth={3} className="group-hover:translate-x-0.5 transition-transform" />
-                                    </span>
-                                </button>
                             </div>
                         </div>
                     );

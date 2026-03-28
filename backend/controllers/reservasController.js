@@ -35,21 +35,29 @@ exports.getReservas = async (req, res) => {
         const formatted = reservas.map(r => {
             const obj = r.toObject({ virtuals: true });
             
-            // Fallback for rooms
+            // Fallback for rooms (legacy support)
             if ((!obj.habitaciones || obj.habitaciones.length === 0) && obj.habitacion) {
                 obj.habitaciones = [{
                     habitacion: obj.habitacion,
-                    numero: obj.habitacion.numero,
-                    precio_acordado: obj.habitacion.precio_1 || 0
+                    numero: obj.habitacion?.numero || 'N/A',
+                    precio_acordado: obj.habitacion?.precio_1 || 0
                 }];
+            }
+
+            // Ensure nested room numbers are present
+            if (obj.habitaciones && Array.isArray(obj.habitaciones)) {
+                obj.habitaciones = obj.habitaciones.map(h => ({
+                    ...h,
+                    numero: h.numero || h.habitacion?.numero || 'N/A'
+                }));
             }
             
             // Fallback for dates
             if (!obj.fecha_entrada && obj.fechaInicio) obj.fecha_entrada = obj.fechaInicio;
             if (!obj.fecha_salida && obj.fechaFin) obj.fecha_salida = obj.fechaFin;
 
-            // Ensure client_nombre is present even if virtual fails for some reason
-            if (!obj.cliente_nombre) {
+            // Ensure client_nombre is present
+            if (!obj.cliente_nombre || obj.cliente_nombre === 'Desconocido') {
                 obj.cliente_nombre = obj.cliente?.nombre || 'Desconocido';
             }
 
