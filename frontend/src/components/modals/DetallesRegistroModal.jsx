@@ -205,7 +205,7 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
             };
 
     const handleCheckout = async () => {
-        const { value: notasSalida, isConfirmed } = await Swal.fire({
+        const result = await Swal.fire({
             title: '¿Confirmar Check-out?',
             html: `
                 <div class="text-left space-y-3">
@@ -243,10 +243,11 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
             }
         });
 
-        if (isConfirmed) {
+        if (result.isConfirmed) {
             try {
+                const notasCapturadas = result.value || '';
                 Swal.fire({ title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                await api.put(`/registros/checkout/${registroId}`, { notasSalida: notasSalida || '' });
+                await api.put(`/registros/checkout/${registroId}`, { notasSalida: notasCapturadas });
                 Swal.fire('Éxito', 'Check-out realizado. Habitación lista para aseo.', 'success');
                 if (onSuccess) onSuccess();
                 onClose();

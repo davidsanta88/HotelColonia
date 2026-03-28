@@ -25,6 +25,7 @@ exports.getRegistros = async (req, res) => {
                 telefono_cliente: raw.telefono_cliente || (raw.cliente ? raw.cliente.telefono : ''),
                 numero_habitacion: raw.numero_habitacion || (raw.habitacion ? raw.habitacion.numero : '?'),
                 tipo_registro_nombre: raw.tipo_registro_nombre || 'Formal',
+                notasSalida: raw.notasSalida || '',
                 valor_pagado: (raw.pagos || []).reduce((acc, p) => acc + (p.monto || 0), 0)
             };
         });
@@ -53,6 +54,7 @@ exports.getActiveRegistros = async (req, res) => {
                 documento_cliente: raw.documento_cliente || (raw.cliente ? raw.cliente.documento : '-'),
                 telefono_cliente: raw.telefono_cliente || (raw.cliente ? raw.cliente.telefono : ''),
                 numero_habitacion: raw.numero_habitacion || (raw.habitacion ? raw.habitacion.numero : '?'),
+                notasSalida: raw.notasSalida || '',
                 valor_pagado: (raw.pagos || []).reduce((acc, p) => acc + (p.monto || 0), 0)
             };
         });
@@ -216,6 +218,7 @@ exports.checkout = async (req, res) => {
         // 1. Finalizar registro
         registro.estado = 'finalizado';
         registro.fechaSalida = Date.now();
+        console.log('Recibiendo notasSalida:', notasSalida); // Log para depuración
         registro.notasSalida = notasSalida || "";
         await registro.save();
 
