@@ -127,8 +127,8 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, onSuccess }) => {
         if (!isTotalEdited) {
             setFormData(prev => ({ 
                 ...prev, 
-                total: rawTotal.toFixed(2),
-                valor_cobrado: rawTotal.toFixed(2)
+                total: rawTotal,
+                valor_cobrado: rawTotal
             }));
         }
     };

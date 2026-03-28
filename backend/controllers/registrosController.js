@@ -127,6 +127,8 @@ exports.createRegistro = async (req, res) => {
         }
 
         const titular_id = huesped_ids[0];
+        const totalNum = parseFloat(total) || 0;
+        const abonoInicial = parseFloat(valor_cobrado) || 0;
 
         const newReg = new Registro({
             habitacion: habitacion_id,
@@ -134,23 +136,24 @@ exports.createRegistro = async (req, res) => {
             huespedes: huesped_ids,
             fechaEntrada: fecha_ingreso,
             fechaSalida: fecha_salida,
-            total: total || valor_cobrado || 0, // 'total' is the Negotiated/Real Total
-            observaciones: notas || observaciones,
-            usuarioCreacion: req.userName,
-            fechaCreacion: Date.now(),
-            estado: 'activo'
+            total: totalNum,
+            observaciones: observaciones || notas,
+            tipo_registro: tipo_registro_id || undefined,
+            estado: 'activa',
+            medio_pago: medio_pago_id || undefined,
+            valor_cobrado: abonoInicial
         });
 
-        // Add initial payment if medio_pago is provided AND valor_cobrado exists
-        if (medio_pago_id && parseFloat(valor_cobrado) > 0) {
+        // 5. Registrar el primer pago (Abono inicial) si existe
+        if (abonoInicial > 0) {
             const MedioPago = require('../models/MedioPago');
             const medio = await MedioPago.findById(medio_pago_id);
             
             newReg.pagos = [{
-                monto: parseFloat(valor_cobrado),
+                monto: abonoInicial,
                 medio: medio ? medio.nombre : 'Efectivo',
                 usuario_nombre: req.userName || 'Sistema',
-                notas: 'Abono inicial al registro',
+                notas: 'Abono inicial en check-in',
                 fecha: Date.now()
             }];
         }
