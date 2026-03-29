@@ -31,6 +31,10 @@ const HotelConfigSchema = new mongoose.Schema({
         required: true,
         default: 'Este documento es un comprobante informativo. Los consumos adicionales se cobrarán al check-out.'
     },
+    datosBancarios: {
+        type: String,
+        default: 'Banco: XXXXXX | Cuenta: Ahorros # XXXXXXXXX | Nequi: XXXXXXXXXX'
+    },
     updatedAt: {
         type: Date,
         default: Date.now

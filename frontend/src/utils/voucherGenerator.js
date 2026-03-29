@@ -164,12 +164,20 @@ export const generateVoucher = async (data) => {
 
         // 7. Pie de página (Footer)
         doc.setDrawColor(226, 232, 240);
-        doc.line(margin, 275, pageWidth - margin, 275);
+        doc.line(margin, 265, pageWidth - margin, 265);
+        
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(51, 65, 85); // slate-700
+        doc.text('DATOS PARA TRANSFERENCIA:', margin, 272);
+        doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
+        doc.text(hotelInfo.datosBancarios || '', margin, 277);
+
         doc.setFont('helvetica', 'italic');
         doc.setTextColor(148, 163, 184); // slate-400
-        doc.text(hotelInfo.politica, margin, 282, { maxWidth: pageWidth - (margin * 2) });
-        doc.text('¡Gracias por su preferencia!', pageWidth / 2, 289, { align: 'center' });
+        doc.text(hotelInfo.politica, margin, 283, { maxWidth: pageWidth - (margin * 2) });
+        doc.text('¡Gracias por su preferencia!', pageWidth / 2, 290, { align: 'center' });
 
         // 8. Método de descarga robusto
         const safeName = `Voucher_${data.cliente_nombre.replace(/[^a-z0-9]/gi, '_').substring(0, 20)}.pdf`;
