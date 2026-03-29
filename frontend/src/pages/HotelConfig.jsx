@@ -1,3 +1,6 @@
+import React, { useState, useEffect } from 'react';
+import api from '../services/api';
+import Swal from 'sweetalert2';
 import { Save, Building2, Phone, Mail, MapPin, FileText, Info, CreditCard, Globe } from 'lucide-react';
 
 const HotelConfig = () => {
@@ -175,7 +178,7 @@ const HotelConfig = () => {
                         <label className="block text-xs font-black text-slate-400 uppercase mb-2 ml-1">Página Web Oficial</label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                <Globes size={18} />
+                                <Globe size={18} />
                             </div>
                             <input
                                 type="text"
