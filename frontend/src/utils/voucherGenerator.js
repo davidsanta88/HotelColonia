@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import moment from 'moment';
 import Swal from 'sweetalert2';
+import api from '../services/api';
 import { formatCurrency } from './format';
 
 // Función para cargar imagen y convertirla a Base64 para jsPDF
@@ -165,22 +166,48 @@ export const generateVoucher = async (data) => {
         doc.setFontSize(12);
         doc.text(`$ ${formatCurrency(saldo)}`, pageWidth - margin, finalY + 14, { align: 'right' });
 
-        // 7. Pie de página (Footer)
-        doc.setDrawColor(226, 232, 240);
-        doc.line(margin, 265, pageWidth - margin, 265);
+        // 7. Pie de página (Footer) Dinámico
+        // Empezamos un poco más abajo del resumen financiero o al final de la página si es muy largo
+        let footerY = Math.max(finalY + 30, 240); 
         
+        // Si el pie de página se sale de la hoja, podríamos añadir una página nueva, 
+        // pero para vouchers cortos usualmente cabe. Ajustamos para que no se pegue al borde.
+        if (footerY > 260) footerY = 250;
+
+        doc.setDrawColor(226, 232, 240);
+        doc.line(margin, footerY, pageWidth - margin, footerY);
+        
+        footerY += 8;
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(51, 65, 85); // slate-700
-        doc.text('DATOS PARA TRANSFERENCIA:', margin, 272);
+        doc.text('DATOS PARA TRANSFERENCIA:', margin, footerY);
+        
+        footerY += 5;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
-        doc.text(hotelInfo.datosBancarios || '', margin, 277);
+        const bankLines = doc.splitTextToSize(hotelInfo.datosBancarios || '', pageWidth - (margin * 2));
+        doc.text(bankLines, margin, footerY);
+        
+        // Calcular espacio ocupado por datos bancarios
+        footerY += (bankLines.length * 4) + 4;
 
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.text('TÉRMINOS Y CONDICIONES DEL SERVICIO:', margin, footerY);
+
+        footerY += 5;
         doc.setFont('helvetica', 'italic');
         doc.setTextColor(148, 163, 184); // slate-400
-        doc.text(hotelInfo.politica, margin, 283, { maxWidth: pageWidth - (margin * 2) });
-        doc.text('¡Gracias por su preferencia!', pageWidth / 2, 290, { align: 'center' });
+        doc.setFontSize(7.5);
+        const politicaLines = doc.splitTextToSize(hotelInfo.politica || '', pageWidth - (margin * 2));
+        doc.text(politicaLines, margin, footerY);
+        
+        footerY += (politicaLines.length * 3.5) + 8;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(30, 41, 59);
+        doc.text('¡Gracias por su preferencia!', pageWidth / 2, footerY, { align: 'center' });
 
         // 8. Método de descarga robusto
         const safeName = `Voucher_${data.cliente_nombre.replace(/[^a-z0-9]/gi, '_').substring(0, 20)}.pdf`;

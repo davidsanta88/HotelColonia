@@ -20,6 +20,7 @@ import {
     MapPin,
     Loader2
 } from 'lucide-react';
+import Select from 'react-select';
 import { formatCurrency, cleanNumericValue } from '../../utils/format';
 
 const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, onSuccess }) => {
@@ -397,13 +398,49 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
                                             <div className="flex-1">
                                                 <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-1 mb-1 block">Lugar Origen</label>
                                                 <div className="relative">
-                                                    <MapPin className="absolute left-3 top-2.5 text-gray-300" size={14} />
-                                                    <select className="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-xs font-bold outline-none" value={guestForm.municipio_origen_id} onChange={e => setGuestForm({...guestForm, municipio_origen_id: e.target.value})}>
-                                                        <option value="">SELECCIONA...</option>
-                                                        {municipios.filter(m => m.visualizar).map(m => (
-                                                            <option key={m.id} value={m.id}>{m.nombre}</option>
-                                                        ))}
-                                                    </select>
+                                                    <MapPin className="absolute left-3 top-2.5 text-gray-300 z-10" size={14} />
+                                                    <Select 
+                                                        placeholder="BUSCAR..."
+                                                        options={municipios.filter(m => m.visualizar).map(m => ({ value: m.id, label: m.nombre }))}
+                                                        value={guestForm.municipio_origen_id ? { 
+                                                            value: guestForm.municipio_origen_id, 
+                                                            label: municipios.find(m => String(m.id) === String(guestForm.municipio_origen_id))?.nombre || '' 
+                                                        } : null}
+                                                        onChange={(opt) => setGuestForm({ ...guestForm, municipio_origen_id: opt ? opt.value : '' })}
+                                                        noOptionsMessage={() => "No se encontró"}
+                                                        styles={{
+                                                            control: (base) => ({
+                                                                ...base,
+                                                                minHeight: '32px',
+                                                                height: '32px',
+                                                                fontSize: '10px',
+                                                                fontWeight: 'bold',
+                                                                borderRadius: '0.5rem',
+                                                                paddingLeft: '24px',
+                                                                border: '1px solid #e5e7eb'
+                                                            }),
+                                                            valueContainer: (base) => ({
+                                                                ...base,
+                                                                padding: '0px 8px'
+                                                            }),
+                                                            input: (base) => ({
+                                                                ...base,
+                                                                margin: '0px'
+                                                            }),
+                                                            indicatorSeparator: () => ({ display: 'none' }),
+                                                            indicatorsContainer: (base) => ({
+                                                                ...base,
+                                                                height: '30px'
+                                                            }),
+                                                            option: (base, state) => ({
+                                                                ...base,
+                                                                fontSize: '10px',
+                                                                fontWeight: 'bold',
+                                                                backgroundColor: state.isSelected ? '#10b981' : state.isFocused ? '#ecfdf5' : 'white',
+                                                                color: state.isSelected ? 'white' : '#374151'
+                                                            })
+                                                        }}
+                                                    />
                                                 </div>
                                             </div>
                                             <button type="button" onClick={handleAddGuest} className="bg-emerald-500 text-white p-2.5 rounded-lg hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center">
