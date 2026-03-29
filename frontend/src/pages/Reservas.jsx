@@ -708,7 +708,7 @@ const Reservas = () => {
                                                         <Eye size={18} />
                                                     </button>
                                                     <button 
-                                                        onClick={() => generateVoucher({ ...r, tipo: 'reserva' })}
+                                                        onClick={async () => await generateVoucher({ ...r, tipo: 'reserva' })}
                                                         className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
                                                         title="Imprimir Voucher PDF"
                                                     >
@@ -1013,7 +1013,7 @@ const Reservas = () => {
                                     </button>
                                 )}
                                 <button 
-                                    onClick={() => generateVoucher({ ...selectedReserva, tipo: 'reserva' })}
+                                    onClick={async () => await generateVoucher({ ...selectedReserva, tipo: 'reserva' })}
                                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors font-bold text-xs"
                                 >
                                     <Printer size={14} /> Voucher

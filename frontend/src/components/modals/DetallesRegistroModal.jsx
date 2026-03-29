@@ -291,20 +291,22 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                                         <span>Editar</span>
                                     </button>
                                     <button 
-                                        onClick={() => generateVoucher({
-                                            cliente_nombre: details.nombre_cliente || details.cliente?.nombre || 'Huésped',
-                                            identificacion: details.cliente?.documento || details.identificacion || 'N/A',
-                                            telefono: details.cliente?.telefono || details.telefono || 'N/A',
-                                            fecha_entrada: details.fecha_ingreso,
-                                            fecha_salida: details.fecha_salida,
-                                            habitaciones: details.habitacion ? [{
-                                                numero: details.habitacion.numero,
-                                                precio_acordado: details.total / Math.max(1, moment.utc(details.fecha_salida).diff(moment.utc(details.fecha_ingreso), 'days'))
-                                            }] : [],
-                                            valor_total: totalGeneral,
-                                            valor_abonado: abonado,
-                                            tipo: 'registro'
-                                        })}
+                                        onClick={async () => {
+                                            await generateVoucher({
+                                                cliente_nombre: details.nombre_cliente || details.cliente?.nombre || 'Huésped',
+                                                identificacion: details.cliente?.documento || details.identificacion || 'N/A',
+                                                telefono: details.cliente?.telefono || details.telefono || 'N/A',
+                                                fecha_entrada: details.fecha_ingreso,
+                                                fecha_salida: details.fecha_salida,
+                                                habitaciones: details.habitacion ? [{
+                                                    numero: details.habitacion.numero,
+                                                    precio_acordado: details.total / Math.max(1, moment.utc(details.fecha_salida).diff(moment.utc(details.fecha_ingreso), 'days'))
+                                                }] : [],
+                                                valor_total: totalGeneral,
+                                                valor_abonado: abonado,
+                                                tipo: 'registro'
+                                            });
+                                        }}
                                         className="flex items-center gap-2 bg-slate-50 text-slate-600 px-4 py-1.5 rounded-full hover:bg-slate-100 transition-all border border-slate-200 font-bold text-xs uppercase"
                                         title="Imprimir Voucher PDF"
                                     >
