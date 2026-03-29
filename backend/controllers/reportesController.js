@@ -66,10 +66,10 @@ exports.getResumenGeneral = async (req, res) => {
         const hab_ocupadas = estadoOcupada ? await Habitacion.countDocuments({ estado: estadoOcupada._id }) : 0;
         const alertas_stock = await Producto.countDocuments({ $expr: { $lte: ["$stock", "$stockMinimo"] } });
         
-        const hoy = new Date();
-        hoy.setHours(0,0,0,0);
+        const hoy = new Date(Date.now() - (5 * 60 * 60 * 1000));
+        hoy.setUTCHours(0, 0, 0, 0);
         const mañana = new Date(hoy);
-        mañana.setDate(hoy.getDate() + 1);
+        mañana.setUTCDate(hoy.getUTCDate() + 1);
 
         const registros_hoy = await Registro.countDocuments({ fechaCreacion: { $gte: hoy, $lt: mañana } });
         
