@@ -45,7 +45,8 @@ exports.getHabitaciones = async (req, res) => {
 
 exports.getMapaVisual = async (req, res) => {
     try {
-        const hoy = new Date();
+        // Ajustar 'hoy' a la zona horaria de Colombia (UTC-5) para determinar el día actual del hotel
+        const hoy = new Date(Date.now() - (5 * 60 * 60 * 1000));
         hoy.setUTCHours(0, 0, 0, 0);
 
         // 1. Obtener datos base
