@@ -185,17 +185,17 @@ export const generateVoucher = async (data) => {
         doc.line(margin, footerY, pageWidth - margin, footerY);
         
         footerY += 5;
-        doc.setFontSize(8);
+        doc.setFontSize(9); // Aumentado de 8
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(51, 65, 85); 
         doc.text('DATOS PARA TRANSFERENCIA:', margin, footerY);
         
         footerY += 4;
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(7.5);
+        doc.setFontSize(8.5); // Aumentado de 7.5
         const bankLines = doc.splitTextToSize((hotelInfo.datosBancarios || '').replace(/\n\s*\n/g, '\n'), pageWidth - (margin * 2));
         doc.text(bankLines, margin, footerY);
-        footerY += (bankLines.length * 3.5) + 4;
+        footerY += (bankLines.length * 4) + 4;
  
         // Sección de Políticas - PEGADO AL TEXTO
         const hasPoliticaHeader = (hotelInfo.politica || '').toUpperCase().includes('TÉRMINOS');
