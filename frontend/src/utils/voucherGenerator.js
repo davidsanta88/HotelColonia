@@ -208,8 +208,14 @@ export const generateVoucher = async (data) => {
         doc.setFont('helvetica', 'italic');
         doc.setTextColor(71, 85, 105); 
         doc.setFontSize(7);
-        const politicaLines = doc.splitTextToSize(hotelInfo.politica || '', pageWidth - (margin * 2));
-        doc.text(politicaLines, margin, footerY);
+        const politicaText = (hotelInfo.politica || '').trim();
+        const politicaLines = doc.splitTextToSize(politicaText, pageWidth - (margin * 2));
+        
+        // Dibujamos con align:'justify' para un acabado profesional
+        doc.text(politicaText, margin, footerY, { 
+            maxWidth: pageWidth - (margin * 2), 
+            align: 'justify' 
+        });
         
         footerY += (politicaLines.length * 3) + 5;
         doc.setFont('helvetica', 'bold');
