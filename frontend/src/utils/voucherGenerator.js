@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import moment from 'moment';
+import Swal from 'sweetalert2';
 import { formatCurrency } from './format';
 
 // Función para cargar imagen y convertirla a Base64 para jsPDF
@@ -14,17 +15,32 @@ const loadImage = (url) => {
             canvas.height = img.height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0);
-            const dataURL = canvas.toDataURL('image/jpeg');
+            const dataURL = canvas.toDataURL('image/jpeg', 0.8);
             resolve(dataURL);
         };
-        img.onerror = (e) => reject(e);
+        img.onerror = (e) => reject(new Error(`No se pudo cargar la imagen: ${url}`));
         img.src = url;
     });
 };
 
 export const generateVoucher = async (data) => {
+    // Mostrar feedback al usuario
+    Swal.fire({
+        title: 'Generando PDF',
+        text: 'Por favor espere un momento...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
     try {
-        const doc = new jsPDF();
+        const doc = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4'
+        });
+        
         const margin = 20;
         const pageWidth = doc.internal.pageSize.getWidth();
         
@@ -33,17 +49,17 @@ export const generateVoucher = async (data) => {
         try {
             // Cargar el logo desde la carpeta pública
             const logoBase64 = await loadImage('/logo.jpg');
-            // Dibujar logo (centrado arriba)
             const logoWidth = 40;
-            const logoHeight = 25; // Proporción estimada
+            const logoHeight = 25; 
             doc.addImage(logoBase64, 'JPEG', (pageWidth / 2) - (logoWidth / 2), 15, logoWidth, logoHeight);
-            headerY = 45; // Bajar el texto si hay logo
+            headerY = 48; // Bajar el texto si hay logo
         } catch (error) {
-            console.warn("No se pudo cargar el logo, se omitirá en el PDF:", error);
+            console.warn("Logo warning:", error.message);
+            headerY = 25;
         }
 
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(22);
+        doc.setFontSize(20);
         doc.setTextColor(30, 41, 59); // color-slate-800
         doc.text('HOTEL BALCÓN PLAZA', pageWidth / 2, headerY, { align: 'center' });
 
@@ -61,7 +77,7 @@ export const generateVoucher = async (data) => {
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(37, 99, 235); // color-blue-600
-        const titleText = data.tipo === 'reserva' ? 'COMPROBANTE DE RESERVA' : 'RECIBO DE ESTANCIA (CHECK-IN)';
+        const titleText = data.tipo === 'reserva' ? 'COMPROBANTE DE RESERVA' : 'RECIBO DE ESTANCIA';
         doc.text(titleText, margin, startInfoY);
 
         // 3. Información del Cliente
@@ -69,7 +85,7 @@ export const generateVoucher = async (data) => {
         doc.setTextColor(71, 85, 105); // color-slate-600
         doc.text('DATOS DEL HUÉSPED', margin, startInfoY + 10);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Nombre: ${data.cliente_nombre}`, margin, startInfoY + 17);
+        doc.text(`Nombre: ${data.cliente_nombre.toUpperCase()}`, margin, startInfoY + 17);
         doc.text(`Identificación: ${data.identificacion || 'N/A'}`, margin, startInfoY + 22);
         doc.text(`Teléfono: ${data.telefono || 'N/A'}`, margin, startInfoY + 27);
 
@@ -118,23 +134,53 @@ export const generateVoucher = async (data) => {
         doc.text(`$ ${formatCurrency(data.valor_abonado)}`, pageWidth - margin, finalY + 7, { align: 'right' });
 
         const saldo = data.valor_total - data.valor_abonado;
-        doc.setTextColor(...(saldo > 0 ? [220, 38, 38] : [16, 185, 129])); // red-600 o emerald-600
+        if (saldo > 0) {
+            doc.setTextColor(220, 38, 38); // Rojo
+        } else {
+            doc.setTextColor(16, 185, 129); // Verde
+        }
         doc.text('SALDO PENDIENTE:', summaryX, finalY + 14);
         doc.setFontSize(12);
         doc.text(`$ ${formatCurrency(saldo)}`, pageWidth - margin, finalY + 14, { align: 'right' });
 
         // 7. Pie de página (Footer)
         doc.setDrawColor(226, 232, 240);
-        doc.line(margin, 260, pageWidth - margin, 260);
+        doc.line(margin, 275, pageWidth - margin, 275);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'italic');
         doc.setTextColor(148, 163, 184); // slate-400
-        doc.text('Este documento es un comprobante informativo. Los consumos adicionales se cobrarán al check-out.', margin, 270);
-        doc.text('¡Gracias por elegir Hotel Balcón Plaza!', pageWidth / 2, 280, { align: 'center' });
+        doc.text('Este documento es un comprobante informativo. Generado automáticamente por el Sistema Balcón Plaza.', margin, 282);
+        doc.text('¡Gracias por su preferencia!', pageWidth / 2, 288, { align: 'center' });
 
-        // Descargar el PDF
-        doc.save(`Voucher-${data.cliente_nombre.replace(/\s+/g, '_')}.pdf`);
+        // 8. Método de descarga robusto
+        const safeName = `Voucher_${data.cliente_nombre.replace(/[^a-z0-9]/gi, '_').substring(0, 20)}.pdf`;
+        
+        // Usamos Blob y un link oculto para asegurar el nombre del archivo en todos los navegadores
+        const pdfBlob = doc.output('blob');
+        const url = URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', safeName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        Swal.close();
+        Swal.fire({
+            icon: 'success',
+            title: 'Archivo generado',
+            text: `El voucher se ha descargado como ${safeName}`,
+            timer: 2000,
+            showConfirmButton: false
+        });
+
     } catch (err) {
         console.error("Error al generar el PDF:", err);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de impresión',
+            text: 'No se pudo generar el archivo PDF. Verifique su conexión y vuelva a intentarlo.'
+        });
     }
 };
