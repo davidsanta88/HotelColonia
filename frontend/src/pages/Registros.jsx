@@ -3,7 +3,11 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Swal from 'sweetalert2';
 import { format, subMonths, startOfDay, endOfDay, isWithinInterval, parseISO } from 'date-fns';
-import { Map, Plus, CheckCircle, XCircle, Search, Eye, Edit, Trash2, Phone, MessageCircle, Info, CreditCard, DollarSign, Printer, Download, FileSpreadsheet, FileText, Calendar } from 'lucide-react';
+import { 
+    Plus, Search, Edit2, Trash2, Calendar, FileText, FileSpreadsheet, Map, 
+    ChevronLeft, ChevronRight, Info, Eye, Printer, CreditCard, MessageCircle, 
+    CheckCircle, XCircle, Wallet, CircleDollarSign, TrendingUp, Receipt
+} from 'lucide-react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -122,6 +126,14 @@ const Registros = () => {
     }, [filteredRegistros, currentPage, itemsPerPage]);
 
     const totalPages = Math.ceil(filteredRegistros.length / itemsPerPage);
+    
+    // Estadísticas Dinámicas para las Tarjetas
+    const stats = useMemo(() => {
+        const alojamiento = filteredRegistros.reduce((acc, r) => acc + (r.total || 0), 0);
+        const abonado = filteredRegistros.reduce((acc, r) => acc + (r.valor_pagado || 0), 0);
+        const saldo = alojamiento - abonado;
+        return { alojamiento, abonado, saldo };
+    }, [filteredRegistros]);
 
     // Funciones de Exportación
     const handleExportExcel = () => {
@@ -396,6 +408,39 @@ const Registros = () => {
                     >
                         <Map size={18} /> Ir a Mapa de Habitaciones
                     </button>
+                </div>
+            </div>
+
+            {/* Tarjetas de Resumen Financiero */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center gap-5 transition-all hover:shadow-md group">
+                    <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <TrendingUp size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Alojamiento</p>
+                        <h3 className="text-2xl font-black text-slate-800 tracking-tight">${formatCurrency(stats.alojamiento)}</h3>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center gap-5 transition-all hover:shadow-md group">
+                    <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                        <Wallet size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Abonado</p>
+                        <h3 className="text-2xl font-black text-slate-800 tracking-tight">${formatCurrency(stats.abonado)}</h3>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center gap-5 transition-all hover:shadow-md group">
+                    <div className="p-4 bg-red-50 text-red-600 rounded-2xl group-hover:bg-red-600 group-hover:text-white transition-all">
+                        <Receipt size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Saldo Pendiente</p>
+                        <h3 className="text-2xl font-black text-red-600 tracking-tight">${formatCurrency(stats.saldo)}</h3>
+                    </div>
                 </div>
             </div>
 
