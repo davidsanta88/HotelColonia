@@ -118,7 +118,7 @@ export const generateVoucher = async (data) => {
         doc.text(`$ ${formatCurrency(data.valor_abonado)}`, pageWidth - margin, finalY + 7, { align: 'right' });
 
         const saldo = data.valor_total - data.valor_abonado;
-        doc.setTextColor(saldo > 0 ? [220, 38, 38] : [16, 185, 129]); // red-600 o emerald-600
+        doc.setTextColor(...(saldo > 0 ? [220, 38, 38] : [16, 185, 129])); // red-600 o emerald-600
         doc.text('SALDO PENDIENTE:', summaryX, finalY + 14);
         doc.setFontSize(12);
         doc.text(`$ ${formatCurrency(saldo)}`, pageWidth - margin, finalY + 14, { align: 'right' });
