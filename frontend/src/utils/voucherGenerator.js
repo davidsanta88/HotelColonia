@@ -207,19 +207,26 @@ export const generateVoucher = async (data) => {
  
         doc.setFont('helvetica', 'italic');
         doc.setTextColor(71, 85, 105); 
-        doc.setFontSize(7);
-        const politicaText = (hotelInfo.politica || '').trim();
-        const politicaLines = doc.splitTextToSize(politicaText, pageWidth - (margin * 2));
+        doc.setFontSize(7.5); // Aumentado ligeramente para legibilidad
         
-        // Dibujamos con align:'justify' para un acabado profesional
-        doc.text(politicaText, margin, footerY, { 
-            maxWidth: pageWidth - (margin * 2), 
-            align: 'justify' 
+        const politicaText = (hotelInfo.politica || '').trim();
+        // Dividimos por párrafos para darles espacio
+        const paragraphs = politicaText.split('\n');
+        
+        paragraphs.forEach(para => {
+            if (!para.trim()) return;
+            const lines = doc.splitTextToSize(para.trim(), pageWidth - (margin * 2));
+            
+            // Verificamos si necesitamos página nueva para este párrafo
+            checkPageBreak(lines.length * 3.5 + 2);
+            
+            doc.text(lines, margin, footerY);
+            footerY += (lines.length * 3.5) + 2; // Espacio entre párrafos
         });
         
-        footerY += (politicaLines.length * 3) + 5;
+        footerY += 4;
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
+        doc.setFontSize(9.5);
         doc.setTextColor(30, 41, 59);
         doc.text('¡Gracias por su preferencia!', pageWidth / 2, footerY, { align: 'center' });
 
