@@ -125,6 +125,9 @@ const Registros = () => {
 
     // Funciones de Exportación
     const handleExportExcel = () => {
+        const totalEstancia = filteredRegistros.reduce((acc, res) => acc + (res.total || 0), 0);
+        const totalPagado = filteredRegistros.reduce((acc, res) => acc + (res.valor_pagado || 0), 0);
+
         const dataToExport = filteredRegistros.map(res => ({
             'Huésped': res.nombre_cliente,
             'Documento': res.documento_cliente,
@@ -139,6 +142,21 @@ const Registros = () => {
             'Estado': res.estado.toUpperCase()
         }));
 
+        // Añadir fila de totales
+        dataToExport.push({
+            'Huésped': '--- TOTALES ---',
+            'Documento': '',
+            'Teléfono': '',
+            'Habitación': '',
+            'Entrada': '',
+            'Salida': '',
+            'Tipo': '',
+            'Valor Estancia': totalEstancia,
+            'Total Pagado': totalPagado,
+            'Saldo': totalEstancia - totalPagado,
+            'Estado': ''
+        });
+
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Registros");
@@ -147,6 +165,9 @@ const Registros = () => {
 
     const handleExportPDF = () => {
         const doc = new jsPDF();
+        const totalEstancia = filteredRegistros.reduce((acc, res) => acc + (res.total || 0), 0);
+        const totalPagado = filteredRegistros.reduce((acc, res) => acc + (res.valor_pagado || 0), 0);
+
         const tableColumn = ["Huésped", "Hab", "Entrada", "Salida", "Total", "Pagado", "Estado"];
         const tableRows = filteredRegistros.map(res => [
             res.nombre_cliente,
@@ -169,8 +190,18 @@ const Registros = () => {
             startY: 40,
             head: [tableColumn],
             body: tableRows,
+            foot: [[
+                "--- TOTALES ---",
+                "",
+                "",
+                "",
+                `$${formatCurrency(totalEstancia)}`,
+                `$${formatCurrency(totalPagado)}`,
+                ""
+            ]],
             theme: 'striped',
             headStyles: { fillColor: [30, 41, 59] },
+            footStyles: { fillColor: [71, 85, 105], textColor: [255, 255, 255], fontStyle: 'bold' }
         });
 
         doc.save(`Reporte_Huespedes_${fechaInicio}_al_${fechaFin}.pdf`);
