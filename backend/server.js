@@ -18,9 +18,42 @@ const app = express();
 connectDB();
 
 
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+
 // Middlewares
-app.use(cors());
-app.use(express.json());
+app.use(helmet());
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" })); // Allow images to be viewed from across origins
+
+// Configurar CORS estricto
+const allowedOrigins = [
+    'http://localhost:5173', 
+    'http://localhost:3000',
+    'https://hotelbalconplaza.com',
+    'https://www.hotelbalconplaza.com'
+];
+app.use(cors({
+    origin: function(origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Bloqueado por CORS'));
+        }
+    },
+    credentials: true
+}));
+
+// Límite global contra Ataques DoS automáticos o abuso
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 1000, // Límite de 1000 peticiones por IP
+    message: { message: "Demasiadas peticiones desde esta IP. Intente de nuevo más tarde." }
+});
+app.use(globalLimiter);
+
+app.use(express.json({ limit: '10mb' })); // Limitar tamaño del body
+app.use(mongoSanitize()); // Prevenir Inyecciones NoSQL
 app.use('/uploads', express.static('uploads'));
 app.use('/api/uploads', express.static('uploads'));
 
