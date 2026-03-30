@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '../services/api';
 import { 
     Calendar, 
@@ -24,6 +24,7 @@ import { formatCurrency } from '../utils/format';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import Pagination from '../components/common/Pagination';
 
 const CuadreCaja = () => {
     const [loading, setLoading] = useState(true);
@@ -45,6 +46,18 @@ const CuadreCaja = () => {
     const [cierreNota, setCierreNota] = useState('');
     const [saldoReal, setSaldoReal] = useState('');
     const [editingId, setEditingId] = useState(null);
+
+    const [columnFilters, setColumnFilters] = useState({
+        fecha: '',
+        tipo: '',
+        descripcion: '',
+        usuario: '',
+        medioPago: '',
+        monto: ''
+    });
+    
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     const [filtros, setFiltros] = useState({
         inicio: (() => {
@@ -326,6 +339,38 @@ const CuadreCaja = () => {
         return <span className="text-gray-500 font-bold text-xs uppercase">{medio}</span>;
     };
 
+    const handleFilterChange = (column, value) => {
+        setColumnFilters(prev => ({ ...prev, [column]: value }));
+        setCurrentPage(1);
+    };
+
+    const filteredTransacciones = useMemo(() => {
+        return data.transacciones.filter(t => {
+            const dateStr = new Date(t.fecha).toLocaleDateString() + ' ' + new Date(t.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const montoStr = t.monto.toString();
+
+            const matchesFecha = columnFilters.fecha === '' || 
+                dateStr.toLowerCase().includes(columnFilters.fecha.toLowerCase());
+            const matchesTipo = columnFilters.tipo === '' || 
+                (t.tipo || '').toLowerCase().includes(columnFilters.tipo.toLowerCase());
+            const matchesDescripcion = columnFilters.descripcion === '' || 
+                (t.descripcion || '').toLowerCase().includes(columnFilters.descripcion.toLowerCase());
+            const matchesUsuario = columnFilters.usuario === '' || 
+                (t.usuario || '').toLowerCase().includes(columnFilters.usuario.toLowerCase());
+            const matchesMedioPago = columnFilters.medioPago === '' || 
+                (t.medioPago || '').toLowerCase().includes(columnFilters.medioPago.toLowerCase());
+            const matchesMonto = columnFilters.monto === '' || 
+                montoStr.includes(columnFilters.monto);
+
+            return matchesFecha && matchesTipo && matchesDescripcion && matchesUsuario && matchesMedioPago && matchesMonto;
+        });
+    }, [data.transacciones, columnFilters]);
+
+    const paginatedTransacciones = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredTransacciones.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredTransacciones, currentPage, itemsPerPage]);
+
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Header */}
@@ -514,18 +559,74 @@ const CuadreCaja = () => {
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest">Medio Pago</th>
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Monto</th>
                             </tr>
+                            <tr className="bg-white border-b border-gray-50">
+                                <th className="px-4 py-2">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Filtrar fecha..."
+                                        className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-3 font-bold text-slate-600 placeholder:text-slate-300"
+                                        value={columnFilters.fecha}
+                                        onChange={(e) => handleFilterChange('fecha', e.target.value)}
+                                    />
+                                </th>
+                                <th className="px-4 py-2">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Filtrar tipo..."
+                                        className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-3 font-bold text-slate-600 placeholder:text-slate-300"
+                                        value={columnFilters.tipo}
+                                        onChange={(e) => handleFilterChange('tipo', e.target.value)}
+                                    />
+                                </th>
+                                <th className="px-4 py-2">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Filtrar desc..."
+                                        className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-3 font-bold text-slate-600 placeholder:text-slate-300"
+                                        value={columnFilters.descripcion}
+                                        onChange={(e) => handleFilterChange('descripcion', e.target.value)}
+                                    />
+                                </th>
+                                <th className="px-4 py-2">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Filtrar usuario..."
+                                        className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-3 font-bold text-slate-600 placeholder:text-slate-300"
+                                        value={columnFilters.usuario}
+                                        onChange={(e) => handleFilterChange('usuario', e.target.value)}
+                                    />
+                                </th>
+                                <th className="px-4 py-2">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Filtrar medio..."
+                                        className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-3 font-bold text-slate-600 placeholder:text-slate-300"
+                                        value={columnFilters.medioPago}
+                                        onChange={(e) => handleFilterChange('medioPago', e.target.value)}
+                                    />
+                                </th>
+                                <th className="px-4 py-2">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Filtrar monto..."
+                                        className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-3 font-bold text-slate-600 placeholder:text-slate-300"
+                                        value={columnFilters.monto}
+                                        onChange={(e) => handleFilterChange('monto', e.target.value)}
+                                    />
+                                </th>
+                            </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {loading ? (
                                 <tr><td colSpan="6" className="p-12 text-center text-gray-400 font-bold animate-pulse">Analizando flujos de caja...</td></tr>
-                            ) : data.transacciones.length === 0 ? (
+                            ) : paginatedTransacciones.length === 0 ? (
                                 <tr>
                                     <td colSpan="6" className="p-12 text-center text-gray-500 font-medium italic">
-                                        No se registraron movimientos en este periodo.
+                                        No se encontraron movimientos.
                                     </td>
                                 </tr>
                             ) : (
-                                data.transacciones.map((t, i) => (
+                                paginatedTransacciones.map((t, i) => (
                                     <tr key={i} className="hover:bg-gray-50 transition-colors group">
                                         <td className="p-4 whitespace-nowrap">
                                             <div className="text-xs font-bold text-gray-900 border-l-2 border-primary-500 pl-2">
@@ -561,6 +662,19 @@ const CuadreCaja = () => {
                         </tbody>
                     </table>
                 </div>
+
+                {!loading && (
+                    <Pagination 
+                        currentPage={currentPage}
+                        totalItems={filteredTransacciones.length}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={setCurrentPage}
+                        onItemsPerPageChange={(val) => {
+                            setItemsPerPage(val);
+                            setCurrentPage(1);
+                        }}
+                    />
+                )}
             </div>
 
             {/* Closure History */}
