@@ -25,7 +25,6 @@ const TODOS_LOS_PERMISOS = [
     { id: 'mantenimiento', nombre: 'Mantenimiento y Reparaciones' },
     { id: 'checkin_digital', nombre: 'Check-in Digital QR' },
     { id: 'estadisticas', nombre: 'Estadísticas Avanzadas' },
-    { id: 'auditoria', nombre: 'Auditoría de Usuarios (Logs)' },
     { id: 'roles_permisos', nombre: 'Configuración de Roles' }
 ];
 

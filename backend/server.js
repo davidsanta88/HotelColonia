@@ -71,7 +71,6 @@ app.use((req, res, next) => {
 
 
 
-const auditMiddleware = require('./middleware/auditMiddleware');
 const { verifyToken } = require('./middleware/auth');
 
 // Root route for initial health check
@@ -104,10 +103,8 @@ app.use('/api/checkin-digital', (req, res, next) => {
 
 // 2. PROTECTED ROUTES (Require Token)
 app.use('/api', verifyToken);
-app.use(auditMiddleware);
 
 // 3. FEATURE ROUTES
-app.use('/api/auditoria', require('./routes/auditoria'));
 app.use('/api/habitaciones', require('./routes/habitaciones'));
 app.use('/api/registros', require('./routes/registros'));
 app.use('/api/medios-pago', require('./routes/mediosPago'));

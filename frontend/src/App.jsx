@@ -25,7 +25,6 @@ import Notas from './pages/Notas';
 import Solicitudes from './pages/Solicitudes';
 import ConfigNotificaciones from './pages/ConfigNotificaciones';
 import Housekeeping from './pages/Housekeeping';
-import AuditLogs from './pages/AuditLogs';
 import Mantenimiento from './pages/Mantenimiento';
 import CheckinPublico from './pages/CheckinPublico';
 import CheckinAdmin from './pages/CheckinAdmin';
@@ -90,7 +89,6 @@ const AppRoutes = () => {
                 <Route path="notas" element={<PrivateRoute code="notas"><Notas /></PrivateRoute>} />
                 <Route path="solicitudes" element={<Solicitudes />} />
                 <Route path="notificaciones" element={<PrivateRoute><ConfigNotificaciones /></PrivateRoute>} />
-                <Route path="auditoria" element={<PrivateRoute><AuditLogs /></PrivateRoute>} />
                 <Route path="mantenimiento" element={<PrivateRoute><Mantenimiento /></PrivateRoute>} />
                 <Route path="checkin-digital" element={<PrivateRoute><CheckinAdmin /></PrivateRoute>} />
                 <Route path="estadisticas" element={<PrivateRoute><Estadisticas /></PrivateRoute>} />
