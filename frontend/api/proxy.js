@@ -26,6 +26,18 @@ export default async function handler(req, res) {
     // Construct the base target URL using the 'path' query parameter
     let targetUrl = `${baseUrl}/api/${path}`;
 
+    // Forward the rest of the query parameters if any
+    const searchParams = new URLSearchParams();
+    for (const key in req.query) {
+        if (key !== 'path' && key !== 'isUpload') {
+            searchParams.append(key, req.query[key]);
+        }
+    }
+    const queryString = searchParams.toString();
+    if (queryString) {
+        targetUrl += `?${queryString}`;
+    }
+
     // Append the timestamp to bypass caching
     targetUrl += targetUrl.includes('?') ? '&' : '?';
     targetUrl += `v=${Date.now()}`;
