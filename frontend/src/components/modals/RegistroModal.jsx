@@ -243,6 +243,9 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
         if (!formData.tipo_registro_id) {
             return Swal.fire('Atención', 'Debe seleccionar un tipo de registro', 'warning');
         }
+        if (parseFloat(formData.valor_cobrado) > 0 && !formData.medio_pago_id) {
+            return Swal.fire('Atención', 'Seleccione un medio de pago para el abono o valor recibido', 'warning');
+        }
 
         setSaving(true);
         try {
@@ -579,7 +582,13 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-[8px] font-black uppercase tracking-widest text-emerald-600/60 mb-1 block">Medio de Pago</label>
-                                        <select name="medio_pago_id" className="w-full bg-white border border-emerald-200 rounded-lg text-[9px] font-black px-2 py-2 outline-none" value={formData.medio_pago_id} onChange={handleFormChange}>
+                                        <select 
+                                            name="medio_pago_id" 
+                                            className="w-full bg-white border border-emerald-200 rounded-lg text-[9px] font-black px-2 py-2 outline-none" 
+                                            value={formData.medio_pago_id} 
+                                            onChange={handleFormChange}
+                                            required={parseFloat(formData.valor_cobrado) > 0}
+                                        >
                                             <option value="">POR DEFINIR...</option>
                                             {mediosPago.map(mp => (
                                                 <option key={mp.id} value={mp.id}>{mp.nombre.toUpperCase()}</option>

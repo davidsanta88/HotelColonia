@@ -275,6 +275,9 @@ const Reservas = () => {
 
     const handleAddAbono = async (e) => {
         e.preventDefault();
+        if (parseFloat(abonoForm.monto) > 0 && !abonoForm.medio_pago) {
+            return Swal.fire('Atención', 'Seleccione un medio de pago para el abono', 'warning');
+        }
         setAbonoLoading(true);
         try {
             await api.post(`/reservas/${selectedReserva.id}/abonos`, abonoForm);
@@ -358,6 +361,10 @@ const Reservas = () => {
 
         if (formData.habitaciones.length === 0) {
             return Swal.fire('Atención', 'Selecciona al menos una habitación', 'warning');
+        }
+
+        if (parseFloat(formData.valor_abonado) > 0 && !formData.medio_pago_abono) {
+            return Swal.fire('Atención', 'Seleccione un medio de pago para el abono inicial', 'warning');
         }
 
         try {
@@ -923,6 +930,23 @@ const Reservas = () => {
                                 </div>
 
                                 <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Medio de Pago</label>
+                                    <select
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-sm text-gray-700"
+                                        value={formData.medio_pago_abono || ''}
+                                        onChange={(e) => setFormData({...formData, medio_pago_abono: e.target.value})}
+                                        required={parseFloat(formData.valor_abonado) > 0}
+                                    >
+                                        <option value="">- Sin especificar / Seleccione -</option>
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Nequi">Nequi</option>
+                                        <option value="Daviplata">Daviplata</option>
+                                        <option value="Transferencia">Transferencia</option>
+                                        <option value="Tarjeta">Tarjeta</option>
+                                    </select>
+                                </div>
+
+                                <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-2">Días / Noches</label>
                                     <div className="w-full px-4 py-2.5 rounded-xl border border-gray-100 bg-gray-50 font-black text-gray-700 text-sm text-center">
                                         {formData.fecha_entrada && formData.fecha_salida ? (
@@ -1093,8 +1117,9 @@ const Reservas = () => {
                                                     className="w-full px-3 py-2 rounded-xl border border-emerald-200 text-sm outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
                                                     value={abonoForm.medio_pago}
                                                     onChange={(e) => setAbonoForm({...abonoForm, medio_pago: e.target.value})}
+                                                    required={parseFloat(abonoForm.monto) > 0}
                                                 >
-                                                    <option value="">- Sin especificar -</option>
+                                                    <option value="">- Sin especificar / Seleccione -</option>
                                                     <option value="Efectivo">Efectivo</option>
                                                     <option value="Nequi">Nequi</option>
                                                     <option value="Daviplata">Daviplata</option>

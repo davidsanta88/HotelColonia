@@ -111,7 +111,7 @@ exports.createReserva = async (req, res) => {
         if (montoInicial > 0) {
             payload.abonos = [{
                 monto: montoInicial,
-                medio_pago: 'Efectivo', // Default or from rest if present
+                medio_pago: payload.medio_pago_abono || 'Efectivo', // Default or from rest if present
                 notas: 'Abono inicial al registrar la reserva',
                 usuario_nombre: req.userName,
                 fecha: new Date()

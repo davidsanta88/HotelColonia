@@ -15,8 +15,16 @@ const Gastos = () => {
     const [loading, setLoading] = useState(true);
     
     // Filtros
-    const [fechaInicio, setFechaInicio] = useState(new Date().toISOString().split('T')[0]);
-    const [fechaFin, setFechaFin] = useState(new Date().toISOString().split('T')[0]);
+    const [filtros, setFiltros] = useState({
+        inicio: (() => {
+            const d = new Date();
+            d.setDate(d.getDate() - 30);
+            return d.toISOString().split('T')[0];
+        })(),
+        fin: new Date().toISOString().split('T')[0]
+    });
+    const [fechaInicio, setFechaInicio] = useState(filtros.inicio);
+    const [fechaFin, setFechaFin] = useState(filtros.fin);
     const [categoriaFilter, setCategoriaFilter] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [mediosPago, setMediosPago] = useState([]);

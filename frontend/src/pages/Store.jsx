@@ -75,7 +75,7 @@ const Store = () => {
             // AUTO-SELECCIONAR EFECTIVO POR DEFECTO
             if (resMP.data.length > 0) {
                 const efectivo = resMP.data.find(m => m.nombre.toUpperCase().includes('EFECTIVO')) || resMP.data[0];
-                setMedioPagoId(efectivo.id || efectivo._id);
+                setMedioPagoId(efectivo.nombre);
             }
         } catch (error) {
             Swal.fire('Error', 'No se pudo cargar la información', 'error');
@@ -173,7 +173,7 @@ const Store = () => {
             }));
             setEditVenta(venta);
             setEditItems(items);
-            setEditMedioPago(venta.medio_pago_id || '');
+            setEditMedioPago(venta.medioPago || venta.medio_pago_id || '');
             setShowEditModal(true);
         } catch (error) {
             Swal.fire('Error', 'No se pudo cargar la venta para editar', 'error');
@@ -427,13 +427,14 @@ const Store = () => {
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Medio de Pago</label>
                             <select 
-                                className="input-field text-sm"
+                                required
+                                className="input-field text-sm border-2 focus:border-primary-500"
                                 value={medioPagoId}
                                 onChange={e => setMedioPagoId(e.target.value)}
                             >
-                                <option value="">Seleccione...</option>
+                                <option value="">Seleccione Medio de Pago...</option>
                                 {mediosPago.map(mp => (
-                                    <option key={mp.id} value={mp.id}>{mp.nombre}</option>
+                                    <option key={mp.id} value={mp.nombre}>{mp.nombre}</option>
                                 ))}
                             </select>
                         </div>
@@ -678,10 +679,10 @@ const Store = () => {
                         {/* Medio de pago (solo si la venta lo tenía) */}
                         <div className="px-5 pb-3">
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Medio de Pago</label>
-                            <select className="input-field text-sm" value={editMedioPago} onChange={e => setEditMedioPago(e.target.value)}>
-                                <option value="">Sin especificar</option>
+                            <select required className="input-field text-sm border-2 focus:border-amber-500" value={editMedioPago} onChange={e => setEditMedioPago(e.target.value)}>
+                                <option value="">Sin especificar / Seleccione...</option>
                                 {mediosPago.map(mp => (
-                                    <option key={mp.id} value={mp.id}>{mp.nombre}</option>
+                                    <option key={mp.id} value={mp.nombre}>{mp.nombre}</option>
                                 ))}
                             </select>
                         </div>
