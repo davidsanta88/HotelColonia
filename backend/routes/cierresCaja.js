@@ -5,5 +5,7 @@ const { verifyToken, isAdmin } = require('../middleware/auth');
 
 router.post('/', verifyToken, cierreCajaController.createCierre);
 router.get('/', verifyToken, cierreCajaController.getAllCierres);
+router.put('/:id', verifyToken, cierreCajaController.updateCierre);
+router.delete('/:id', verifyToken, cierreCajaController.deleteCierre);
 
 module.exports = router;

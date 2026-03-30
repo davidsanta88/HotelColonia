@@ -14,7 +14,7 @@ exports.createCierre = async (req, res) => {
             diferencia,
             nota,
             usuario: req.userId,
-            usuario_nombre: req.usuarioNombre || 'Sistema',
+            usuario_nombre: req.userName || 'Sistema', // Corrected from req.usuarioNombre
             medios_pago: medios_pago || { nequi: 0, bancolombia: 0, efectivo: 0, otros: 0 }
         });
 
@@ -33,6 +33,36 @@ exports.getAllCierres = async (req, res) => {
             .sort({ fecha: -1 })
             .limit(parseInt(limit));
         res.json(cierres);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.updateCierre = async (req, res) => {
+    try {
+        const { nota, saldo_real } = req.body;
+        const cierre = await CierreCaja.findById(req.params.id);
+        
+        if (!cierre) return res.status(404).json({ message: 'Cierre no encontrado' });
+        
+        if (nota) cierre.nota = nota;
+        if (saldo_real !== undefined) {
+            cierre.saldo_real = saldo_real;
+            cierre.diferencia = saldo_real - cierre.saldo_calculado;
+        }
+        
+        await cierre.save();
+        res.json(cierre);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.deleteCierre = async (req, res) => {
+    try {
+        const cierre = await CierreCaja.findByIdAndDelete(req.params.id);
+        if (!cierre) return res.status(404).json({ message: 'Cierre no encontrado' });
+        res.json({ message: 'Cierre eliminado correctamente' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

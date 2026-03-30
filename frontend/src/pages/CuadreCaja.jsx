@@ -15,7 +15,9 @@ import {
     Tag,
     Receipt,
     Lock,
-    FileText
+    FileText,
+    Edit,
+    Trash2
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { formatCurrency } from '../utils/format';
@@ -42,6 +44,7 @@ const CuadreCaja = () => {
     const [showCierreModal, setShowCierreModal] = useState(false);
     const [cierreNota, setCierreNota] = useState('');
     const [saldoReal, setSaldoReal] = useState('');
+    const [editingId, setEditingId] = useState(null);
 
     const [filtros, setFiltros] = useState({
         inicio: new Date().toISOString().split('T')[0],
@@ -83,11 +86,12 @@ const CuadreCaja = () => {
     const handleCierreSubmit = async (e) => {
         e.preventDefault();
         try {
+            const rawSaldoReal = unformatNumber(saldoReal);
             const payload = {
                 ingresos: data.resumen.ingresos_totales,
                 egresos: data.resumen.egresos_totales,
                 saldo_calculado: data.resumen.balance_final,
-                saldo_real: saldoReal ? parseFloat(saldoReal) : data.resumen.balance_final,
+                saldo_real: rawSaldoReal ? parseFloat(rawSaldoReal) : (editingId ? undefined : data.resumen.balance_final),
                 nota: cierreNota,
                 medios_pago: {
                     nequi: data.resumen.total_nequi,
@@ -97,14 +101,72 @@ const CuadreCaja = () => {
                 }
             };
 
-            await api.post('/cierres-caja', payload);
-            Swal.fire('Éxito', 'Cierre de caja registrado correctamente', 'success');
+            if (editingId) {
+                await api.put(`/cierres-caja/${editingId}`, payload);
+                Swal.fire('Éxito', 'Cierre de caja actualizado correctamente', 'success');
+            } else {
+                await api.post('/cierres-caja', payload);
+                Swal.fire('Éxito', 'Cierre de caja registrado correctamente', 'success');
+            }
+
             setShowCierreModal(false);
-            setCierreNota('');
-            setSaldoReal('');
+            resetCierreForm();
             fetchCierres();
         } catch (error) {
-            Swal.fire('Error', 'No se pudo registrar el cierre', 'error');
+            Swal.fire('Error', error.response?.data?.message || 'No se pudo procesar el cierre', 'error');
+        }
+    };
+
+    const handleDeleteCierre = async (id) => {
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción eliminará el registro del cierre permanentemente.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await api.delete(`/cierres-caja/${id}`);
+                Swal.fire('Eliminado', 'Cierre eliminado correctamente', 'success');
+                fetchCierres();
+            } catch (error) {
+                Swal.fire('Error', 'No se pudo eliminar el cierre', 'error');
+            }
+        }
+    };
+
+    const handleEditCierreStart = (cierre) => {
+        setEditingId(cierre._id);
+        setCierreNota(cierre.nota);
+        setSaldoReal(formatNumber(cierre.saldo_real || cierre.saldo_calculado));
+        setShowCierreModal(true);
+    };
+
+    const resetCierreForm = () => {
+        setEditingId(null);
+        setCierreNota('');
+        setSaldoReal('');
+    };
+
+    const formatNumber = (num) => {
+        if (!num && num !== 0) return '';
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    };
+
+    const unformatNumber = (str) => {
+        if (!str) return '';
+        return str.toString().replace(/\./g, '');
+    };
+
+    const handleSaldoRealChange = (e) => {
+        const value = unformatNumber(e.target.value);
+        if (value === '' || /^\d+$/.test(value)) {
+            setSaldoReal(formatNumber(value));
         }
     };
 
@@ -444,14 +506,15 @@ const CuadreCaja = () => {
                             <tr className="bg-white border-b border-gray-100 text-gray-400">
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest">Fecha Cierre</th>
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest">Usuario</th>
-                                <th className="p-4 text-[10px] uppercase font-black tracking-widest w-1/2">Nota / Observación</th>
+                                <th className="p-4 text-[10px] uppercase font-black tracking-widest w-1/3">Nota / Observación</th>
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Saldo Final</th>
+                                <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50 text-sm">
                             {cierres.length === 0 ? (
                                 <tr>
-                                    <td colSpan="4" className="p-8 text-center text-gray-400">
+                                    <td colSpan="5" className="p-8 text-center text-gray-400">
                                         No hay cierres registrados aún.
                                     </td>
                                 </tr>
@@ -470,6 +533,24 @@ const CuadreCaja = () => {
                                         <td className="p-4 text-right font-black text-slate-900 text-base">
                                             ${formatCurrency(c.saldo_real || c.saldo_calculado)}
                                         </td>
+                                        <td className="p-4 text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <button 
+                                                    onClick={() => handleEditCierreStart(c)}
+                                                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    title="Editar Cierre"
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDeleteCierre(c._id)}
+                                                    className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+                                                    title="Eliminar Cierre"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))
                             )}
@@ -483,8 +564,10 @@ const CuadreCaja = () => {
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in border border-gray-100">
                         <div className="p-6 border-b border-gray-100 bg-slate-900 text-white shadow-lg">
-                            <h2 className="text-2xl font-black">Finalizar y Cerrar Caja</h2>
-                            <p className="text-sm text-slate-400 mt-1">Se registrará el balance actual y tu nota de cierre.</p>
+                            <h2 className="text-2xl font-black">{editingId ? 'Editar Cierre de Caja' : 'Finalizar y Cerrar Caja'}</h2>
+                            <p className="text-sm text-slate-400 mt-1">
+                                {editingId ? 'Actualiza la nota o el monto físico del cierre seleccionado.' : 'Se registrará el balance actual y tu nota de cierre.'}
+                            </p>
                         </div>
                         <form onSubmit={handleCierreSubmit} className="p-6 space-y-5">
                             <div className="grid grid-cols-2 gap-4">
@@ -495,11 +578,11 @@ const CuadreCaja = () => {
                                 <div className="p-4 bg-primary-50 rounded-xl border border-primary-100">
                                     <p className="text-[10px] font-black text-primary-400 uppercase tracking-tighter">Monto Físico (Opcional)</p>
                                     <input 
-                                        type="number"
+                                        type="text"
                                         placeholder="0"
                                         className="w-full bg-transparent border-none p-0 focus:ring-0 text-lg font-black text-primary-700 placeholder:text-primary-200"
                                         value={saldoReal}
-                                        onChange={e => setSaldoReal(e.target.value)}
+                                        onChange={handleSaldoRealChange}
                                     />
                                 </div>
                             </div>
@@ -516,11 +599,18 @@ const CuadreCaja = () => {
                             </div>
 
                             <div className="flex gap-3 mt-4">
-                                <button type="button" onClick={() => setShowCierreModal(false)} className="flex-1 btn-secondary py-3 font-bold border-slate-200 text-slate-500">
+                                <button 
+                                    type="button" 
+                                    onClick={() => {
+                                        setShowCierreModal(false);
+                                        resetCierreForm();
+                                    }} 
+                                    className="flex-1 btn-secondary py-3 font-bold border-slate-200 text-slate-500"
+                                >
                                     Cancelar
                                 </button>
                                 <button type="submit" className="flex-[2] btn-primary bg-slate-900 hover:bg-black text-white py-3 shadow-xl font-bold border-none transition-all active:scale-95">
-                                    Confirmar y Guardar Cierre
+                                    {editingId ? 'Guardar Cambios' : 'Confirmar y Guardar Cierre'}
                                 </button>
                             </div>
                         </form>
