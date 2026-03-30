@@ -13,10 +13,15 @@ import {
     User,
     Clock,
     Tag,
-    Receipt
+    Receipt,
+    Lock,
+    FileText
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { formatCurrency } from '../utils/format';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const CuadreCaja = () => {
     const [loading, setLoading] = useState(true);
@@ -33,6 +38,11 @@ const CuadreCaja = () => {
         }
     });
 
+    const [cierres, setCierres] = useState([]);
+    const [showCierreModal, setShowCierreModal] = useState(false);
+    const [cierreNota, setCierreNota] = useState('');
+    const [saldoReal, setSaldoReal] = useState('');
+
     const [filtros, setFiltros] = useState({
         inicio: new Date().toISOString().split('T')[0],
         fin: new Date().toISOString().split('T')[0]
@@ -40,7 +50,17 @@ const CuadreCaja = () => {
 
     useEffect(() => {
         fetchCuadre();
+        fetchCierres();
     }, []);
+
+    const fetchCierres = async () => {
+        try {
+            const res = await api.get('/cierres-caja');
+            setCierres(res.data);
+        } catch (error) {
+            console.error('Error fetching cierres', error);
+        }
+    };
 
     const fetchCuadre = async () => {
         try {
@@ -58,6 +78,142 @@ const CuadreCaja = () => {
     const handleFilterSubmit = (e) => {
         e.preventDefault();
         fetchCuadre();
+    };
+
+    const handleCierreSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const payload = {
+                ingresos: data.resumen.ingresos_totales,
+                egresos: data.resumen.egresos_totales,
+                saldo_calculado: data.resumen.balance_final,
+                saldo_real: saldoReal ? parseFloat(saldoReal) : data.resumen.balance_final,
+                nota: cierreNota,
+                medios_pago: {
+                    nequi: data.resumen.total_nequi,
+                    bancolombia: data.resumen.total_bancolombia,
+                    efectivo: data.resumen.total_efectivo,
+                    otros: data.resumen.total_otros
+                }
+            };
+
+            await api.post('/cierres-caja', payload);
+            Swal.fire('Éxito', 'Cierre de caja registrado correctamente', 'success');
+            setShowCierreModal(false);
+            setCierreNota('');
+            setSaldoReal('');
+            fetchCierres();
+        } catch (error) {
+            Swal.fire('Error', 'No se pudo registrar el cierre', 'error');
+        }
+    };
+
+    const handleExportExcel = () => {
+        const reportData = data.transacciones.map(t => ({
+            'Fecha': new Date(t.fecha).toLocaleDateString(),
+            'Hora': new Date(t.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            'Tipo': t.tipo,
+            'Descripción': t.descripcion,
+            'Usuario': t.usuario,
+            'Medio Pago': t.medioPago,
+            'Monto': t.monto
+        }));
+
+        // Summary totals at the end
+        reportData.push({}); // Empty row
+        reportData.push({ 'Fecha': '--- RESUMEN DE TOTALES ---' });
+        reportData.push({ 'Fecha': 'Ingresos Totales', 'Monto': data.resumen.ingresos_totales });
+        reportData.push({ 'Fecha': 'Egresos Totales', 'Monto': data.resumen.egresos_totales });
+        reportData.push({ 'Fecha': 'NEQUI', 'Monto': data.resumen.total_nequi });
+        reportData.push({ 'Fecha': 'BANCOLOMBIA', 'Monto': data.resumen.total_bancolombia });
+        reportData.push({ 'Fecha': 'EFECTIVO', 'Monto': data.resumen.total_efectivo });
+        reportData.push({ 'Fecha': 'BALANCE FINAL', 'Monto': data.resumen.balance_final });
+
+        const ws = XLSX.utils.json_to_sheet(reportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Cuadre de Caja");
+        XLSX.writeFile(wb, `Cuadre_Caja_${filtros.inicio}_al_${filtros.fin}.xlsx`);
+    };
+
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+        
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(30, 41, 59);
+        doc.text("HOTEL BALCÓN PLAZA", 14, 22);
+        
+        doc.setFontSize(14);
+        doc.text("Reporte de Cuadre de Caja Consolidado", 14, 30);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Periodo: ${filtros.inicio} al ${filtros.fin}`, 14, 38);
+        doc.text(`Generado el: ${new Date().toLocaleString()}`, 14, 43);
+
+        // Summary Stats (Custom cards style in PDF)
+        doc.setDrawColor(241, 144, 241); // Simplified boarders
+        doc.setFillColor(248, 250, 252);
+        doc.rect(14, 50, 60, 25, 'F');
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(8);
+        doc.text("INGRESOS TOTALES", 18, 56);
+        doc.setFontSize(12);
+        doc.text(`$${formatCurrency(data.resumen.ingresos_totales)}`, 18, 65);
+
+        doc.rect(78, 50, 60, 25, 'F');
+        doc.setFontSize(8);
+        doc.text("EGRESOS TOTALES", 82, 56);
+        doc.setFontSize(12);
+        doc.text(`$${formatCurrency(data.resumen.egresos_totales)}`, 82, 65);
+
+        doc.setFillColor(30, 41, 59);
+        doc.rect(142, 50, 54, 25, 'F');
+        doc.setTextColor(255);
+        doc.setFontSize(8);
+        doc.text("BALANCE FINAL", 146, 56);
+        doc.setFontSize(12);
+        doc.text(`$${formatCurrency(data.resumen.balance_final)}`, 146, 65);
+
+        // Payment Methods Summary Table
+        autoTable(doc, {
+            startY: 85,
+            head: [['Medio de Pago', 'Total Consolidado']],
+            body: [
+                ['EFECTIVO', `$${formatCurrency(data.resumen.total_efectivo)}`],
+                ['NEQUI', `$${formatCurrency(data.resumen.total_nequi)}`],
+                ['TRANSFERENCIA BANCOLOMBIA', `$${formatCurrency(data.resumen.total_bancolombia)}`]
+            ],
+            theme: 'grid',
+            headStyles: { fillColor: [71, 85, 105], halign: 'center' },
+            bodyStyles: { fontStyle: 'bold', halign: 'center' },
+            columnStyles: { 0: { cellWidth: 100 } },
+            margin: { left: 40, right: 40 }
+        });
+
+        // Transactions Table
+        const tableColumn = ["Fecha/Hora", "Tipo", "Descripción", "Medio", "Monto"];
+        const tableRows = data.transacciones.map(t => [
+            `${new Date(t.fecha).toLocaleDateString()} ${new Date(t.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+            t.tipo,
+            t.descripcion,
+            t.medioPago,
+            `$${formatCurrency(t.monto)}`
+        ]);
+
+        autoTable(doc, {
+            startY: doc.lastAutoTable.finalY + 15,
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'striped',
+            headStyles: { fillColor: [30, 41, 59] },
+            styles: { fontSize: 8 },
+            columnStyles: {
+                4: { halign: 'right', fontStyle: 'bold' }
+            }
+        });
+
+        doc.save(`Cuadre_Caja_${filtros.inicio}_al_${filtros.fin}.pdf`);
     };
 
     const getTypeBadge = (tipo) => {
@@ -92,8 +248,23 @@ const CuadreCaja = () => {
                     <p className="text-gray-500 text-sm font-medium">Control total de ingresos y egresos por medio de pago</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button className="btn-secondary flex items-center gap-2 text-sm font-bold opacity-50 cursor-not-allowed">
-                        <Download size={18} /> Exportar PDF
+                    <button 
+                        onClick={() => setShowCierreModal(true)}
+                        className="btn-primary flex items-center gap-2 text-sm font-bold bg-slate-900 hover:bg-slate-800 border-none shadow-lg"
+                    >
+                        <Lock size={18} /> Realizar Cierre de Caja
+                    </button>
+                    <button 
+                        onClick={handleExportExcel}
+                        className="btn-secondary flex items-center gap-2 text-sm font-bold bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100"
+                    >
+                        <Download size={18} /> Excel
+                    </button>
+                    <button 
+                        onClick={handleExportPDF}
+                        className="btn-secondary flex items-center gap-2 text-sm font-bold bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100"
+                    >
+                        <FileText size={18} /> Exportar PDF
                     </button>
                 </div>
             </div>
@@ -259,6 +430,103 @@ const CuadreCaja = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Closure History */}
+            <div className="card shadow-xl border-none overflow-hidden mt-8">
+                <div className="p-4 border-b border-gray-100 bg-slate-50">
+                    <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                        <FileText size={16} /> Historial de Cierres de Caja (Notas)
+                    </h2>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-white border-b border-gray-100 text-gray-400">
+                                <th className="p-4 text-[10px] uppercase font-black tracking-widest">Fecha Cierre</th>
+                                <th className="p-4 text-[10px] uppercase font-black tracking-widest">Usuario</th>
+                                <th className="p-4 text-[10px] uppercase font-black tracking-widest w-1/2">Nota / Observación</th>
+                                <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Saldo Final</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50 text-sm">
+                            {cierres.length === 0 ? (
+                                <tr>
+                                    <td colSpan="4" className="p-8 text-center text-gray-400">
+                                        No hay cierres registrados aún.
+                                    </td>
+                                </tr>
+                            ) : (
+                                cierres.map((c, i) => (
+                                    <tr key={i} className="hover:bg-gray-50">
+                                        <td className="p-4 font-bold text-slate-700">
+                                            {new Date(c.fecha).toLocaleString()}
+                                        </td>
+                                        <td className="p-4 text-slate-600 font-medium">
+                                            {c.usuario_nombre || c.usuario?.nombre}
+                                        </td>
+                                        <td className="p-4 text-slate-500 italic">
+                                            "{c.nota}"
+                                        </td>
+                                        <td className="p-4 text-right font-black text-slate-900 text-base">
+                                            ${formatCurrency(c.saldo_real || c.saldo_calculado)}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Closure Modal */}
+            {showCierreModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in border border-gray-100">
+                        <div className="p-6 border-b border-gray-100 bg-slate-900 text-white shadow-lg">
+                            <h2 className="text-2xl font-black">Finalizar y Cerrar Caja</h2>
+                            <p className="text-sm text-slate-400 mt-1">Se registrará el balance actual y tu nota de cierre.</p>
+                        </div>
+                        <form onSubmit={handleCierreSubmit} className="p-6 space-y-5">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Saldo en Sistema</p>
+                                    <p className="text-lg font-black text-slate-900">${formatCurrency(data.resumen.balance_final)}</p>
+                                </div>
+                                <div className="p-4 bg-primary-50 rounded-xl border border-primary-100">
+                                    <p className="text-[10px] font-black text-primary-400 uppercase tracking-tighter">Monto Físico (Opcional)</p>
+                                    <input 
+                                        type="number"
+                                        placeholder="0"
+                                        className="w-full bg-transparent border-none p-0 focus:ring-0 text-lg font-black text-primary-700 placeholder:text-primary-200"
+                                        value={saldoReal}
+                                        onChange={e => setSaldoReal(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Nota / Comentario de Cierre *</label>
+                                <textarea 
+                                    required
+                                    className="input-field h-32 resize-none text-base p-4 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                                    placeholder="Escribe aquí cualquier observación sobre el cierre de hoy..."
+                                    value={cierreNota}
+                                    onChange={e => setCierreNota(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="flex gap-3 mt-4">
+                                <button type="button" onClick={() => setShowCierreModal(false)} className="flex-1 btn-secondary py-3 font-bold border-slate-200 text-slate-500">
+                                    Cancelar
+                                </button>
+                                <button type="submit" className="flex-[2] btn-primary bg-slate-900 hover:bg-black text-white py-3 shadow-xl font-bold border-none transition-all active:scale-95">
+                                    Confirmar y Guardar Cierre
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
