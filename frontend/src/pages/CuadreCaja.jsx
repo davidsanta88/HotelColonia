@@ -76,23 +76,38 @@ const CuadreCaja = () => {
     });
 
     useEffect(() => {
-        fetchCuadre();
-        fetchCierres();
+        const init = async () => {
+            const dataCierres = await fetchCierres();
+            if (dataCierres && dataCierres.length > 0) {
+                const ultimo = dataCierres[0];
+                const initialFiltros = {
+                    inicio: ultimo.fecha,
+                    fin: new Date().toISOString()
+                };
+                setFiltros(initialFiltros);
+                fetchCuadre(initialFiltros);
+            } else {
+                fetchCuadre();
+            }
+        };
+        init();
     }, []);
 
     const fetchCierres = async () => {
         try {
             const res = await api.get('/cierres-caja');
             setCierres(res.data);
+            return res.data;
         } catch (error) {
             console.error('Error fetching cierres', error);
+            return [];
         }
     };
 
-    const fetchCuadre = async () => {
+    const fetchCuadre = async (customFiltros = null) => {
         try {
             setLoading(true);
-            const params = new URLSearchParams(filtros);
+            const params = new URLSearchParams(customFiltros || filtros);
             const res = await api.get(`/reportes/cuadre-caja?${params.toString()}`);
             setData(res.data);
         } catch (error) {
