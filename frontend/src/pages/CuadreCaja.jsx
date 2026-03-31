@@ -371,6 +371,18 @@ const CuadreCaja = () => {
         return filteredTransacciones.slice(startIndex, startIndex + itemsPerPage);
     }, [filteredTransacciones, currentPage, itemsPerPage]);
 
+    const ultimoCierre = useMemo(() => {
+        return cierres.length > 0 ? cierres[0] : null;
+    }, [cierres]);
+
+    const montoUltimoCierre = useMemo(() => {
+        return ultimoCierre ? (ultimoCierre.saldo_real || ultimoCierre.saldo_calculado) : 0;
+    }, [ultimoCierre]);
+
+    const totalEfectivoConBase = useMemo(() => {
+        return (data.resumen.total_efectivo || 0) + montoUltimoCierre;
+    }, [data.resumen.total_efectivo, montoUltimoCierre]);
+
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Header */}
@@ -511,13 +523,13 @@ const CuadreCaja = () => {
             </div>
 
             {/* Specialized Wallets */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center space-y-2 group hover:border-emerald-200 transition-colors">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-200">
                             <Banknote size={20} />
                         </div>
-                        <span className="text-sm font-black text-gray-700 uppercase">Total Efectivo</span>
+                        <span className="text-sm font-black text-gray-700 uppercase">Efectivo Hoy</span>
                     </div>
                     <p className="text-2xl font-black text-emerald-600">${formatCurrency(data.resumen.total_efectivo)}</p>
                 </div>
@@ -538,6 +550,19 @@ const CuadreCaja = () => {
                         <span className="text-sm font-black text-gray-700 uppercase">Trans. Bancolombia</span>
                     </div>
                     <p className="text-2xl font-black text-[#004481]">${formatCurrency(data.resumen.total_bancolombia)}</p>
+                </div>
+                <div className="bg-indigo-50/50 p-6 rounded-2xl shadow-sm border border-indigo-100 flex flex-col items-center justify-center space-y-2 group hover:border-indigo-300 transition-all active:scale-95 cursor-default">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+                            <Lock size={18} />
+                        </div>
+                        <span className="text-sm font-black text-indigo-900 uppercase">Total en Caja (+Base)</span>
+                    </div>
+                    <p className="text-2xl font-black text-indigo-700">${formatCurrency(totalEfectivoConBase)}</p>
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-indigo-400 uppercase tracking-tighter">
+                        <span>Base Inicio:</span>
+                        <span className="bg-white px-1.5 py-0.5 rounded border border-indigo-100 text-indigo-600">${formatCurrency(montoUltimoCierre)}</span>
+                    </div>
                 </div>
             </div>
 
