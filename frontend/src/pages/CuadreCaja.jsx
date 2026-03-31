@@ -217,7 +217,7 @@ const CuadreCaja = () => {
                 fin: new Date().toISOString()
             };
             setFiltros(updatedFiltros);
-            fetchCuadre(updatedFiltros.inicio, updatedFiltros.fin);
+            fetchCuadre(updatedFiltros);
         } else {
             Swal.fire('Información', 'No se encontraron cierres previos para filtrar.', 'info');
         }
@@ -438,7 +438,7 @@ const CuadreCaja = () => {
                             <input 
                                 type="date" 
                                 className="input-field pl-10 py-2 h-10 w-full" 
-                                value={filtros.inicio}
+                                value={filtros.inicio.split('T')[0]}
                                 onChange={e => setFiltros({...filtros, inicio: e.target.value})}
                             />
                         </div>
@@ -450,7 +450,7 @@ const CuadreCaja = () => {
                             <input 
                                 type="date" 
                                 className="input-field pl-10 py-2 h-10 w-full" 
-                                value={filtros.fin}
+                                value={filtros.fin.split('T')[0]}
                                 onChange={e => setFiltros({...filtros, fin: e.target.value})}
                             />
                         </div>
@@ -485,10 +485,12 @@ const CuadreCaja = () => {
                         <p className="font-bold">Calculando movimientos desde el último cierre: <span className="text-indigo-900">{new Date(filtros.inicio).toLocaleString()}</span></p>
                     </div>
                     <button 
+                        type="button"
                         onClick={() => {
                             const today = new Date().toISOString().split('T')[0];
-                            setFiltros({ inicio: today, fin: today });
-                            fetchCuadre(today, today);
+                            const resetFiltros = { inicio: today, fin: today };
+                            setFiltros(resetFiltros);
+                            fetchCuadre(resetFiltros);
                         }}
                         className="ml-auto bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors shadow-md"
                     >
