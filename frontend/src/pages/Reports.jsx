@@ -7,7 +7,7 @@ import {
 import {
     TrendingUp, TrendingDown, DollarSign, ShoppingCart,
     Calendar, Lightbulb, BarChart3, PieChart as PieIcon,
-    RefreshCw, Package, Bed
+    RefreshCw, Package, Bed, Globe, Monitor, Smartphone, MapPin
 } from 'lucide-react';
 import { formatCurrency } from '../utils/format';
 import { format, subDays, startOfMonth, subMonths } from 'date-fns';
@@ -62,6 +62,7 @@ const Reports = () => {
     const [ventasMensuales, setVentasMensuales] = useState([]);
     const [productosTop, setProductosTop] = useState([]);
     const [resumen, setResumen] = useState(null);
+    const [analyticsStats, setAnalyticsStats] = useState(null);
 
     const fetchAll = useCallback(async () => {
         setLoading(true);
@@ -79,7 +80,7 @@ const Reports = () => {
         };
 
         try {
-            const [rVentas, rGastos, rHosp, rCat, rMensual, rTop, rResumen, rManual] = await Promise.all([
+            const [rVentas, rGastos, rHosp, rCat, rMensual, rTop, rResumen, rManual, rAnalytics] = await Promise.all([
                 fetchItem(`/reportes/ventas?${q}`),
                 fetchItem(`/reportes/gastos-periodo?${q}`),
                 fetchItem(`/reportes/ingresos-hospedaje?${q}`),
@@ -88,6 +89,7 @@ const Reports = () => {
                 fetchItem(`/reportes/productos-mas-vendidos`),
                 fetchItem(`/reportes/resumen`),
                 fetchItem(`/reportes/ingresos-manuales?${q}`),
+                fetchItem(`/analytics/stats?${q}`),
             ]);
 
             setVentasDiarias(rVentas || []);
@@ -98,6 +100,7 @@ const Reports = () => {
             setVentasMensuales(rMensual || []);
             setProductosTop((rTop || []).slice(0, 8));
             setResumen(rResumen);
+            setAnalyticsStats(rAnalytics);
         } catch (e) {
             console.error('Error cargando analytics:', e);
         } finally {
@@ -429,6 +432,90 @@ const Reports = () => {
                                         {totalIngresos > 0 ? `${((utilidadNeta / totalIngresos) * 100).toFixed(1)}%` : '—'}
                                     </strong>
                                 </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Sección de Tráfico Web (Nueva) */}
+                    <div className="border-t border-gray-100 pt-10 mt-10">
+                        <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-3">
+                            <Globe className="text-blue-500" size={24} /> Tráfico de la Página Web
+                        </h2>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Gráfico de Ciudades */}
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                                <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-2 text-sm uppercase tracking-wider">
+                                    <MapPin size={16} className="text-blue-500" /> Ciudades más activas
+                                </h3>
+                                <p className="text-xs text-gray-400 mb-6">Ubicación de tus potenciales clientes</p>
+                                {analyticsStats?.topCities?.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height={220}>
+                                        <BarChart data={analyticsStats.topCities} layout="vertical" margin={{ left: 20 }}>
+                                            <XAxis type="number" hide />
+                                            <YAxis type="category" dataKey="nombre" width={100} tick={{ fontSize: 11 }} />
+                                            <Tooltip />
+                                            <Bar dataKey="valor" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="py-20 text-center text-gray-300 italic text-sm">Esperando registros de visitas...</div>
+                                )}
+                            </div>
+
+                            {/* KPIs y Dispositivos */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
+                                {/* Visitas Hoy */}
+                                <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg overflow-hidden relative">
+                                    <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+                                    <div className="relative z-10">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <h3 className="font-bold text-sm flex items-center gap-2 uppercase tracking-widest opacity-80">
+                                                Visitas Hoy
+                                            </h3>
+                                            <span className="bg-white/20 px-2 py-1 rounded-lg text-[10px] font-black uppercase flex items-center gap-1">
+                                                <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" /> En Vivo
+                                            </span>
+                                        </div>
+                                        <p className="text-5xl font-black mb-1">{analyticsStats?.summary?.today || 0}</p>
+                                        <p className="text-blue-100 text-xs font-medium">
+                                            {analyticsStats?.summary?.yesterday > 0 
+                                                ? `${(((analyticsStats.summary.today - analyticsStats.summary.yesterday) / analyticsStats.summary.yesterday) * 100).toFixed(1)}% vs ayer (${analyticsStats.summary.yesterday})`
+                                                : 'Iniciando registros históricos'
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                {/* Uso de Dispositivos */}
+                                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2 text-sm uppercase tracking-wider">
+                                        <Monitor size={16} className="text-gray-400" /> Dispositivos
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {(analyticsStats?.devices?.length > 0) ? analyticsStats.devices.map((d, i) => (
+                                            <div key={i} className="flex items-center gap-3">
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${d.tipo === 'mobile' ? 'bg-purple-50 text-purple-500' : 'bg-blue-50 text-blue-500'}`}>
+                                                    {d.tipo === 'mobile' ? <Smartphone size={16} /> : <Monitor size={16} />}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex justify-between text-xs mb-1">
+                                                        <span className="capitalize font-bold text-gray-600">{d.tipo}</span>
+                                                        <span className="text-gray-400 font-bold">{d.valor}</span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-50 h-2 rounded-full overflow-hidden border border-gray-100">
+                                                        <div 
+                                                            className={`h-full transition-all duration-1000 ${d.tipo === 'mobile' ? 'bg-purple-500' : 'bg-blue-500'}`} 
+                                                            style={{ width: `${(d.valor / (analyticsStats.summary?.total || 1) * 100)}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )) : (
+                                            <div className="text-center py-4 text-gray-300 italic text-xs">Sin datos capturados</div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

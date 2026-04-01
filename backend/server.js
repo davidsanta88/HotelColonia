@@ -100,6 +100,7 @@ app.use('/api/checkin-digital', (req, res, next) => {
     if (req.path === '/public' && req.method === 'POST') return next();
     next();
 }, require('./routes/checkin'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 // 2. PROTECTED ROUTES (Require Token)
 app.use('/api', verifyToken);

@@ -99,6 +99,21 @@ const Landing = () => {
         return () => clearInterval(t);
     }, []);
 
+    // Registro de visita para estadísticas
+    useEffect(() => {
+        const trackVisit = async () => {
+            try {
+                await api.post('/analytics/track', {
+                    path: window.location.pathname,
+                    userAgent: navigator.userAgent
+                });
+            } catch (err) {
+                // Silencioso para no interrumpir
+            }
+        };
+        trackVisit();
+    }, []);
+
     const handleShare = async () => {
         if (navigator.share) {
             try {

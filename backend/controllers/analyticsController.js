@@ -1,0 +1,155 @@
+const Visit = require('../models/Visit');
+const crypto = require('crypto');
+
+/**
+ * Registra una visita única por día (basada en el hash de la IP)
+ */
+exports.trackVisit = async (req, res) => {
+    try {
+        const { path, userAgent } = req.body;
+        
+        // Obtener IP del cliente (considerando proxies como Heroku o Cloudflare)
+        const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+        
+        // Crear un hash anónimo de la IP + Fecha (para permitir 1 registro por día sin guardar IPs reales)
+        const dateStr = new Date().toISOString().slice(0, 10);
+        const sessionHash = crypto.createHash('sha256').update(`${ip}-${dateStr}-${path}`).digest('hex');
+
+        // Verificar si ya existe este hash para hoy y para esta misma ruta
+        const existing = await Visit.findOne({ sessionHash });
+        if (existing) {
+            return res.status(200).json({ status: 'ok', msg: 'Session already tracked' });
+        }
+
+        // Consultar Geolocalización (ip-api.com - Gratuito hasta 45 req/min)
+        let geoData = {};
+        try {
+            // Limpiar IPv6 local si aparece
+            const ipToQuery = ip.includes('::') ? '' : ip; 
+            const url = `http://ip-api.com/json/${ipToQuery}?fields=status,message,country,countryCode,regionName,city`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                geoData = {
+                    city: data.city,
+                    country: data.country,
+                    countryCode: data.countryCode,
+                    region: data.regionName
+                };
+            }
+        } catch (geoErr) {
+            console.error('[GEOLOCATION ERROR]', geoErr.message);
+        }
+
+        // Determinar tipo de dispositivo
+        let device = 'desktop';
+        const ua = (userAgent || req.headers['user-agent'] || '').toLowerCase();
+        if (/mobile|android|iphone|ipad|phone/i.test(ua)) device = 'mobile';
+        else if (/tablet/i.test(ua)) device = 'tablet';
+
+        const newVisit = new Visit({
+            sessionHash,
+            city: geoData.city || 'Desconocida',
+            country: geoData.country || 'Colombia', // Default if local/fail
+            countryCode: geoData.countryCode || 'CO',
+            region: geoData.region || 'Desconocida',
+            device,
+            userAgent: userAgent || req.headers['user-agent'],
+            path: path || '/'
+        });
+
+        await newVisit.save();
+        res.status(201).json({ status: 'ok', data: { country: newVisit.country, city: newVisit.city } });
+
+    } catch (err) {
+        console.error('[TRACK ERROR]', err);
+        res.status(500).json({ message: err.message });
+    }
+};
+
+/**
+ * Obtiene estadísticas agregadas para el dashboard
+ */
+exports.getStats = async (req, res) => {
+    try {
+        const { inicio, fin } = req.query;
+        let query = {};
+        
+        if (inicio && fin) {
+            query.timestamp = { 
+                $gte: new Date(inicio + 'T00:00:00Z'), 
+                $lte: new Date(fin + 'T23:59:59Z') 
+            };
+        }
+
+        // 1. Visitas diarias
+        const dailyVisits = await Visit.aggregate([
+            { $match: query },
+            { $group: { 
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } },
+                visitas: { $sum: 1 }
+            }},
+            { $sort: { "_id": 1 } },
+            { $project: { fecha: "$_id", visitas: 1, _id: 0 } }
+        ]);
+
+        // 2. Top Ciudades
+        const topCities = await Visit.aggregate([
+            { $match: query },
+            { $group: { _id: "$city", valor: { $sum: 1 } } },
+            { $sort: { valor: -1 } },
+            { $limit: 8 },
+            { $project: { nombre: "$_id", valor: 1, _id: 0 } }
+        ]);
+
+        // 3. Top Países
+        const topCountries = await Visit.aggregate([
+            { $match: query },
+            { $group: { _id: "$country", valor: { $sum: 1 } } },
+            { $sort: { valor: -1 } },
+            { $limit: 5 },
+            { $project: { nombre: "$_id", valor: 1, _id: 0 } }
+        ]);
+
+        // 4. Dispositivos
+        const devices = await Visit.aggregate([
+            { $match: query },
+            { $group: { _id: "$device", valor: { $sum: 1 } } },
+            { $project: { tipo: "$_id", valor: 1, _id: 0 } }
+        ]);
+
+        // 5. Total Hoy vs Ayer
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+        const [todayCount, yesterdayCount] = await Promise.all([
+            Visit.countDocuments({ timestamp: { $gte: new Date(todayStr) } }),
+            Visit.countDocuments({ 
+                timestamp: { 
+                    $gte: new Date(yesterdayStr), 
+                    $lt: new Date(todayStr) 
+                } 
+            })
+        ]);
+
+        res.json({
+            dailyVisits,
+            topCities,
+            topCountries,
+            devices,
+            summary: {
+                today: todayCount,
+                yesterday: yesterdayCount,
+                total: await Visit.countDocuments(query)
+            }
+        });
+
+    } catch (err) {
+        console.error('[STATS ERROR]', err);
+        res.status(500).json({ message: err.message });
+    }
+};
