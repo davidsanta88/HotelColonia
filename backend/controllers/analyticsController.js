@@ -15,10 +15,10 @@ exports.trackVisit = async (req, res) => {
             return res.status(200).json({ status: 'ok', msg: 'Bot ignored' });
         }
 
-        // 2. DETECTAR IP REAL (Saltando proxies e IPv6 local)
-        let ip = req.headers['x-real-ip'] || 
+        // 2. DETECTAR IP REAL (Usando trust proxy habilitado en server.js)
+        let ip = req.ip || 
+                 req.headers['x-real-ip'] || 
                  req.headers['x-forwarded-for']?.split(',')[0] || 
-                 req.headers['cf-connecting-ip'] || // Cloudflare
                  req.socket.remoteAddress;
 
         // Limpiar prefijos de IPv6 si existen (::ffff:)
@@ -26,7 +26,7 @@ exports.trackVisit = async (req, res) => {
             ip = ip.replace('::ffff:', '');
         }
 
-        console.log(`[DEBUG TRACK] IP Detectada: ${ip} | User-Agent: ${ua.slice(0, 50)}...`);
+        console.log(`[DEBUG TRACK] IP Detectada: ${ip} | User-Agent: ${ua.slice(0, 40)}`);
 
         // Si es localhost, no trackeramos para no ensuciar con Ashburn (ubicación del servidor)
         if (!ip || ip === '::1' || ip === '127.0.0.1') {
