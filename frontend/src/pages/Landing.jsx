@@ -103,9 +103,20 @@ const Landing = () => {
     useEffect(() => {
         const trackVisit = async () => {
             try {
+                // Intentar obtener IP pública real desde el cliente (para evitar problemas de proxy)
+                let clientIp = null;
+                try {
+                    const ipRes = await fetch('https://api.ipify.org?format=json');
+                    const ipData = await ipRes.json();
+                    clientIp = ipData.ip;
+                } catch (e) {
+                    console.log('No se pudo obtener IP local, usando detección del servidor');
+                }
+
                 await api.post('/analytics/track', {
                     path: window.location.pathname,
-                    userAgent: navigator.userAgent
+                    userAgent: navigator.userAgent,
+                    clientIp: clientIp
                 });
             } catch (err) {
                 // Silencioso para no interrumpir

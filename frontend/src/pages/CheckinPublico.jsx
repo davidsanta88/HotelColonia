@@ -47,6 +47,25 @@ const CheckinPublico = () => {
             }
         };
         fetchMunicipios();
+
+        // Registro de visita para estadísticas
+        const trackVisit = async () => {
+            try {
+                let clientIp = null;
+                try {
+                    const ipRes = await fetch('https://api.ipify.org?format=json');
+                    const ipData = await ipRes.json();
+                    clientIp = ipData.ip;
+                } catch (e) { /* Fallback */ }
+
+                await axios.post('/api/analytics/track', {
+                    path: window.location.pathname,
+                    userAgent: navigator.userAgent,
+                    clientIp: clientIp
+                });
+            } catch (err) { /* Silencioso */ }
+        };
+        trackVisit();
     }, []);
 
     const handleSubmit = async (e) => {

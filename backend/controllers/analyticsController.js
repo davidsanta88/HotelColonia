@@ -15,9 +15,12 @@ exports.trackVisit = async (req, res) => {
             return res.status(200).json({ status: 'ok', msg: 'Bot ignored' });
         }
 
-        // 2. DETECTAR IP REAL (Priorizando encabezados de proxy)
-        let ip = req.headers['x-forwarded-for']?.split(',')[0] || 
+        // 2. DETECTAR IP REAL (Priorizando encabezados de proxy y declaración del cliente)
+        let ip = req.body.clientIp || 
+                 req.headers['cf-connecting-ip'] || 
                  req.headers['x-real-ip'] || 
+                 req.headers['true-client-ip'] ||
+                 req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
                  req.ip || 
                  req.socket.remoteAddress ||
                  '127.0.0.1';
