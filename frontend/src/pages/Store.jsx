@@ -149,7 +149,11 @@ const Store = () => {
     const verDetalleVenta = async (venta) => {
         try {
             const response = await api.get(`/ventas/${venta.id}`);
-            setVentaDetalles(response.data);
+            // El API ahora devuelve el objeto Venta completo, no solo el array de items
+            const data = response.data?.data || response.data;
+            const items = data.items || data.productos || [];
+            
+            setVentaDetalles(items);
             setSelectedVenta(venta);
         } catch (error) {
             Swal.fire('Error', 'No se pudo cargar el detalle de la venta', 'error');
@@ -164,7 +168,10 @@ const Store = () => {
     const abrirEdicion = async (venta) => {
         try {
             const response = await api.get(`/ventas/${venta.id}`);
-            const items = response.data.map(d => ({
+            const data = response.data?.data || response.data;
+            const rawItems = data.items || data.productos || [];
+            
+            const items = rawItems.map(d => ({
                 id: d.producto_id || (d.producto && d.producto._id ? d.producto._id : d.producto),
                 nombre: d.producto_nombre || d.productoNombre || 'Producto Desconocido',
                 precio: parseFloat(d.precio || d.precioUnitario || 0),
