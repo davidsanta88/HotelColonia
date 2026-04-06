@@ -110,6 +110,30 @@ const gastosController = {
         } catch (error) {
             res.status(500).json({ message: 'Error al eliminar gasto', error: error.message });
         }
+    },
+
+    getGastoById: async (req, res) => {
+        try {
+            const { id } = req.params;
+            
+            // Verificación robusta del ID
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({ message: 'ID de gasto no válido' });
+            }
+
+            const gasto = await Gasto.findById(id)
+                .populate('categoria')
+                .populate('usuario', 'nombre');
+            
+            if (!gasto) {
+                return res.status(404).json({ message: 'Gasto no encontrado en la base de datos' });
+            }
+
+            res.json(gasto);
+        } catch (error) {
+            console.error('[GET GASTO BY ID ERROR]', error);
+            res.status(500).json({ message: 'Error al obtener el detalle del gasto', error: error.message });
+        }
     }
 };
 

@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Venta = require('../models/Venta');
 const Producto = require('../models/Producto');
 const Registro = require('../models/Registro');
@@ -13,13 +14,35 @@ exports.getVentas = async (req, res) => {
     }
 };
 
-exports.getVentaDetails = async (req, res) => {
+exports.getVentaById = async (req, res) => {
     try {
         const { id } = req.params;
-        const venta = await Venta.findById(id).populate('items.producto');
-        if (!venta) return res.status(404).json({ message: 'Venta no encontrada' });
-        res.json(venta.items);
+        
+        // Verificación robusta del ID
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'ID de venta no válido' });
+        }
+
+        const venta = await Venta.findById(id)
+            .populate('items.producto')
+            .populate('empleado', 'nombre')
+            .populate('cliente', 'nombre');
+        
+        if (!venta) {
+            return res.status(404).json({ message: 'Venta no encontrada en la base de datos' });
+        }
+        
+        // Formatear para compatibilidad: Asegurar que items existan
+        const mappedVenta = venta.toObject();
+        if (!mappedVenta.items || mappedVenta.items.length === 0) {
+            // Si no hay items en el array pero hay un total, algo está mal, 
+            // pero intentamos devolver el objeto íntegro.
+            console.warn(`[GET VENTA BY ID WARNING] Venta ${id} no tiene items en el array.`);
+        }
+        
+        res.json(mappedVenta);
     } catch (err) {
+        console.error('[GET VENTA BY ID ERROR]', err);
         res.status(500).json({ message: err.message });
     }
 };

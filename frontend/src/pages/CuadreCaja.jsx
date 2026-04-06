@@ -25,6 +25,9 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Pagination from '../components/common/Pagination';
+import DetallesRegistroModal from '../components/modals/DetallesRegistroModal';
+import DetalleMovimientoModal from '../components/modals/DetalleMovimientoModal';
+import { Eye, Search, TrendingUp as TrendingUpIcon, TrendingDown as TrendingDownIcon } from 'lucide-react';
 
 const CuadreCaja = () => {
     const [loading, setLoading] = useState(true);
@@ -46,6 +49,12 @@ const CuadreCaja = () => {
     const [cierreNota, setCierreNota] = useState('');
     const [saldoReal, setSaldoReal] = useState('');
     const [editingId, setEditingId] = useState(null);
+
+    // Detail Modal States
+    const [selectedTransaccion, setSelectedTransaccion] = useState(null);
+    const [showDetalleModal, setShowDetalleModal] = useState(false);
+    const [selectedRegistroId, setSelectedRegistroId] = useState(null);
+    const [showRegistroModal, setShowRegistroModal] = useState(false);
 
     const [columnFilters, setColumnFilters] = useState({
         fecha: '',
@@ -346,6 +355,16 @@ const CuadreCaja = () => {
         );
     };
 
+    const handleVerDetalle = (t) => {
+        if (t.tipo === 'HOSPEDAJE') {
+            setSelectedRegistroId(t.id_ref);
+            setShowRegistroModal(true);
+        } else {
+            setSelectedTransaccion(t);
+            setShowDetalleModal(true);
+        }
+    };
+
     const getMedioBadge = (medio) => {
         const normalized = medio.toUpperCase();
         if (normalized === 'NEQUI') return <span className="flex items-center gap-1 text-[#7030a0] font-bold text-xs"><Wallet size={14} /> NEQUI</span>;
@@ -600,6 +619,7 @@ const CuadreCaja = () => {
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest">Usuario</th>
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest">Medio Pago</th>
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Monto</th>
+                                <th className="p-4 text-[10px] uppercase font-black tracking-widest text-center">Ver</th>
                             </tr>
                             <tr className="bg-white border-b border-gray-50">
                                 <th className="px-4 py-2">
@@ -697,6 +717,15 @@ const CuadreCaja = () => {
                                             <div className={`text-sm font-black ${t.monto >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                                                 {t.monto >= 0 ? '+' : '-'}${formatCurrency(Math.abs(t.monto))}
                                             </div>
+                                        </td>
+                                        <td className="p-4 text-center">
+                                            <button 
+                                                onClick={() => handleVerDetalle(t)}
+                                                className="p-2 text-primary-500 hover:bg-primary-50 rounded-xl transition-all active:scale-90 group-hover:scale-110"
+                                                title="Ver Detalle Completo"
+                                            >
+                                                <Eye size={18} />
+                                            </button>
                                         </td>
                                     </tr>
                                 ))
@@ -843,6 +872,25 @@ const CuadreCaja = () => {
                     </div>
                 </div>
             )}
+            {/* Modales de Detalle */}
+            <DetallesRegistroModal 
+                registroId={selectedRegistroId}
+                isOpen={showRegistroModal}
+                onClose={() => {
+                    setShowRegistroModal(false);
+                    setSelectedRegistroId(null);
+                }}
+                onSuccess={fetchCuadre}
+            />
+
+            <DetalleMovimientoModal 
+                isOpen={showDetalleModal}
+                transaccion={selectedTransaccion}
+                onClose={() => {
+                    setShowDetalleModal(false);
+                    setSelectedTransaccion(null);
+                }}
+            />
         </div>
     );
 };

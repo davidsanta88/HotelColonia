@@ -4,7 +4,7 @@ const ventasController = require('../controllers/ventasController');
 const { verifyToken } = require('../middleware/auth');
 
 router.get('/', verifyToken, ventasController.getVentas);
-router.get('/:id', verifyToken, ventasController.getVentaDetails);
+router.get('/:id', verifyToken, ventasController.getVentaById);
 router.post('/', verifyToken, ventasController.createVenta);
 router.put('/:id', verifyToken, ventasController.updateVenta);
 
