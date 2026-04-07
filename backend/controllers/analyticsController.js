@@ -39,8 +39,8 @@ exports.trackVisit = async (req, res) => {
                         ip.startsWith('10.') || 
                         /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip);
         
-        // Crear un hash anónimo de la IP + Fecha (para permitir 1 registro por día sin guardar IPs reales)
-        const dateStr = new Date().toISOString().slice(0, 10);
+        // Crear un hash anónimo de la IP + Fecha local (para permitir 1 registro por día sin guardar IPs reales)
+        const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' }); 
         const sessionHash = crypto.createHash('sha256').update(`${ip}-${dateStr}-${path}`).digest('hex');
 
         // TEMPORALMENTE DESHABILITADO PARA PRUEBAS: Verificar si ya existe este hash para hoy y para esta misma ruta
@@ -133,7 +133,7 @@ exports.getStats = async (req, res) => {
         const dailyVisits = await Visit.aggregate([
             { $match: query },
             { $group: { 
-                _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } },
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp", timezone: "-05:00" } },
                 visitas: { $sum: 1 }
             }},
             { $sort: { "_id": 1 } },
@@ -176,18 +176,20 @@ exports.getStats = async (req, res) => {
             { $project: { tipo: "$_id", valor: 1, _id: 0 } }
         ]);
 
-        // 5. Total Hoy vs Ayer
-        const todayStr = new Date().toISOString().slice(0, 10);
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().slice(0, 10);
+        // 5. Total Hoy vs Ayer (Local Colombia)
+        const dateStrToday = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
+        const startToday = new Date(`${dateStrToday}T00:00:00-05:00`);
+        
+        const yesterdayDate = new Date(startToday);
+        yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+        const startYesterday = new Date(yesterdayDate.toISOString().split('T')[0] + 'T00:00:00-05:00');
 
         const [todayCount, yesterdayCount, recentVisits] = await Promise.all([
-            Visit.countDocuments({ timestamp: { $gte: new Date(todayStr) } }),
+            Visit.countDocuments({ timestamp: { $gte: startToday } }),
             Visit.countDocuments({ 
                 timestamp: { 
-                    $gte: new Date(yesterdayStr), 
-                    $lt: new Date(todayStr) 
+                    $gte: startYesterday, 
+                    $lt: startToday 
                 } 
             }),
             Visit.find(query).sort({ timestamp: -1 }).limit(20).lean()

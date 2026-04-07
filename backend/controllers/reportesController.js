@@ -20,7 +20,7 @@ exports.getReporteVentas = async (req, res) => {
             { $match: filter },
             {
                 $group: {
-                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$fecha" } },
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$fecha", timezone: "-05:00" } },
                     gran_total: { $sum: "$total" },
                     num_ventas: { $sum: 1 }
                 }
@@ -68,16 +68,17 @@ exports.getResumenGeneral = async (req, res) => {
         const hab_ocupadas = estadoOcupada ? await Habitacion.countDocuments({ estado: estadoOcupada._id }) : 0;
         const alertas_stock = await Producto.countDocuments({ $expr: { $lte: ["$stock", "$stockMinimo"] } });
         
-        const hoy = new Date(Date.now() - (5 * 60 * 60 * 1000));
-        hoy.setUTCHours(0, 0, 0, 0);
-        const mañana = new Date(hoy);
-        mañana.setUTCDate(hoy.getUTCDate() + 1);
+        // Calcular límites de hoy en hora local (Colombia -05:00)
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-CA', { timeZone: 'America/Bogota' }); // Formato YYYY-MM-DD
+        const hoy = new Date(`${dateStr}T00:00:00-05:00`);
+        const mañana = new Date(`${dateStr}T23:59:59.999-05:00`);
 
-        const registros_hoy = await Registro.countDocuments({ fechaCreacion: { $gte: hoy, $lt: mañana } });
+        const registros_hoy = await Registro.countDocuments({ fechaCreacion: { $gte: hoy, $lte: mañana } });
         
         // 1. Egresos e Ingresos manuales del día (desde la colección Gasto)
         const movimientos_manuales = await Gasto.aggregate([
-            { $match: { fecha: { $gte: hoy, $lt: mañana } } },
+            { $match: { fecha: { $gte: hoy, $lte: mañana } } },
             {
                 $lookup: {
                     from: 'categoriagastos',
@@ -86,7 +87,7 @@ exports.getResumenGeneral = async (req, res) => {
                     as: 'catInfo'
                 }
             },
-            { $unwind: '$catInfo' },
+            { $unwind: { path: '$catInfo', preserveNullAndEmptyArrays: true } },
             {
                 $group: {
                     _id: '$catInfo.tipo',
@@ -179,11 +180,11 @@ exports.getGastosPorPeriodo = async (req, res) => {
                     as: 'catInfo'
                 }
             },
-            { $unwind: '$catInfo' },
-            { $match: { 'catInfo.tipo': 'Gasto' } },
+            { $unwind: { path: '$catInfo', preserveNullAndEmptyArrays: true } },
+            { $match: { 'catInfo.tipo': { $ne: 'Ingreso' } } }, // Por defecto si no hay tipo se asume Gasto o se filtra Ingreso
             {
                 $group: {
-                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$fecha" } },
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$fecha", timezone: "-05:00" } },
                     total_gastos: { $sum: "$monto" },
                     num_gastos: { $sum: 1 }
                 }
@@ -217,11 +218,11 @@ exports.getIngresosManualesPorPeriodo = async (req, res) => {
                     as: 'catInfo'
                 }
             },
-            { $unwind: '$catInfo' },
+            { $unwind: { path: '$catInfo', preserveNullAndEmptyArrays: true } },
             { $match: { 'catInfo.tipo': 'Ingreso' } },
             {
                 $group: {
-                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$fecha" } },
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$fecha", timezone: "-05:00" } },
                     total_ingresos: { $sum: "$monto" },
                     num_ingresos: { $sum: 1 }
                 }
@@ -255,11 +256,11 @@ exports.getGastosPorCategoria = async (req, res) => {
                     as: 'catInfo'
                 }
             },
-            { $unwind: '$catInfo' },
-            { $match: { 'catInfo.tipo': 'Gasto' } },
+            { $unwind: { path: '$catInfo', preserveNullAndEmptyArrays: true } },
+            { $match: { 'catInfo.tipo': { $ne: 'Ingreso' } } },
             {
                 $group: {
-                    _id: "$catInfo.nombre",
+                    _id: { $ifNull: ["$catInfo.nombre", "Sin Categoría"] },
                     total: { $sum: "$monto" },
                     cantidad: { $sum: 1 }
                 }
@@ -278,7 +279,7 @@ exports.getVentasMensuales = async (req, res) => {
         const report = await Venta.aggregate([
             {
                 $group: {
-                    _id: { $dateToString: { format: "%Y-%m", date: "$fecha" } },
+                    _id: { $dateToString: { format: "%Y-%m", date: "$fecha", timezone: "-05:00" } },
                     total_ventas: { $sum: "$total" }
                 }
             },
@@ -317,7 +318,7 @@ exports.getIngresosHospedaje = async (req, res) => {
             { $match: filter },
             {
                 $group: {
-                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$pagos.fecha" } },
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$pagos.fecha", timezone: "-05:00" } },
                     total_hospedaje: { $sum: "$pagos.monto" }
                 }
             },

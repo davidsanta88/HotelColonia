@@ -51,8 +51,9 @@ const gastosController = {
             // Ensure fecha includes current time if it's a date-only string from frontend
             let finalFecha = new Date();
             if (fecha_gasto) {
+                // If it's just a date YYYY-MM-DD, we append the current local time but forced to -05:00
                 const now = new Date();
-                const timeStr = now.toLocaleTimeString('en-GB', { hour12: false }); // "HH:MM:SS"
+                const timeStr = now.toLocaleTimeString('en-GB', { hour12: false, timeZone: 'America/Bogota' });
                 finalFecha = new Date(`${fecha_gasto}T${timeStr}-05:00`);
             }
 
@@ -83,7 +84,7 @@ const gastosController = {
             if (updateData.notas) updateData.observaciones = updateData.notas;
             if (updateData.fecha_gasto) {
                 const now = new Date();
-                const timeStr = now.toLocaleTimeString('en-GB', { hour12: false });
+                const timeStr = now.toLocaleTimeString('en-GB', { hour12: false, timeZone: 'America/Bogota' });
                 updateData.fecha = new Date(`${updateData.fecha_gasto}T${timeStr}-05:00`);
             }
             if (updateData.categoria_id) updateData.categoria = updateData.categoria_id;
