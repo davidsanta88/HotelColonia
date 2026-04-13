@@ -65,6 +65,7 @@ const Reports = () => {
     const [productosTop, setProductosTop] = useState([]);
     const [resumen, setResumen] = useState(null);
     const [analyticsStats, setAnalyticsStats] = useState(null);
+    const [huespedesReport, setHuespedesReport] = useState(null);
 
     const fetchAll = useCallback(async () => {
         setLoading(true);
@@ -82,7 +83,7 @@ const Reports = () => {
         };
 
         try {
-            const [rVentas, rGastos, rHosp, rCat, rMensual, rTop, rResumen, rManual, rAnalytics] = await Promise.all([
+            const [rVentas, rGastos, rHosp, rCat, rMensual, rTop, rResumen, rManual, rAnalytics, rHuespedes] = await Promise.all([
                 fetchItem(`/reportes/ventas?${q}`),
                 fetchItem(`/reportes/gastos-periodo?${q}`),
                 fetchItem(`/reportes/ingresos-hospedaje?${q}`),
@@ -92,6 +93,7 @@ const Reports = () => {
                 fetchItem(`/reportes/resumen`),
                 fetchItem(`/reportes/ingresos-manuales?${q}`),
                 fetchItem(`/analytics/stats?${q}`),
+                fetchItem(`/reportes/huespedes?${q}`),
             ]);
 
             setVentasDiarias(rVentas || []);
@@ -103,6 +105,7 @@ const Reports = () => {
             setProductosTop((rTop || []).slice(0, 8));
             setResumen(rResumen);
             setAnalyticsStats(rAnalytics);
+            setHuespedesReport(rHuespedes);
         } catch (e) {
             console.error('Error cargando analytics:', e);
         } finally {
@@ -248,7 +251,7 @@ const Reports = () => {
                     </div>
 
                     {/* KPIs secundarios */}
-                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
                             <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
                                 <TrendingUp size={20} />
@@ -265,6 +268,24 @@ const Reports = () => {
                             <div>
                                 <p className="text-xs text-gray-400 font-bold uppercase">Hospedaje</p>
                                 <p className="text-lg font-black text-gray-900">${formatCurrency(totalHospedaje)}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                                <User size={20} />
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 font-bold uppercase">Total Huéspedes</p>
+                                <p className="text-lg font-black text-gray-900">{huespedesReport?.totalHuespedes ?? '—'}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+                            <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+                                <TrendingUp size={20} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase">Promedio Huéspedes</p>
+                                <p className="text-lg font-black text-gray-900">{huespedesReport?.promedioHuespedes?.toFixed(1) ?? '—'}<span className="text-[10px] text-gray-400 font-normal">/día</span></p>
                             </div>
                         </div>
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">

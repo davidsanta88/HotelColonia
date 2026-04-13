@@ -472,3 +472,50 @@ exports.getCuadreCaja = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+exports.getReporteHuespedes = async (req, res) => {
+    try {
+        const { inicio, fin } = req.query;
+        const filter = { estado: { $ne: 'cancelado' } };
+        
+        if (inicio || fin) {
+            filter.fechaEntrada = {};
+            if (inicio) filter.fechaEntrada.$gte = inicio.includes('T') ? new Date(inicio) : new Date(`${inicio}T00:00:00-05:00`);
+            if (fin) filter.fechaEntrada.$lte = fin.includes('T') ? new Date(fin) : new Date(`${fin}T23:59:59-05:00`);
+        }
+
+        const report = await Registro.aggregate([
+            { $match: filter },
+            {
+                $project: {
+                    count: { $size: { $ifNull: ["$huespedes", []] } }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalHuespedes: { $sum: "$count" },
+                    numRegistros: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const totalHuespedes = report[0]?.totalHuespedes || 0;
+        
+        // Calcular número de días para el promedio
+        const start = inicio ? new Date(`${inicio}T00:00:00`) : new Date();
+        const end = fin ? new Date(`${fin}T00:00:00`) : new Date();
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        
+        const promedioHuespedes = diffDays > 0 ? (totalHuespedes / diffDays) : totalHuespedes;
+
+        res.json({
+            totalHuespedes,
+            promedioHuespedes,
+            numDias: diffDays
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
