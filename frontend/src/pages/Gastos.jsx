@@ -372,8 +372,8 @@ const Gastos = () => {
             {/* Modal Crear Gasto */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in border border-gray-100">
-                        <div className={`p-6 border-b border-gray-100 ${current.tipo === 'Ingreso' ? 'bg-emerald-50' : 'bg-red-50'} transition-colors duration-500`}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh] animate-fade-in border border-gray-100">
+                        <div className={`p-6 border-b border-gray-100 flex-shrink-0 ${current.tipo === 'Ingreso' ? 'bg-emerald-50' : 'bg-red-50'} transition-colors duration-500`}>
                             <h2 className={`text-2xl font-black ${current.tipo === 'Ingreso' ? 'text-emerald-800' : 'text-red-800'}`}>
                                 {current.tipo === 'Ingreso' ? 'Registrar Ingreso de Dinero' : 'Registrar Salida de Dinero'}
                             </h2>
@@ -381,7 +381,7 @@ const Gastos = () => {
                                 {current.tipo === 'Ingreso' ? 'El monto sumará al balance positivo de la caja habitual' : 'El monto será deducido como un gasto o pago operativo'}
                             </p>
                         </div>
-                        <form onSubmit={handleSave} className="p-6 space-y-5">
+                        <form onSubmit={handleSave} className="p-6 space-y-5 overflow-y-auto flex-1">
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <div className="flex-1">
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Concepto Principal *</label>
