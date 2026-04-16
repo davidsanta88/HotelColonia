@@ -54,6 +54,8 @@ const Reports = () => {
     const [dates, setDates] = useState(PERIODOS[2].getDates());
     const [periodoActivo, setPeriodoActivo] = useState(2);
     const [loading, setLoading] = useState(true);
+    const [mainChartType, setMainChartType] = useState('line');
+    const [pieChartType, setPieChartType] = useState('pie');
 
     // Datos
     const [ventasDiarias, setVentasDiarias] = useState([]);
@@ -321,24 +323,46 @@ const Reports = () => {
 
                     {/* Gráfica principal: Línea temporal */}
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                        <h2 className="font-black text-gray-800 mb-1 flex items-center gap-2">
-                            <TrendingUp size={18} className="text-indigo-500" /> Ingresos vs Gastos — Período seleccionado
-                        </h2>
-                        <p className="text-xs text-gray-400 mb-5">Comparación diaria entre todas las fuentes de ingreso y los gastos</p>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
+                            <div>
+                                <h2 className="font-black text-gray-800 mb-1 flex items-center gap-2">
+                                    <TrendingUp size={18} className="text-indigo-500" /> Ingresos vs Gastos — Período seleccionado
+                                </h2>
+                                <p className="text-xs text-gray-400">Comparación diaria entre todas las fuentes de ingreso y los gastos</p>
+                            </div>
+                            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg self-start sm:self-auto">
+                                <button onClick={() => setMainChartType('line')} className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${mainChartType === 'line' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>Líneas</button>
+                                <button onClick={() => setMainChartType('bar')} className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${mainChartType === 'bar' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>Barras</button>
+                            </div>
+                        </div>
+
                         {lineData.length === 0 ? (
                             <div className="text-center py-16 text-gray-300 italic">No hay datos en este período</div>
                         ) : (
                             <ResponsiveContainer width="100%" height={280}>
-                                <LineChart data={lineData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                                    <XAxis dataKey="fecha" tick={{ fontSize: 11 }} tickFormatter={v => v?.slice(5)} />
-                                    <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `$${formatCurrency(v)}`} width={80} />
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Legend />
-                                    <Line type="monotone" dataKey="ventas" name="Ventas Tienda" stroke={COLOR_VENTAS} strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                                    <Line type="monotone" dataKey="hospedaje" name="Hospedaje" stroke={COLOR_HOSPEDAJE} strokeWidth={2.5} dot={{ r: 3 }} />
-                                    <Line type="monotone" dataKey="gastos" name="Gastos" stroke={COLOR_GASTOS} strokeWidth={2.5} strokeDasharray="5 3" dot={{ r: 3 }} />
-                                </LineChart>
+                                {mainChartType === 'line' ? (
+                                    <LineChart data={lineData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                                        <XAxis dataKey="fecha" tick={{ fontSize: 11 }} tickFormatter={v => v?.slice(5)} />
+                                        <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `$${formatCurrency(v)}`} width={80} />
+                                        <Tooltip content={<CustomTooltip />} />
+                                        <Legend />
+                                        <Line type="monotone" dataKey="ventas" name="Ventas Tienda" stroke={COLOR_VENTAS} strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                                        <Line type="monotone" dataKey="hospedaje" name="Hospedaje" stroke={COLOR_HOSPEDAJE} strokeWidth={2.5} dot={{ r: 3 }} />
+                                        <Line type="monotone" dataKey="gastos" name="Gastos" stroke={COLOR_GASTOS} strokeWidth={2.5} strokeDasharray="5 3" dot={{ r: 3 }} />
+                                    </LineChart>
+                                ) : (
+                                    <BarChart data={lineData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                                        <XAxis dataKey="fecha" tick={{ fontSize: 11 }} tickFormatter={v => v?.slice(5)} />
+                                        <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `$${formatCurrency(v)}`} width={80} />
+                                        <Tooltip content={<CustomTooltip />} />
+                                        <Legend />
+                                        <Bar dataKey="ventas" name="Ventas Tienda" fill={COLOR_VENTAS} radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="hospedaje" name="Hospedaje" fill={COLOR_HOSPEDAJE} radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="gastos" name="Gastos" fill={COLOR_GASTOS} radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                )}
                             </ResponsiveContainer>
                         )}
                     </div>
@@ -369,39 +393,66 @@ const Reports = () => {
                             )}
                         </div>
 
-                        {/* Gastos por Categoría - PieChart */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                            <h2 className="font-black text-gray-800 mb-1 flex items-center gap-2">
-                                <PieIcon size={18} className="text-amber-500" /> Gastos por Categoría
-                            </h2>
-                            <p className="text-xs text-gray-400 mb-4">Distribución de gastos en el período seleccionado</p>
-                            {gastosCat.length === 0 ? (
-                                <div className="text-center py-16 text-gray-300 italic">No hay gastos registrados en este período</div>
-                            ) : (
-                                <div className="flex items-center gap-4">
-                                    <ResponsiveContainer width="55%" height={200}>
-                                        <PieChart>
-                                            <Pie data={gastosCat} cx="50%" cy="50%" innerRadius={55} outerRadius={85}
-                                                dataKey="total" nameKey="categoria" paddingAngle={3}>
-                                                {gastosCat.map((_, i) => (
-                                                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip formatter={(v) => [`$${formatCurrency(v)}`, 'Total']} />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                    <div className="flex-1 space-y-2 overflow-y-auto max-h-[200px]">
-                                        {gastosCat.map((g, i) => (
-                                            <div key={i} className="flex items-center gap-2">
-                                                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs font-bold text-gray-700 truncate">{g.categoria}</p>
-                                                    <p className="text-[10px] text-gray-400">${formatCurrency(g.total)} · {g.cantidad} reg.</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                        {/* Gastos por Categoría */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+                                <div>
+                                    <h2 className="font-black text-gray-800 mb-1 flex items-center gap-2">
+                                        <PieIcon size={18} className="text-amber-500" /> Gastos por Categoría
+                                    </h2>
+                                    <p className="text-xs text-gray-400">Distribución de gastos en el período</p>
                                 </div>
+                                <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg self-start sm:self-auto shrink-0">
+                                    <button onClick={() => setPieChartType('pie')} className={`px-2 py-1 rounded-md text-[10px] font-bold transition-all uppercase tracking-wider ${pieChartType === 'pie' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>Torta</button>
+                                    <button onClick={() => setPieChartType('bar')} className={`px-2 py-1 rounded-md text-[10px] font-bold transition-all uppercase tracking-wider ${pieChartType === 'bar' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>Barras</button>
+                                </div>
+                            </div>
+                            
+                            {gastosCat.length === 0 ? (
+                                <div className="text-center py-16 text-gray-300 italic flex-1">No hay gastos registrados en este período</div>
+                            ) : (
+                                pieChartType === 'pie' ? (
+                                    <div className="flex items-center gap-4 flex-1">
+                                        <ResponsiveContainer width="55%" height={200}>
+                                            <PieChart>
+                                                <Pie data={gastosCat} cx="50%" cy="50%" innerRadius={55} outerRadius={85}
+                                                    dataKey="total" nameKey="categoria" paddingAngle={3}>
+                                                    {gastosCat.map((_, i) => (
+                                                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip formatter={(v) => [`$${formatCurrency(v)}`, 'Total']} />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                        <div className="flex-1 space-y-2 overflow-y-auto max-h-[200px]">
+                                            {gastosCat.map((g, i) => (
+                                                <div key={i} className="flex items-center gap-2 border-b border-gray-50 pb-1 last:border-0">
+                                                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-xs font-bold text-gray-700 truncate" title={g.categoria}>{g.categoria}</p>
+                                                        <p className="text-[10px] text-gray-400">${formatCurrency(g.total)}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 mt-2">
+                                        <ResponsiveContainer width="100%" height={230}>
+                                            <BarChart data={gastosCat} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" horizontal={false} />
+                                                <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={v => `$${(v/1000)}k`} />
+                                                <YAxis type="category" dataKey="categoria" width={100} tick={{ fontSize: 10 }} />
+                                                <Tooltip formatter={(v) => [`$${formatCurrency(v)}`, 'Gasto']} />
+                                                <Bar dataKey="total" radius={[0, 4, 4, 0]}>
+                                                    {gastosCat.map((_, i) => (
+                                                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                                                    ))}
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                )
                             )}
                         </div>
                     </div>

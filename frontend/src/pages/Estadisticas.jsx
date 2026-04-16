@@ -14,12 +14,15 @@ import {
     ArrowDownRight,
     Loader2,
     RefreshCw,
-    Download
+    Download,
+    BarChart3
 } from 'lucide-react';
 
 const Estadisticas = () => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [revenueChartType, setRevenueChartType] = useState('area');
+    const [occupancyChartType, setOccupancyChartType] = useState('pie');
 
     useEffect(() => {
         fetchStats();
@@ -111,90 +114,151 @@ const Estadisticas = () => {
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Revenue Chart */}
-                <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-8">
+                <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
                         <div>
                             <h3 className="text-xl font-black text-slate-900 tracking-tight">Evolución de Ingresos</h3>
                             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Últimos 6 meses (Registros + Ventas)</p>
                         </div>
-                        <Calendar size={20} className="text-slate-300" />
+                        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-start sm:self-auto">
+                            <button onClick={() => setRevenueChartType('area')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${revenueChartType === 'area' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}>Área</button>
+                            <button onClick={() => setRevenueChartType('bar')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${revenueChartType === 'bar' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}>Barras</button>
+                        </div>
                     </div>
                     
-                    <div className="h-[300px] w-full mt-4">
+                    <div className="flex-1 min-h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={stats?.monthlyRevenue}>
-                                <defs>
-                                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#0f172a" stopOpacity={0.1}/>
-                                        <stop offset="95%" stopColor="#0f172a" stopOpacity={0}/>
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis 
-                                    dataKey="mes" 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700, textTransform: 'uppercase'}} 
-                                />
-                                <YAxis 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{fill: '#94a3b8', fontSize: 10}} 
-                                    tickFormatter={(val) => `$${val/1000}k`}
-                                />
-                                <Tooltip 
-                                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
-                                    formatter={(value) => [`$${new Intl.NumberFormat().format(value)}`, 'Ingreso']}
-                                />
-                                <Area type="monotone" dataKey="revenue" stroke="#0f172a" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
-                            </AreaChart>
+                            {revenueChartType === 'area' ? (
+                                <AreaChart data={stats?.monthlyRevenue}>
+                                    <defs>
+                                        <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#0f172a" stopOpacity={0.1}/>
+                                            <stop offset="95%" stopColor="#0f172a" stopOpacity={0}/>
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis 
+                                        dataKey="mes" 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700, textTransform: 'uppercase'}} 
+                                    />
+                                    <YAxis 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{fill: '#94a3b8', fontSize: 10}} 
+                                        tickFormatter={(val) => `$${val/1000}k`}
+                                    />
+                                    <Tooltip 
+                                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                                        formatter={(value) => [`$${new Intl.NumberFormat().format(value)}`, 'Ingreso']}
+                                    />
+                                    <Area type="monotone" dataKey="revenue" stroke="#0f172a" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
+                                </AreaChart>
+                            ) : (
+                                <BarChart data={stats?.monthlyRevenue} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis 
+                                        dataKey="mes" 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700, textTransform: 'uppercase'}} 
+                                    />
+                                    <YAxis 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{fill: '#94a3b8', fontSize: 10}} 
+                                        tickFormatter={(val) => `$${val/1000}k`}
+                                    />
+                                    <Tooltip 
+                                        cursor={{fill: '#f8fafc'}}
+                                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                                        formatter={(value) => [`$${new Intl.NumberFormat().format(value)}`, 'Ingreso']}
+                                    />
+                                    <Bar dataKey="revenue" fill="#0f172a" radius={[6, 6, 0, 0]} />
+                                </BarChart>
+                            )}
                         </ResponsiveContainer>
                     </div>
                 </div>
 
                 {/* Distribution Chart */}
-                <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="mb-8">
-                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Ocupación Actual</h3>
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Por tipo de habitación</p>
-                    </div>
-
-                    <div className="h-[250px] w-full flex items-center justify-center relative">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={stats?.typeDistribution}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={8}
-                                    dataKey="cantidad"
-                                >
-                                    {stats?.typeDistribution.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cornerRadius={10} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
-                        </ResponsiveContainer>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-3xl font-black text-slate-900">{stats?.occupancyRate}%</span>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global</span>
+                <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <h3 className="text-xl font-black text-slate-900 tracking-tight">Ocupación Actual</h3>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Por tipo de habitación</p>
+                        </div>
+                        <div className="flex flex-col gap-1 bg-slate-100 p-1 rounded-lg">
+                            <button onClick={() => setOccupancyChartType('pie')} className={`p-1.5 rounded-md text-xs font-bold transition-all ${occupancyChartType === 'pie' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`} title="Gráfico Circular">
+                                <PieIcon size={16} />
+                            </button>
+                            <button onClick={() => setOccupancyChartType('bar')} className={`p-1.5 rounded-md text-xs font-bold transition-all ${occupancyChartType === 'bar' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`} title="Gráfico de Barras">
+                                <BarChart3 size={16} />
+                            </button>
                         </div>
                     </div>
 
-                    <div className="mt-8 space-y-3">
-                        {stats?.typeDistribution.map((item, index) => (
-                            <div key={item.nombre} className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                                    <span className="text-xs font-bold text-slate-600">{item.nombre}</span>
+                    {occupancyChartType === 'pie' ? (
+                        <>
+                            <div className="h-[200px] w-full flex items-center justify-center relative">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={stats?.typeDistribution}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={50}
+                                            outerRadius={70}
+                                            paddingAngle={8}
+                                            dataKey="cantidad"
+                                        >
+                                            {stats?.typeDistribution.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cornerRadius={10} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                    <span className="text-2xl font-black text-slate-900">{stats?.occupancyRate}%</span>
                                 </div>
-                                <span className="text-xs font-black text-slate-900">{item.cantidad} hab.</span>
                             </div>
-                        ))}
-                    </div>
+                            <div className="flex-1 mt-6 overflow-y-auto max-h-[150px] pr-2">
+                                <div className="space-y-3">
+                                    {stats?.typeDistribution.map((item, index) => (
+                                        <div key={item.nombre} className="flex items-center justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2 h-full min-h-[12px] rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                                                <span className="text-xs font-bold text-slate-600 truncate max-w-[100px]" title={item.nombre}>{item.nombre}</span>
+                                            </div>
+                                            <span className="text-xs font-black text-slate-900">{item.cantidad} hab.</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex-1 min-h-[250px] w-full mt-2">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={stats?.typeDistribution} layout="vertical" margin={{ top: 0, right: 20, left: -20, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                                    <XAxis type="number" hide />
+                                    <YAxis type="category" dataKey="nombre" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10, fontWeight: 'bold'}} width={90} />
+                                    <Tooltip 
+                                        cursor={{fill: '#f8fafc'}}
+                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                                        formatter={(value) => [`${value} habs`, 'Ocupación']}
+                                    />
+                                    <Bar dataKey="cantidad" radius={[0, 6, 6, 0]}>
+                                        {stats?.typeDistribution.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    )}
                 </div>
             </div>
 
