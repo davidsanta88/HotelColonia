@@ -135,16 +135,17 @@ const CuadreCaja = () => {
         e.preventDefault();
         try {
             const rawSaldoReal = unformatNumber(saldoReal);
+            const expectedCashTotal = (data.resumen.total_efectivo || 0) + montoUltimoCierre;
             const payload = {
                 ingresos: data.resumen.ingresos_totales,
                 egresos: data.resumen.egresos_totales,
-                saldo_calculado: data.resumen.balance_final,
-                saldo_real: rawSaldoReal ? parseFloat(rawSaldoReal) : (editingId ? undefined : data.resumen.balance_final),
+                saldo_calculado: data.resumen.balance_final + montoUltimoCierre,
+                saldo_real: rawSaldoReal ? parseFloat(rawSaldoReal) : (editingId ? undefined : expectedCashTotal),
                 nota: cierreNota,
                 medios_pago: {
                     nequi: data.resumen.total_nequi,
                     bancolombia: data.resumen.total_bancolombia,
-                    efectivo: data.resumen.total_efectivo,
+                    efectivo: rawSaldoReal ? parseFloat(rawSaldoReal) : expectedCashTotal,
                     otros: data.resumen.total_otros
                 }
             };
@@ -410,7 +411,12 @@ const CuadreCaja = () => {
     }, [cierres]);
 
     const montoUltimoCierre = useMemo(() => {
-        return ultimoCierre ? (ultimoCierre.saldo_real || ultimoCierre.saldo_calculado) : 0;
+        if (!ultimoCierre) return 0;
+        // Priorizar el desglose de efectivo del último cierre para la base de caja física
+        if (ultimoCierre.medios_pago && typeof ultimoCierre.medios_pago.efectivo === 'number') {
+            return ultimoCierre.medios_pago.efectivo;
+        }
+        return (ultimoCierre.saldo_real || ultimoCierre.saldo_calculado || 0);
     }, [ultimoCierre]);
 
     const totalEfectivoConBase = useMemo(() => {
@@ -827,8 +833,8 @@ const CuadreCaja = () => {
                         <form onSubmit={handleCierreSubmit} className="p-6 space-y-5">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Saldo en Sistema</p>
-                                    <p className="text-lg font-black text-slate-900">${formatCurrency(data.resumen.balance_final)}</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Efectivo en Sistema (Base + Hoy)</p>
+                                    <p className="text-lg font-black text-slate-900">${formatCurrency(totalEfectivoConBase)}</p>
                                 </div>
                                 <div className="p-4 bg-primary-50 rounded-xl border border-primary-100">
                                     <p className="text-[10px] font-black text-primary-400 uppercase tracking-tighter">Monto Físico (Opcional)</p>
