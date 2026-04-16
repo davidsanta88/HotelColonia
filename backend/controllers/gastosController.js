@@ -51,10 +51,14 @@ const gastosController = {
             // Ensure fecha includes current time if it's a date-only string from frontend
             let finalFecha = new Date();
             if (fecha_gasto) {
-                // If it's just a date YYYY-MM-DD, we append the current local time but forced to -05:00
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString('en-GB', { hour12: false, timeZone: 'America/Bogota' });
-                finalFecha = new Date(`${fecha_gasto}T${timeStr}-05:00`);
+                // If the provided date is today (local), use the actual current moment instead of forcing time
+                const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
+                if (fecha_gasto === todayStr) {
+                    finalFecha = new Date();
+                } else {
+                    // For specific dates, we use 12:00 PM to avoid boundary issues
+                    finalFecha = new Date(`${fecha_gasto}T12:00:00-05:00`);
+                }
             }
 
             const newGasto = new Gasto({

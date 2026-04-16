@@ -91,7 +91,7 @@ const CuadreCaja = () => {
                 const ultimo = dataCierres[0];
                 const initialFiltros = {
                     inicio: ultimo.fecha,
-                    fin: new Date().toISOString().split('T')[0]
+                    fin: new Date().toLocaleDateString('en-CA')
                 };
                 setFiltros(initialFiltros);
                 fetchCuadre(initialFiltros);
@@ -224,7 +224,7 @@ const CuadreCaja = () => {
             const ultimo = cierres[0];
             const updatedFiltros = {
                 inicio: ultimo.fecha,
-                fin: new Date().toISOString().split('T')[0]
+                fin: new Date().toLocaleDateString('en-CA')
             };
             setFiltros(updatedFiltros);
             fetchCuadre(updatedFiltros);
