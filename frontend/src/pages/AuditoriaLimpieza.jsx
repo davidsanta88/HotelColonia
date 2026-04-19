@@ -16,10 +16,13 @@ import {
     Search,
     ChevronRight,
     ArrowRight,
-    Save
+    Save,
+    Printer
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const AuditoriaLimpieza = () => {
     const [auditorias, setAuditorias] = useState([]);
@@ -123,6 +126,66 @@ const AuditoriaLimpieza = () => {
         }
     };
 
+    const handlePrintFormat = async () => {
+        try {
+            const configRes = await api.get('/hotel-config');
+            const hotelName = configRes.data.nombre || 'HOTEL BALCÓN PLAZA';
+            const doc = new jsPDF();
+            
+            // Header
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text('FORMATO DE AUDITORÍA DE LIMPIEZA', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.text(hotelName, 105, 30, { align: 'center' });
+            
+            // Info block
+            doc.setDrawColor(200);
+            doc.rect(14, 40, 182, 30);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('HABITACIÓN / ÁREA:', 20, 50);
+            doc.text('FECHA:', 120, 50);
+            doc.text('REALIZADO POR:', 20, 62);
+            
+            doc.setFont('helvetica', 'normal');
+            doc.line(60, 50, 110, 50); // Line for Area
+            doc.line(135, 50, 185, 50); // Line for Date
+            doc.line(55, 62, 185, 62); // Line for Name
+            
+            // Checklist Table
+            const tableRows = checklistTemplate.map(item => [item, '[  ] Cumple  [  ] No Cumple  [  ] N/A', '']);
+            
+            doc.autoTable({
+                startY: 80,
+                head: [['ÍTEM A EVALUAR', 'ESTADO', 'OBSERVACIONES']],
+                body: tableRows,
+                headStyles: { fillColor: [51, 65, 85], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 9, cellPadding: 5 },
+                columnStyles: {
+                    0: { cellWidth: 50 },
+                    1: { cellWidth: 70 },
+                    2: { cellWidth: 62 }
+                }
+            });
+            
+            // Footer notes
+            const finalY = doc.lastAutoTable.finalY + 10;
+            doc.setFont('helvetica', 'bold');
+            doc.text('NOTAS GENERALES:', 14, finalY);
+            doc.rect(14, finalY + 5, 182, 30);
+            
+            doc.text('FIRMA RESPONSABLE:', 14, finalY + 50);
+            doc.line(60, finalY + 50, 130, finalY + 50);
+
+            doc.save(`Formato_Auditoria_Limpieza.pdf`);
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            Swal.fire('Error', 'No se pudo generar el formato PDF', 'error');
+        }
+    };
+
     const getEstadoIcon = (estado) => {
         switch (estado) {
             case 'CUMPLE': return <CheckCircle2 className="text-emerald-500" size={18} />;
@@ -153,13 +216,23 @@ const AuditoriaLimpieza = () => {
                     </p>
                 </div>
                 
-                <button 
-                    onClick={handleOpenModal}
-                    className="flex items-center gap-3 bg-primary-600 text-white px-8 py-4 rounded-[2rem] font-black uppercase tracking-widest text-sm hover:bg-primary-700 transition-all shadow-xl shadow-primary-200 group"
-                >
-                    <Plus size={20} className="group-hover:rotate-90 transition-transform" />
-                    Nueva Auditoría
-                </button>
+                <div className="flex items-center gap-3">
+                    <button 
+                        onClick={handlePrintFormat}
+                        className="flex items-center gap-3 bg-white border-2 border-slate-100 text-slate-600 px-6 py-4 rounded-[2rem] font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all group"
+                        title="Descargar Formato para Imprimir"
+                    >
+                        <Printer size={18} />
+                        Formato PDF
+                    </button>
+                    <button 
+                        onClick={handleOpenModal}
+                        className="flex items-center gap-3 bg-primary-600 text-white px-8 py-4 rounded-[2rem] font-black uppercase tracking-widest text-sm hover:bg-primary-700 transition-all shadow-xl shadow-primary-200 group"
+                    >
+                        <Plus size={20} className="group-hover:rotate-90 transition-transform" />
+                        Nueva Auditoría
+                    </button>
+                </div>
             </div>
 
             {/* List of Audits */}
