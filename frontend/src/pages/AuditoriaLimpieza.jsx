@@ -129,7 +129,7 @@ const AuditoriaLimpieza = () => {
     const handlePrintFormat = async () => {
         try {
             const configRes = await api.get('/hotel-config');
-            const hotelName = configRes.data.nombre || 'HOTEL BALCÓN PLAZA';
+            const hotelName = configRes.data?.nombre || 'HOTEL BALCÓN PLAZA';
             const doc = new jsPDF();
             
             // Header
@@ -150,12 +150,13 @@ const AuditoriaLimpieza = () => {
             doc.text('REALIZADO POR:', 20, 62);
             
             doc.setFont('helvetica', 'normal');
-            doc.line(60, 50, 110, 50); // Line for Area
-            doc.line(135, 50, 185, 50); // Line for Date
-            doc.line(55, 62, 185, 62); // Line for Name
+            doc.line(60, 50, 110, 50); 
+            doc.line(135, 50, 185, 50); 
+            doc.line(55, 62, 185, 62); 
             
             // Checklist Table
-            const tableRows = checklistTemplate.map(item => [item, '[  ] Cumple  [  ] No Cumple  [  ] N/A', '']);
+            const itemsToPrint = checklistTemplate.length > 0 ? checklistTemplate : ['Baños', 'Paredes', 'Vidrios', 'Camas', 'Pisos'];
+            const tableRows = itemsToPrint.map(item => [item, '[  ] Cumple  [  ] No Cumple  [  ] N/A', '']);
             
             doc.autoTable({
                 startY: 80,
@@ -171,18 +172,24 @@ const AuditoriaLimpieza = () => {
             });
             
             // Footer notes
-            const finalY = doc.lastAutoTable.finalY + 10;
+            const finalY = (doc.lastAutoTable ? doc.lastAutoTable.finalY : 150) + 10;
             doc.setFont('helvetica', 'bold');
             doc.text('NOTAS GENERALES:', 14, finalY);
             doc.rect(14, finalY + 5, 182, 30);
             
+            doc.setFontSize(10);
             doc.text('FIRMA RESPONSABLE:', 14, finalY + 50);
             doc.line(60, finalY + 50, 130, finalY + 50);
 
             doc.save(`Formato_Auditoria_Limpieza.pdf`);
         } catch (error) {
             console.error('Error generating PDF:', error);
-            Swal.fire('Error', 'No se pudo generar el formato PDF', 'error');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo generar el formato PDF. Verifique que el checklist esté configurado.',
+                footer: `Detalle: ${error.message}`
+            });
         }
     };
 
