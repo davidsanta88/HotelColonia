@@ -44,11 +44,28 @@ const ComparativaHoteles = () => {
         </div>
     );
 
-    // Prepare chart data
-    const chartData = data?.plaza.map((p, index) => {
-        const c = data.colonial[index] || { ingresos: 0, egresos: 0, margen: 0 };
+    // Prepare chart data by merging labels from both hotels
+    const allLabels = Array.from(new Set([
+        ...(data?.plaza.map(p => p.label) || []),
+        ...(data?.colonial.map(c => c.label) || [])
+    ])).sort((a, b) => {
+        // Sort labels correctly (DD/MM or Month names)
+        if (period === 'month') {
+            const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            return months.indexOf(a) - months.indexOf(b);
+        }
+        // DD/MM sorting
+        const [da, ma] = a.split('/').map(Number);
+        const [db, mb] = b.split('/').map(Number);
+        if (ma !== mb) return ma - mb;
+        return da - db;
+    });
+
+    const chartData = allLabels.map(label => {
+        const p = data?.plaza.find(x => x.label === label) || { ingresos: 0, egresos: 0, margen: 0 };
+        const c = data?.colonial.find(x => x.label === label) || { ingresos: 0, egresos: 0, margen: 0 };
         return {
-            name: p.label,
+            name: label,
             plazaIngresos: p.ingresos,
             plazaEgresos: p.egresos,
             plazaMargen: p.margen,
@@ -56,7 +73,7 @@ const ComparativaHoteles = () => {
             colonialEgresos: c.egresos,
             colonialMargen: c.margen
         };
-    }) || [];
+    });
 
     const totalPlaza = data?.plaza.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;
     const totalColonial = data?.colonial.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;

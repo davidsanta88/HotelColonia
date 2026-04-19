@@ -52,44 +52,86 @@ exports.getComparativeStats = async (req, res) => {
 };
 
 async function getStatsFromDB(models, period) {
-    const { CierreCaja } = models;
+    const { Venta, Registro, Gasto } = models;
     
-    // Obtener los últimos 30 cierres de caja para la comparativa diaria
-    // O los últimos 12 meses si es mensual
+    const now = new Date();
+    let startDate;
+    
     if (period === 'month') {
-        const startOfYear = new Date(new Date().getFullYear(), 0, 1);
-        const stats = await CierreCaja.aggregate([
-            { $match: { fecha: { $gte: startOfYear } } },
-            {
-                $group: {
-                    _id: { $month: "$fecha" },
-                    ingresos: { $sum: "$ingresos" },
-                    egresos: { $sum: "$egresos" },
-                    count: { $sum: 1 }
-                }
-            },
-            { $sort: { "_id": 1 } }
-        ]);
-        return stats.map(s => ({
-            label: `Mes ${s._id}`,
-            ingresos: s.ingresos,
-            egresos: s.egresos,
-            margen: s.ingresos - s.egresos
-        }));
+        startDate = new Date(now.getFullYear(), 0, 1);
     } else {
-        // Daily (last 15 days)
-        const fifteenDaysAgo = new Date();
-        fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
-        
-        const stats = await CierreCaja.find({ fecha: { $gte: fifteenDaysAgo } })
-            .sort({ fecha: 1 })
-            .limit(15);
-            
-        return stats.map(s => ({
-            label: new Date(s.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }),
-            ingresos: s.ingresos,
-            egresos: s.egresos,
-            margen: s.ingresos - s.egresos
-        }));
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 15);
     }
+
+    // 1. Aggregation for Venta (Income)
+    const ventaStats = await Venta.aggregate([
+        { $match: { fecha: { $gte: startDate } } },
+        {
+            $group: {
+                _id: period === 'month' ? { $month: "$fecha" } : { $dateToString: { format: "%Y-%m-%d", date: "$fecha" } },
+                total: { $sum: "$total" }
+            }
+        }
+    ]);
+
+    // 2. Aggregation for Registro (Income from pagos)
+    const registroStats = await Registro.aggregate([
+        { $unwind: "$pagos" },
+        { $match: { "pagos.fecha": { $gte: startDate } } },
+        {
+            $group: {
+                _id: period === 'month' ? { $month: "$pagos.fecha" } : { $dateToString: { format: "%Y-%m-%d", date: "$pagos.fecha" } },
+                total: { $sum: "$pagos.monto" }
+            }
+        }
+    ]);
+
+    // 3. Aggregation for Gasto (Expenses)
+    const gastoStats = await Gasto.aggregate([
+        { $match: { fecha: { $gte: startDate } } },
+        {
+            $group: {
+                _id: period === 'month' ? { $month: "$fecha" } : { $dateToString: { format: "%Y-%m-%d", date: "$fecha" } },
+                total: { $sum: "$monto" }
+            }
+        }
+    ]);
+
+    // Merge results
+    const resultsMap = new Map();
+
+    const addToMap = (stats, key) => {
+        stats.forEach(s => {
+            const entry = resultsMap.get(s._id) || { ingresos: 0, egresos: 0 };
+            if (key === 'ingresos') entry.ingresos += s.total;
+            else entry.egresos += s.total;
+            resultsMap.set(s._id, entry);
+        });
+    };
+
+    addToMap(ventaStats, 'ingresos');
+    addToMap(registroStats, 'ingresos');
+    addToMap(gastoStats, 'egresos');
+
+    // Convert to sorted array
+    const sortedKeys = Array.from(resultsMap.keys()).sort();
+    
+    return sortedKeys.map(k => {
+        const data = resultsMap.get(k);
+        let label = k;
+        if (period === 'month') {
+            const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            label = months[parseInt(k) - 1];
+        } else {
+            label = k.split('-').slice(1).reverse().join('/'); // MM-DD to DD/MM
+        }
+        
+        return {
+            label,
+            ingresos: data.ingresos,
+            egresos: data.egresos,
+            margen: data.ingresos - data.egresos
+        };
+    });
 }
