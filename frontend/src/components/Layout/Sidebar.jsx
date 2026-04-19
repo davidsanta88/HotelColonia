@@ -72,6 +72,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { name: 'Reportes', path: '/reportes', icon: <PieChart size={20} />, code: 'reportes' },
                 { name: 'Cuadre de Caja', path: '/cuadre-caja', icon: <Wallet size={20} />, code: 'reportes' },
                 { name: 'Estadísticas Avanzadas', path: '/estadisticas', icon: <TrendingUp size={20} />, code: 'estadisticas' },
+                { name: 'Comparativa Hoteles', path: '/comparativa', icon: <LayoutDashboard size={20} />, code: 'estadisticas' },
                 { name: 'Medios de Pago', path: '/medios-pago', icon: <CreditCard size={20} />, code: 'medios_pago' },
             ]
         },

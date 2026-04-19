@@ -22,7 +22,7 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 const AuditoriaLimpieza = () => {
     const [auditorias, setAuditorias] = useState([]);
@@ -158,7 +158,7 @@ const AuditoriaLimpieza = () => {
             const itemsToPrint = checklistTemplate.length > 0 ? checklistTemplate : ['Baños', 'Paredes', 'Vidrios', 'Camas', 'Pisos'];
             const tableRows = itemsToPrint.map(item => [item, '[  ] Cumple  [  ] No Cumple  [  ] N/A', '']);
             
-            doc.autoTable({
+            autoTable(doc, {
                 startY: 80,
                 head: [['ÍTEM A EVALUAR', 'ESTADO', 'OBSERVACIONES']],
                 body: tableRows,
