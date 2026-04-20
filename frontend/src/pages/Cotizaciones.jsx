@@ -191,15 +191,32 @@ const Cotizaciones = () => {
                             @page { 
                                 margin: 0.5cm; 
                             }
+                            /* Reset de Layout para Impresión */
+                            html, body {
+                                height: auto !important;
+                                overflow: visible !important;
+                            }
+                            /* Forzar que el contenido principal sea el único visible y use todo el ancho */
+                            .h-screen, .overflow-hidden, .overflow-y-auto {
+                                height: auto !important;
+                                overflow: visible !important;
+                                display: block !important;
+                            }
+                            /* Esconder Sidebar y Header del Layout General */
+                            nav, aside, header, .print\\:hidden {
+                                display: none !important;
+                            }
                             body { 
                                 -webkit-print-color-adjust: exact !important;
                                 print-color-adjust: exact !important;
                                 background-color: white !important;
                             }
-                            .print\\:hidden { 
-                                display: none !important; 
+                            /* Ajuste del contenedor de la cotización */
+                            .max-w-4xl {
+                                max-width: 100% !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
                             }
-                            /* Solo ocultar elementos marcados expresamente como no-print */
                             .no-print {
                                 display: none !important;
                             }
