@@ -27,7 +27,8 @@ import {
     Plus,
     TrendingUp,
     Building2,
-    Wallet
+    Wallet,
+    FileText
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
