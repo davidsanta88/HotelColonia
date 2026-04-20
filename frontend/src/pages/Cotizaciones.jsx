@@ -295,7 +295,22 @@ const Cotizaciones = () => {
                         <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100">
                             <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-4 border-b border-slate-200 pb-2">Términos y Condiciones Generales</h4>
                             <div className="text-[11px] text-slate-500 font-medium leading-relaxed space-y-2">
-                                <p>• {hotelConfig?.politica || 'La presente cotización tiene una validez de 15 días a partir de la fecha de emisión.'}</p>
+                                {(() => {
+                                    const text = hotelConfig?.politica;
+                                    if (!text) return <p>• La presente cotización tiene una validez de 15 días a partir de la fecha de emisión.</p>;
+                                    
+                                    // Detectar si hay enumeraciones tipo "1. ", "2. " y separar por ellas
+                                    const parts = text.split(/(?=\d+\.\s+)/).map(p => p.trim()).filter(p => p);
+                                    
+                                    if (parts.length > 1) {
+                                        return parts.map((part, i) => <p key={i}>• {part}</p>);
+                                    }
+                                    
+                                    // Si no hay números, separar por saltos de línea normales
+                                    return text.split('\n').map(p => p.trim()).filter(p => p).map((part, i) => (
+                                        <p key={i}>• {part}</p>
+                                    ));
+                                })()}
                                 <p>• Reserva sujeta a disponibilidad al momento de la confirmación.</p>
                                 <p>• Para formalizar la reserva se requiere el anticipo del 50%.</p>
                                 {viewingCotizacion.hotelSnapshot.datosBancarios && (
