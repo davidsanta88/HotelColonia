@@ -310,39 +310,24 @@ const Cotizaciones = () => {
                             </table>
                         </div>
 
-                        {/* Totals and Bank Details Row */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                            {/* Bank Details (More Prominent) */}
-                            <div className="p-6 bg-slate-50 border-2 border-slate-100 rounded-[2rem]">
-                                <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <DollarSign size={16} className="text-emerald-600" />
-                                    Datos para Reserva / Pago
-                                </h4>
-                                <div className="text-sm font-bold text-slate-700 whitespace-pre-wrap leading-relaxed">
-                                    {viewingCotizacion.hotelSnapshot.datosBancarios || hotelConfig?.datosBancarios || 'Consultar datos bancarios con el hotel.'}
-                                </div>
-                                <p className="mt-3 text-[10px] text-slate-400 font-bold uppercase tracking-tight italic">
-                                    * Favor enviar comprobante de pago para formalizar la reserva.
-                                </p>
-                            </div>
-
-                            {/* Totals Table Section */}
-                            <div>
+                        {/* Totals Table Section */}
+                        <div className="flex justify-end">
+                            <div className="w-full max-w-xs">
                                 <table className="w-full">
                                     <tbody>
                                         <tr>
-                                            <td className="py-2 text-right text-slate-500 font-bold uppercase text-xs">Subtotal Bruto</td>
-                                            <td className="py-2 text-right text-slate-700 font-black">${viewingCotizacion.subtotal.toLocaleString()}</td>
+                                            <td className="py-1 text-right text-slate-500 font-bold uppercase text-[10px]">Subtotal Bruto</td>
+                                            <td className="py-1 text-right text-slate-700 font-bold text-sm">${viewingCotizacion.subtotal.toLocaleString()}</td>
                                         </tr>
                                         <tr>
-                                            <td className="py-2 text-right text-rose-500 font-bold uppercase text-xs">
-                                                Descuento Comercial ({viewingCotizacion.subtotal > 0 ? ((viewingCotizacion.valorDescuento / viewingCotizacion.subtotal) * 100).toFixed(1) : 0}%)
+                                            <td className="py-1 text-right text-rose-500 font-bold uppercase text-[10px]">
+                                                Descuento ({viewingCotizacion.subtotal > 0 ? ((viewingCotizacion.valorDescuento / viewingCotizacion.subtotal) * 100).toFixed(1) : 0}%)
                                             </td>
-                                            <td className="py-2 text-right text-rose-600 font-black">-${viewingCotizacion.valorDescuento.toLocaleString()}</td>
+                                            <td className="py-1 text-right text-rose-600 font-bold text-sm">-${viewingCotizacion.valorDescuento.toLocaleString()}</td>
                                         </tr>
-                                        <tr className="border-t-2 border-slate-900">
-                                            <td className="py-6 text-right text-slate-900 font-black uppercase text-sm tracking-tighter">Valor Total de Propuesta</td>
-                                            <td className="py-6 text-right text-emerald-600 font-black text-3xl tracking-tighter">${viewingCotizacion.total.toLocaleString()}</td>
+                                        <tr className="border-t border-slate-900">
+                                            <td className="py-4 text-right text-slate-900 font-black uppercase text-xs tracking-tighter">Total Propuesta</td>
+                                            <td className="py-4 text-right text-emerald-600 font-black text-3xl tracking-tighter">${viewingCotizacion.total.toLocaleString()}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -363,6 +348,20 @@ const Cotizaciones = () => {
                                 })()}
                                 <p>• Reserva sujeta a disponibilidad al momento de la confirmación.</p>
                                 <p>• Para formalizar la reserva se requiere el anticipo del 50%.</p>
+                            </div>
+
+                            {/* Bank Details (Now at the end of terms) */}
+                            <div className="mt-8 pt-6 border-t border-slate-200">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <DollarSign size={16} className="text-emerald-600" />
+                                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Información para Pago de Reserva</h4>
+                                </div>
+                                <div className="bg-white p-4 rounded-2xl border border-slate-200 text-sm font-bold text-slate-700 whitespace-pre-wrap leading-relaxed shadow-sm">
+                                    {viewingCotizacion.hotelSnapshot.datosBancarios || hotelConfig?.datosBancarios || 'Consultar datos bancarios con el hotel.'}
+                                </div>
+                                <p className="mt-2 text-[9px] text-slate-400 font-bold uppercase tracking-tight italic">
+                                    * Una vez realizado el pago, por favor enviar el comprobante para confirmar su reserva.
+                                </p>
                             </div>
                         </div>
 
