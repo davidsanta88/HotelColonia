@@ -234,25 +234,25 @@ const Cotizaciones = () => {
                 {/* COTIZACION PRINTABLE VIEW */}
                 <div className="bg-white p-8 md:p-16 shadow-2xl border border-slate-100 print:shadow-none print:border-none print:p-0">
                     {/* Header: Logo and Basic Hotel Info */}
-                    <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-12 border-b-2 border-slate-900 pb-8">
-                        <div className="flex flex-col gap-4">
-                            <img src="/logo.jpg" alt="Logo Hotel" className="h-24 w-auto object-contain" />
-                            <div>
-                                <h2 className="text-2xl font-black text-slate-900 uppercase">{viewingCotizacion.hotelSnapshot.nombre}</h2>
-                                <p className="text-slate-500 font-bold text-sm tracking-widest uppercase">Nit: {viewingCotizacion.hotelSnapshot.nit}</p>
-                                <a href="https://www.hotelbalconplaza.com/" target="_blank" rel="noreferrer" className="text-blue-600 font-black text-xs hover:underline mt-1 block print:text-slate-800">
+                    <div className="flex flex-row justify-between items-center gap-8 mb-12 border-b-2 border-slate-900 pb-8">
+                        <div className="flex flex-row items-center gap-6">
+                            <img src="/logo.jpg" alt="Logo Hotel" className="h-28 w-auto object-contain" />
+                            <div className="border-l-2 border-slate-100 pl-6">
+                                <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">{viewingCotizacion.hotelSnapshot.nombre}</h2>
+                                <p className="text-slate-500 font-bold text-xs tracking-widest uppercase">Nit: {viewingCotizacion.hotelSnapshot.nit}</p>
+                                <a href="https://www.hotelbalconplaza.com/" target="_blank" rel="noreferrer" className="text-blue-600 font-black text-[10px] hover:underline mt-1 block print:text-slate-800">
                                     www.hotelbalconplaza.com
                                 </a>
+                                <p className="text-slate-400 font-bold text-[10px] mt-2 italic">
+                                    Fecha: {format(new Date(viewingCotizacion.fecha), "dd 'de' MMMM, yyyy", { locale: es })}
+                                </p>
                             </div>
                         </div>
-                        <div className="text-right flex flex-col justify-end h-full">
-                            <div className="bg-slate-900 text-white px-6 py-4 rounded-2xl inline-block mb-4">
-                                <h1 className="text-3xl font-black tracking-tighter leading-none">COTIZACIÓN</h1>
-                                <p className="text-blue-400 font-black text-sm mt-1">{viewingCotizacion.numeroCotizacion}</p>
+                        <div className="text-right">
+                            <div className="bg-slate-900 text-white px-8 py-5 rounded-3xl inline-block shadow-lg">
+                                <h1 className="text-3xl font-black tracking-tighter leading-none mb-1">COTIZACIÓN</h1>
+                                <p className="text-blue-400 font-black text-sm tracking-widest">{viewingCotizacion.numeroCotizacion}</p>
                             </div>
-                            <p className="text-slate-500 font-bold text-sm italic">
-                                Fecha de Emisión: {format(new Date(viewingCotizacion.fecha), "dd 'de' MMMM, yyyy", { locale: es })}
-                            </p>
                         </div>
                     </div>
 
