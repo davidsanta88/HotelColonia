@@ -289,6 +289,9 @@ const Cotizaciones = () => {
                                         </td>
                                     </tr>
                                 </tbody>
+                            </table>
+                        </div>
+
                         {/* Totals and Bank Details Row */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                             {/* Bank Details (More Prominent) */}
