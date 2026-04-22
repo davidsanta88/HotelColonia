@@ -61,8 +61,8 @@ const ComparativaHoteles = () => {
 
     // Prepare chart data by merging labels from both hotels
     const allLabels = Array.from(new Set([
-        ...(data?.plaza.history.map(p => p.label) || []),
-        ...(data?.colonial.history.map(c => c.label) || [])
+        ...(data?.plaza?.history?.map(p => p.label) || []),
+        ...(data?.colonial?.history?.map(c => c.label) || [])
     ])).sort((a, b) => {
         // Sort labels correctly (DD/MM or Month names)
         const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -83,8 +83,8 @@ const ComparativaHoteles = () => {
     });
 
     const chartData = allLabels.map(label => {
-        const p = data?.plaza.history.find(x => x.label === label) || { ingresos: 0, egresos: 0, margen: 0 };
-        const c = data?.colonial.history.find(x => x.label === label) || { ingresos: 0, egresos: 0, margen: 0 };
+        const p = data?.plaza?.history?.find(x => x.label === label) || { ingresos: 0, egresos: 0, margen: 0 };
+        const c = data?.colonial?.history?.find(x => x.label === label) || { ingresos: 0, egresos: 0, margen: 0 };
         return {
             name: label,
             plazaIngresos: p.ingresos,
@@ -96,10 +96,10 @@ const ComparativaHoteles = () => {
         };
     });
 
-    const totalPlaza = data?.plaza.history.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;
-    const totalColonial = data?.colonial.history.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;
-    const plazaExpenses = data?.plaza.history.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
-    const colonialExpenses = data?.colonial.history.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
+    const totalPlaza = data?.plaza?.history?.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;
+    const totalColonial = data?.colonial?.history?.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;
+    const plazaExpenses = data?.plaza?.history?.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
+    const colonialExpenses = data?.colonial?.history?.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">

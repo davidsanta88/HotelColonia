@@ -101,9 +101,9 @@ async function getRoomCounts(HabitacionModel) {
 async function getStatsFromDB(models, startDateStr, endDateStr) {
     const { Venta, Registro, Gasto } = models;
     
-    const startDate = new Date(startDateStr);
-    const endDate = new Date(endDateStr);
-    endDate.setHours(23, 59, 59, 999);
+    const moment = require('moment-timezone');
+    const startDate = moment.tz(startDateStr, "America/Bogota").startOf('day').toDate();
+    const endDate = moment.tz(endDateStr, "America/Bogota").endOf('day').toDate();
 
     // Determinar si debemos agrupar por mes o por día basándonos en el rango
     const diffDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
@@ -114,7 +114,7 @@ async function getStatsFromDB(models, startDateStr, endDateStr) {
         { $match: { fecha: { $gte: startDate, $lte: endDate } } },
         {
             $group: {
-                _id: useMonthly ? { $month: "$fecha" } : { $dateToString: { format: "%Y-%m-%d", date: "$fecha" } },
+                _id: useMonthly ? { $month: { date: "$fecha", timezone: "America/Bogota" } } : { $dateToString: { format: "%Y-%m-%d", date: "$fecha", timezone: "America/Bogota" } },
                 total: { $sum: "$total" }
             }
         }
@@ -126,7 +126,7 @@ async function getStatsFromDB(models, startDateStr, endDateStr) {
         { $match: { "pagos.fecha": { $gte: startDate, $lte: endDate } } },
         {
             $group: {
-                _id: useMonthly ? { $month: "$pagos.fecha" } : { $dateToString: { format: "%Y-%m-%d", date: "$pagos.fecha" } },
+                _id: useMonthly ? { $month: { date: "$pagos.fecha", timezone: "America/Bogota" } } : { $dateToString: { format: "%Y-%m-%d", date: "$pagos.fecha", timezone: "America/Bogota" } },
                 total: { $sum: "$pagos.monto" }
             }
         }
@@ -146,7 +146,7 @@ async function getStatsFromDB(models, startDateStr, endDateStr) {
         { $unwind: { path: '$catInfo', preserveNullAndEmptyArrays: true } },
         {
             $group: {
-                _id: useMonthly ? { $month: "$fecha" } : { $dateToString: { format: "%Y-%m-%d", date: "$fecha" } },
+                _id: useMonthly ? { $month: { date: "$fecha", timezone: "America/Bogota" } } : { $dateToString: { format: "%Y-%m-%d", date: "$fecha", timezone: "America/Bogota" } },
                 totalGasto: {
                     $sum: { $cond: [{ $eq: ["$catInfo.tipo", "Ingreso"] }, 0, "$monto"] }
                 },
