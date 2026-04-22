@@ -11,6 +11,20 @@ const Login = () => {
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
 
+    const [hotelInfo, setHotelInfo] = useState({ nombre: 'HOTEL BALCÓN PLAZA' });
+
+    useEffect(() => {
+        const fetchHotelInfo = async () => {
+            try {
+                const res = await api.get('/hotel-config');
+                if (res.data) setHotelInfo(res.data);
+            } catch (err) {
+                console.error("Error al cargar info del hotel:", err);
+            }
+        };
+        fetchHotelInfo();
+    }, []);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -107,7 +121,7 @@ const Login = () => {
 
                     <div className="mt-8 pt-8 border-t border-white/5 text-center">
                         <p className="text-white/20 text-[10px] font-bold tracking-widest uppercase">
-                            © {new Date().getFullYear()} HOTEL BALCÓN PLAZA
+                            © {new Date().getFullYear()} {hotelInfo.nombre.toUpperCase()}
                         </p>
                     </div>
                 </div>

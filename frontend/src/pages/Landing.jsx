@@ -92,6 +92,32 @@ const Landing = () => {
     });
     const [loading, setLoading] = useState(false);
     const [sent, setSent] = useState(false);
+    const [hotelInfo, setHotelInfo] = useState({
+        nombre: 'HOTEL BALCÓN PLAZA',
+        nit: '900.000.000-1',
+        direccion: 'CRA 4 #11-03 2DO PISO (PLAZA CÓRDOBA)',
+        telefono: '573218051869',
+        correo: 'hotelbalconplaza60@gmail.com',
+        sitioWeb: 'www.hotelbalconplaza.com'
+    });
+
+    useEffect(() => {
+        const fetchHotelInfo = async () => {
+            try {
+                const res = await api.get('/hotel-config');
+                if (res.data) {
+                    setHotelInfo(res.data);
+                }
+            } catch (err) {
+                console.error("Error al cargar info del hotel:", err);
+            }
+        };
+        fetchHotelInfo();
+    }, []);
+
+    // Limpiar teléfono para links (solo números)
+    const cleanPhone = (hotelInfo.telefono || '').replace(/\D/g, '');
+    const waNumber = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone}`;
 
     // Auto-slide (más rápido - 3s)
     useEffect(() => {
@@ -167,8 +193,24 @@ const Landing = () => {
                 fecha_llegada: formData.fecha,
                 notas: formData.notas
             });
+
+            // Generar mensaje para WhatsApp
+            const mensaje = encodeURIComponent(
+                `¡Hola! 👋 Me gustaría solicitar una reserva en *${hotelInfo.nombre}*:\n\n` +
+                `👤 *Nombre:* ${formData.nombre}\n` +
+                `🆔 *${formData.tipoDocumento}:* ${formData.documento}\n` +
+                `📱 *Celular:* ${formData.celular}\n` +
+                `🗓️ *Fecha Llegada:* ${formData.fecha}\n` +
+                `👥 *Huéspedes:* ${formData.huespedes}\n` +
+                (formData.notas ? `📝 *Observaciones:* ${formData.notas}` : '')
+            );
+
+            // Redirigir a WhatsApp
+            const waUrl = `https://wa.me/${waNumber}?text=${mensaje}`;
+            
             setSent(true);
             setTimeout(() => { 
+                window.open(waUrl, '_blank');
                 setShowModal(false); 
                 setSent(false); 
                 setFormData({ 
@@ -181,7 +223,7 @@ const Landing = () => {
                     fecha: '', 
                     notas: '' 
                 }); 
-            }, 5000);
+            }, 2500);
         } catch (err) {
             console.error(err);
         } finally {
@@ -217,8 +259,8 @@ const Landing = () => {
                         <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover" />
                     </div>
                     <div className="text-left">
-                        <p className="text-white font-black text-lg lg:text-xl leading-tight tracking-wider drop-shadow-md">HOTEL BALCÓN PLAZA</p>
-                        <p className="text-accent-500 text-[8px] lg:text-[10px] font-black tracking-[0.3em] uppercase drop-shadow-sm">Belalcázar, Caldas</p>
+                        <p className="text-white font-black text-lg lg:text-xl leading-tight tracking-wider drop-shadow-md">{hotelInfo.nombre.toUpperCase()}</p>
+                        <p className="text-accent-500 text-[8px] lg:text-[10px] font-black tracking-[0.3em] uppercase drop-shadow-sm">{hotelInfo.direccion.split(',').pop().trim()}</p>
                     </div>
                 </div>
 
@@ -263,12 +305,12 @@ const Landing = () => {
                 <div className="fixed bottom-24 right-8 z-[60] flex flex-col items-end gap-3">
                     
                     {/* Botón de WhatsApp */}
-                    <a href="https://wa.me/573218051869" target="_blank" rel="noreferrer" 
+                    <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noreferrer" 
                        className="flex items-center gap-3 bg-emerald-500 text-black px-6 py-3.5 rounded-full font-black shadow-[0_10px_30px_rgba(16,185,129,0.4)] hover:scale-110 hover:shadow-[0_15px_40px_rgba(16,185,129,0.6)] transition-all duration-300 group">
                         <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                         </svg>
-                        <span className="text-sm font-black tracking-tighter">321 805 1869</span>
+                        <span className="text-sm font-black tracking-tighter">{hotelInfo.telefono}</span>
                     </a>
 
                     {/* Redes Sociales e Email */}
@@ -285,7 +327,7 @@ const Landing = () => {
                            className="bg-white/10 hover:bg-white/20 p-2.5 rounded-full border border-white/20 backdrop-blur-md transition-all duration-300 hover:scale-110">
                             <Instagram className="w-5 h-5 text-white" />
                         </a>
-                        <a href="mailto:hotelbalconplaza60@gmail.com" 
+                        <a href={`mailto:${hotelInfo.correo}`} 
                            className="bg-white/10 hover:bg-white/20 p-2.5 rounded-full border border-white/20 backdrop-blur-md transition-all duration-300 hover:scale-110">
                             <Mail className="w-5 h-5 text-white" />
                         </a>
@@ -309,7 +351,7 @@ const Landing = () => {
                         ))}
                     </div>
                     <p className="text-white/20 text-[10px] font-black uppercase tracking-[0.5em] text-center px-4">
-                        CRA 4 #11-03 2DO PISO (PLAZA CÓRDOBA)
+                        {hotelInfo.direccion}
                     </p>
                 </div>
             </div>
