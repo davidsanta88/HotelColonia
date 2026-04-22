@@ -317,32 +317,92 @@ const ComparativaHoteles = () => {
 
             {/* Profit Margin Comparison */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Plaza Profit Card */}
                 <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm flex flex-col">
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight mb-8">Margen de Ganancia (Plaza)</h3>
-                    <div className="flex-1 h-[300px]">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h3 className="text-xl font-black text-slate-900 tracking-tight">Evolución de Margen (Plaza)</h3>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Margen Neto por periodo</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Margen Total</p>
+                            <p className="text-2xl font-black text-emerald-500">${new Intl.NumberFormat().format(totalPlaza - plazaExpenses)}</p>
+                        </div>
+                    </div>
+                    
+                    <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData}>
+                            <AreaChart data={chartData}>
+                                <defs>
+                                    <linearGradient id="colorPlazaMargen" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
+                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
-                                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
-                                <Tooltip contentStyle={{ borderRadius: '16px', border: 'none' }} />
-                                <Bar dataKey="plazaMargen" name="Margen Netto" fill="#10b981" radius={[6, 6, 0, 0]} />
-                            </BarChart>
+                                <XAxis 
+                                    dataKey="name" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}}
+                                />
+                                <YAxis 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{fill: '#94a3b8', fontSize: 10}}
+                                    tickFormatter={(val) => `$${(val/1000).toFixed(0)}k`}
+                                />
+                                <Tooltip 
+                                    contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold', padding: '16px' }}
+                                    formatter={(value) => [`$${new Intl.NumberFormat().format(value)}`, 'Margen']}
+                                />
+                                <Area type="monotone" dataKey="plazaMargen" stroke="#10b981" strokeWidth={4} fillOpacity={1} fill="url(#colorPlazaMargen)" />
+                            </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
+                {/* Colonial Profit Card */}
                 <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm flex flex-col">
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight mb-8">Margen de Ganancia (Colonial)</h3>
-                    <div className="flex-1 h-[300px]">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h3 className="text-xl font-black text-slate-900 tracking-tight">Evolución de Margen (Colonial)</h3>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Margen Neto por periodo</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Margen Total</p>
+                            <p className="text-2xl font-black text-indigo-500">${new Intl.NumberFormat().format(totalColonial - colonialExpenses)}</p>
+                        </div>
+                    </div>
+                    
+                    <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData}>
+                            <AreaChart data={chartData}>
+                                <defs>
+                                    <linearGradient id="colorColonialMargen" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
+                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
-                                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
-                                <Tooltip contentStyle={{ borderRadius: '16px', border: 'none' }} />
-                                <Bar dataKey="colonialMargen" name="Margen Netto" fill="#6366f1" radius={[6, 6, 0, 0]} />
-                            </BarChart>
+                                <XAxis 
+                                    dataKey="name" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}}
+                                />
+                                <YAxis 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{fill: '#94a3b8', fontSize: 10}}
+                                    tickFormatter={(val) => `$${(val/1000).toFixed(0)}k`}
+                                />
+                                <Tooltip 
+                                    contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold', padding: '16px' }}
+                                    formatter={(value) => [`$${new Intl.NumberFormat().format(value)}`, 'Margen']}
+                                />
+                                <Area type="monotone" dataKey="colonialMargen" stroke="#6366f1" strokeWidth={4} fillOpacity={1} fill="url(#colorColonialMargen)" />
+                            </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
