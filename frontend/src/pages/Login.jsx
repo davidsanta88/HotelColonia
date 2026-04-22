@@ -17,7 +17,7 @@ const Login = () => {
         setLoading(true);
         try {
             await login(email, password);
-            navigate('/dashboard'); // Ajustamos al nuevo dashboard path
+            navigate('/mapa-habitaciones'); 
         } catch {
             setError('Correo o contraseña incorrectos. Intenta de nuevo.');
         } finally {
