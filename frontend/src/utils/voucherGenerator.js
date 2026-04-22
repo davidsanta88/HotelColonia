@@ -6,6 +6,7 @@ import api from '../services/api';
 import { formatCurrency } from './format';
 
 // Función para cargar imagen y convertirla a Base64 para jsPDF
+// Función para cargar imagen y convertirla a Base64 para jsPDF con dimensiones
 const loadImage = (url) => {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -17,7 +18,7 @@ const loadImage = (url) => {
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0);
             const dataURL = canvas.toDataURL('image/jpeg', 0.8);
-            resolve(dataURL);
+            resolve({ dataURL, width: img.width, height: img.height });
         };
         img.onerror = (e) => reject(new Error(`No se pudo cargar la imagen: ${url}`));
         img.src = url;
@@ -68,15 +69,24 @@ export const generateVoucher = async (data) => {
             console.warn("[PDF-DEBUG] No se pudo cargar la configuración dinámica, usando valores por defecto.", configErr);
         }
 
-        // 1. Cabecera (Header) con Logo - MUY COMPACTA
-        let headerY = 10; // Empezamos más arriba
+        // 1. Cabecera (Header) con Logo - DINÁMICO SEGÚN PROPORCIÓN
+        let headerY = 10;
         try {
-            // Cargar el logo desde la carpeta pública
-            const logoBase64 = await loadImage('/logo.jpg');
-            const logoWidth = 30; // Reducido de 40
-            const logoHeight = 18; // Reducido de 25
-            doc.addImage(logoBase64, 'JPEG', (pageWidth / 2) - (logoWidth / 2), 10, logoWidth, logoHeight);
-            headerY = 32; // Posición ajustada
+            const { dataURL, width, height } = await loadImage('/logo.jpg');
+            const aspectRatio = width / height;
+            
+            // Si el logo es muy ancho o muy alto, ajustamos
+            let logoWidth = 28;
+            let logoHeight = logoWidth / aspectRatio;
+            
+            // Limitar altura máxima para no desplazar todo el documento
+            if (logoHeight > 22) {
+                logoHeight = 22;
+                logoWidth = logoHeight * aspectRatio;
+            }
+
+            doc.addImage(dataURL, 'JPEG', (pageWidth / 2) - (logoWidth / 2), 10, logoWidth, logoHeight);
+            headerY = 10 + logoHeight + 4; // El texto empieza 4mm después del logo
         } catch (error) {
             console.warn("Logo warning:", error.message);
             headerY = 15;
