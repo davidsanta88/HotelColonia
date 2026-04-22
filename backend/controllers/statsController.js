@@ -4,6 +4,8 @@ const Venta = require('../models/Venta');
 const Registro = require('../models/Registro');
 const Gasto = require('../models/Gasto');
 const CategoriaGasto = require('../models/CategoriaGasto');
+const Habitacion = require('../models/Habitacion');
+const EstadoHabitacion = require('../models/EstadoHabitacion');
 
 // Configuración para la conexión al Hotel Colonial
 const COLONIAL_URI = 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
@@ -25,7 +27,9 @@ const getColonialModels = async () => {
         Venta: conn.model('Venta', Venta.schema),
         Registro: conn.model('Registro', Registro.schema),
         Gasto: conn.model('Gasto', Gasto.schema),
-        CategoriaGasto: conn.model('CategoriaGasto', CategoriaGasto.schema)
+        CategoriaGasto: conn.model('CategoriaGasto', CategoriaGasto.schema),
+        Habitacion: conn.model('Habitacion', Habitacion.schema),
+        EstadoHabitacion: conn.model('EstadoHabitacion', EstadoHabitacion.schema)
     };
 };
 
@@ -37,20 +41,62 @@ exports.getComparativeStats = async (req, res) => {
         const plazaData = await getStatsFromDB({
             Venta, Registro, Gasto
         }, inicio, fin);
+        const plazaRooms = await getRoomCounts(Habitacion);
 
         // Colonial Stats
         const colonialModels = await getColonialModels();
         const colonialData = await getStatsFromDB(colonialModels, inicio, fin);
+        const colonialRooms = await getRoomCounts(colonialModels.Habitacion);
 
         res.json({
-            plaza: plazaData,
-            colonial: colonialData
+            plaza: {
+                history: plazaData,
+                rooms: plazaRooms
+            },
+            colonial: {
+                history: colonialData,
+                rooms: colonialRooms
+            }
         });
     } catch (error) {
         console.error('Error fetching comparative stats:', error);
         res.status(500).json({ message: 'Error al obtener estadísticas comparativas', error: error.message });
     }
 };
+
+async function getRoomCounts(HabitacionModel) {
+    try {
+        const stats = await HabitacionModel.aggregate([
+            {
+                $lookup: {
+                    from: 'estadohabitacions',
+                    localField: 'estado',
+                    foreignField: '_id',
+                    as: 'estadoInfo'
+                }
+            },
+            { $unwind: { path: '$estadoInfo', preserveNullAndEmptyArrays: true } },
+            {
+                $group: {
+                    _id: '$estadoInfo.nombre',
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+        
+        const result = { disponibles: 0, ocupadas: 0, total: 0 };
+        stats.forEach(s => {
+            const nombre = (s._id || '').toLowerCase();
+            if (nombre.includes('disponible')) result.disponibles += s.count;
+            else if (nombre.includes('ocupada')) result.ocupadas += s.count;
+            result.total += s.count;
+        });
+        return result;
+    } catch (error) {
+        console.error('Error counting rooms:', error);
+        return { disponibles: 0, ocupadas: 0, total: 0 };
+    }
+}
 
 async function getStatsFromDB(models, startDateStr, endDateStr) {
     const { Venta, Registro, Gasto } = models;

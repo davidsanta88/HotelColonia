@@ -61,8 +61,8 @@ const ComparativaHoteles = () => {
 
     // Prepare chart data by merging labels from both hotels
     const allLabels = Array.from(new Set([
-        ...(data?.plaza.map(p => p.label) || []),
-        ...(data?.colonial.map(c => c.label) || [])
+        ...(data?.plaza.history.map(p => p.label) || []),
+        ...(data?.colonial.history.map(c => c.label) || [])
     ])).sort((a, b) => {
         // Sort labels correctly (DD/MM or Month names)
         const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -83,8 +83,8 @@ const ComparativaHoteles = () => {
     });
 
     const chartData = allLabels.map(label => {
-        const p = data?.plaza.find(x => x.label === label) || { ingresos: 0, egresos: 0, margen: 0 };
-        const c = data?.colonial.find(x => x.label === label) || { ingresos: 0, egresos: 0, margen: 0 };
+        const p = data?.plaza.history.find(x => x.label === label) || { ingresos: 0, egresos: 0, margen: 0 };
+        const c = data?.colonial.history.find(x => x.label === label) || { ingresos: 0, egresos: 0, margen: 0 };
         return {
             name: label,
             plazaIngresos: p.ingresos,
@@ -96,10 +96,10 @@ const ComparativaHoteles = () => {
         };
     });
 
-    const totalPlaza = data?.plaza.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;
-    const totalColonial = data?.colonial.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;
-    const plazaExpenses = data?.plaza.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
-    const colonialExpenses = data?.colonial.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
+    const totalPlaza = data?.plaza.history.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;
+    const totalColonial = data?.colonial.history.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;
+    const plazaExpenses = data?.plaza.history.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
+    const colonialExpenses = data?.colonial.history.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">
@@ -151,12 +151,14 @@ const ComparativaHoteles = () => {
                     hotelName="Hotel Balcón Plaza"
                     income={totalPlaza}
                     expenses={plazaExpenses}
+                    rooms={data?.plaza.rooms}
                     color="primary"
                 />
                 <HotelCard 
                     hotelName="Hotel Balcón Colonial"
                     income={totalColonial}
                     expenses={colonialExpenses}
+                    rooms={data?.colonial.rooms}
                     color="slate"
                 />
             </div>
@@ -244,7 +246,7 @@ const ComparativaHoteles = () => {
     );
 };
 
-const HotelCard = ({ hotelName, income, expenses, color }) => {
+const HotelCard = ({ hotelName, income, expenses, rooms, color }) => {
     const margin = income - expenses;
     const marginPercent = income > 0 ? (margin / income) * 100 : 0;
     const themeColor = color === 'primary' ? 'blue' : 'slate';
@@ -255,11 +257,25 @@ const HotelCard = ({ hotelName, income, expenses, color }) => {
             <div className={`absolute top-0 right-0 w-32 h-32 bg-${themeColor}-50 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
             
             <div className="relative z-10">
-                <div className="flex items-center gap-4 mb-8">
-                    <div className={`p-4 bg-${themeColor}-50 text-${themeColor}-600 rounded-2xl`}>
-                        <Hotel size={28} />
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-4">
+                        <div className={`p-4 bg-${themeColor}-50 text-${themeColor}-600 rounded-2xl`}>
+                            <Hotel size={28} />
+                        </div>
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{hotelName}</h2>
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">{hotelName}</h2>
+                    
+                    {/* Ocupación Badge */}
+                    <div className="flex gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                        <div className="flex flex-col items-center px-3 border-r border-slate-200">
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Disponibles</span>
+                            <span className="text-sm font-black text-emerald-600">{rooms?.disponibles || 0}</span>
+                        </div>
+                        <div className="flex flex-col items-center px-3">
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Ocupadas</span>
+                            <span className="text-sm font-black text-rose-600">{rooms?.ocupadas || 0}</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
