@@ -111,6 +111,9 @@ const ComparativaHoteles = () => {
     const globalOcupadas = (data?.plaza?.rooms?.ocupadas || 0) + (data?.colonial?.rooms?.ocupadas || 0);
     const globalAseo = (data?.plaza?.rooms?.aseo || 0) + (data?.colonial?.rooms?.aseo || 0);
 
+    const totalGlobalMargen = totalGlobalIngresos - totalGlobalEgresos;
+    const globalMargenPercent = totalGlobalIngresos > 0 ? (totalGlobalMargen / totalGlobalIngresos) * 100 : 0;
+
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">
             {/* Header */}
@@ -156,45 +159,72 @@ const ComparativaHoteles = () => {
             </div>
 
             {/* Consolidado General */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                <div className="bg-gradient-to-br from-primary-600 to-primary-700 p-6 rounded-[2rem] text-white shadow-lg shadow-primary-100">
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-1">Ingresos Globales</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Fila 1: Financiero */}
+                <div className="bg-gradient-to-br from-primary-600 to-primary-700 p-8 rounded-[2.5rem] text-white shadow-xl shadow-primary-100">
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-2">Ingresos Globales</p>
                     <div className="flex items-center justify-between">
-                        <h4 className="text-2xl font-black">${new Intl.NumberFormat().format(totalGlobalIngresos)}</h4>
-                        <DollarSign size={20} className="opacity-50" />
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Egresos Globales</p>
-                    <div className="flex items-center justify-between">
-                        <h4 className="text-2xl font-black text-slate-800">${new Intl.NumberFormat().format(totalGlobalEgresos)}</h4>
-                        <ArrowDownRight size={20} className="text-rose-400" />
-                    </div>
-                </div>
-                <div className="bg-emerald-50 p-6 rounded-[2rem] border border-emerald-100 shadow-sm">
-                    <p className="text-[10px] font-black text-emerald-600/60 uppercase tracking-widest mb-1">Libres Totales</p>
-                    <div className="flex items-center justify-between">
-                        <h4 className="text-2xl font-black text-emerald-700">{globalDisponibles}</h4>
-                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
-                            <Zap size={16} />
+                        <h4 className="text-3xl font-black">${new Intl.NumberFormat().format(totalGlobalIngresos)}</h4>
+                        <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                            <DollarSign size={24} />
                         </div>
                     </div>
                 </div>
-                <div className="bg-rose-50 p-6 rounded-[2rem] border border-rose-100 shadow-sm">
-                    <p className="text-[10px] font-black text-rose-600/60 uppercase tracking-widest mb-1">Ocupadas Totales</p>
+                
+                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Egresos Globales</p>
                     <div className="flex items-center justify-between">
-                        <h4 className="text-2xl font-black text-rose-700">{globalOcupadas}</h4>
-                        <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center text-rose-600">
-                            <Users size={16} />
+                        <h4 className="text-3xl font-black text-slate-800">${new Intl.NumberFormat().format(totalGlobalEgresos)}</h4>
+                        <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center">
+                            <ArrowDownRight size={24} />
                         </div>
                     </div>
                 </div>
-                <div className="bg-amber-50 p-6 rounded-[2rem] border border-amber-100 shadow-sm">
-                    <p className="text-[10px] font-black text-amber-600/60 uppercase tracking-widest mb-1">En Aseo Totales</p>
+
+                <div className={`p-8 rounded-[2.5rem] border shadow-sm ${totalGlobalMargen >= 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
+                    <div className="flex justify-between items-start mb-2">
+                        <p className={`text-[10px] font-black uppercase tracking-widest ${totalGlobalMargen >= 0 ? 'text-emerald-600/60' : 'text-rose-600/60'}`}>Ganancia Global</p>
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${totalGlobalMargen >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+                            {globalMargenPercent.toFixed(1)}%
+                        </span>
+                    </div>
                     <div className="flex items-center justify-between">
-                        <h4 className="text-2xl font-black text-amber-700">{globalAseo}</h4>
-                        <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
-                            <Brush size={16} />
+                        <h4 className={`text-3xl font-black ${totalGlobalMargen >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                            ${new Intl.NumberFormat().format(totalGlobalMargen)}
+                        </h4>
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${totalGlobalMargen >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                            {totalGlobalMargen >= 0 ? <TrendingUp size={24} /> : <ArrowDownRight size={24} />}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Fila 2: Operativo */}
+                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Hab. Libres Totales</p>
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-3xl font-black text-emerald-600">{globalDisponibles}</h4>
+                        <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center">
+                            <Zap size={24} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Hab. Ocupadas Totales</p>
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-3xl font-black text-rose-600">{globalOcupadas}</h4>
+                        <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center">
+                            <Users size={24} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Hab. En Aseo Totales</p>
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-3xl font-black text-amber-600">{globalAseo}</h4>
+                        <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center">
+                            <Brush size={24} />
                         </div>
                     </div>
                 </div>
