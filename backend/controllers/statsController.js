@@ -84,11 +84,12 @@ async function getRoomCounts(HabitacionModel) {
             }
         ]);
         
-        const result = { disponibles: 0, ocupadas: 0, total: 0 };
+        const result = { disponibles: 0, ocupadas: 0, aseo: 0, total: 0 };
         stats.forEach(s => {
             const nombre = (s._id || '').toLowerCase();
             if (nombre.includes('disponible')) result.disponibles += s.count;
             else if (nombre.includes('ocupada')) result.ocupadas += s.count;
+            else if (nombre.includes('aseo') || nombre.includes('limpieza') || nombre.includes('asear')) result.aseo += s.count;
             result.total += s.count;
         });
         return result;

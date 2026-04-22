@@ -16,7 +16,8 @@ import {
     LayoutDashboard,
     PieChart as PieIcon,
     Users,
-    Zap
+    Zap,
+    Brush
 } from 'lucide-react';
 import { format, subDays, startOfMonth } from 'date-fns';
 
@@ -108,6 +109,7 @@ const ComparativaHoteles = () => {
     const totalGlobalEgresos = plazaExpenses + colonialExpenses;
     const globalDisponibles = (data?.plaza?.rooms?.disponibles || 0) + (data?.colonial?.rooms?.disponibles || 0);
     const globalOcupadas = (data?.plaza?.rooms?.ocupadas || 0) + (data?.colonial?.rooms?.ocupadas || 0);
+    const globalAseo = (data?.plaza?.rooms?.aseo || 0) + (data?.colonial?.rooms?.aseo || 0);
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">
@@ -154,7 +156,7 @@ const ComparativaHoteles = () => {
             </div>
 
             {/* Consolidado General */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div className="bg-gradient-to-br from-primary-600 to-primary-700 p-6 rounded-[2rem] text-white shadow-lg shadow-primary-100">
                     <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-1">Ingresos Globales</p>
                     <div className="flex items-center justify-between">
@@ -170,7 +172,7 @@ const ComparativaHoteles = () => {
                     </div>
                 </div>
                 <div className="bg-emerald-50 p-6 rounded-[2rem] border border-emerald-100 shadow-sm">
-                    <p className="text-[10px] font-black text-emerald-600/60 uppercase tracking-widest mb-1">Hab. Libres Totales</p>
+                    <p className="text-[10px] font-black text-emerald-600/60 uppercase tracking-widest mb-1">Libres Totales</p>
                     <div className="flex items-center justify-between">
                         <h4 className="text-2xl font-black text-emerald-700">{globalDisponibles}</h4>
                         <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
@@ -179,11 +181,20 @@ const ComparativaHoteles = () => {
                     </div>
                 </div>
                 <div className="bg-rose-50 p-6 rounded-[2rem] border border-rose-100 shadow-sm">
-                    <p className="text-[10px] font-black text-rose-600/60 uppercase tracking-widest mb-1">Hab. Ocupadas Totales</p>
+                    <p className="text-[10px] font-black text-rose-600/60 uppercase tracking-widest mb-1">Ocupadas Totales</p>
                     <div className="flex items-center justify-between">
                         <h4 className="text-2xl font-black text-rose-700">{globalOcupadas}</h4>
                         <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center text-rose-600">
                             <Users size={16} />
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-amber-50 p-6 rounded-[2rem] border border-amber-100 shadow-sm">
+                    <p className="text-[10px] font-black text-amber-600/60 uppercase tracking-widest mb-1">En Aseo Totales</p>
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-2xl font-black text-amber-700">{globalAseo}</h4>
+                        <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+                            <Brush size={16} />
                         </div>
                     </div>
                 </div>
@@ -310,14 +321,18 @@ const HotelCard = ({ hotelName, income, expenses, rooms, color }) => {
                     </div>
                     
                     {/* Ocupación Badge */}
-                    <div className="flex gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-100">
-                        <div className="flex flex-col items-center px-3 border-r border-slate-200">
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Disponibles</span>
-                            <span className="text-sm font-black text-emerald-600">{rooms?.disponibles || 0}</span>
+                    <div className="flex gap-1.5 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                        <div className="flex flex-col items-center px-2.5 border-r border-slate-200">
+                            <span className="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Libres</span>
+                            <span className="text-xs font-black text-emerald-600 leading-none mt-1">{rooms?.disponibles || 0}</span>
                         </div>
-                        <div className="flex flex-col items-center px-3">
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Ocupadas</span>
-                            <span className="text-sm font-black text-rose-600">{rooms?.ocupadas || 0}</span>
+                        <div className="flex flex-col items-center px-2.5 border-r border-slate-200">
+                            <span className="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Ocupadas</span>
+                            <span className="text-xs font-black text-rose-600 leading-none mt-1">{rooms?.ocupadas || 0}</span>
+                        </div>
+                        <div className="flex flex-col items-center px-2.5">
+                            <span className="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Aseo</span>
+                            <span className="text-xs font-black text-amber-600 leading-none mt-1">{rooms?.aseo || 0}</span>
                         </div>
                     </div>
                 </div>
