@@ -116,6 +116,8 @@ const ComparativaHoteles = () => {
     
     const globalTotalHabitaciones = globalDisponibles + globalOcupadas + globalAseo;
     const globalOccupancyPercent = globalTotalHabitaciones > 0 ? (globalOcupadas / globalTotalHabitaciones) * 100 : 0;
+    const globalFreePercent = globalTotalHabitaciones > 0 ? (globalDisponibles / globalTotalHabitaciones) * 100 : 0;
+    const globalAseoPercent = globalTotalHabitaciones > 0 ? (globalAseo / globalTotalHabitaciones) * 100 : 0;
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">
@@ -203,7 +205,12 @@ const ComparativaHoteles = () => {
 
                 {/* Fila 2: Operativo */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Hab. Libres Totales</p>
+                    <div className="flex justify-between items-start mb-2">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hab. Libres Totales</p>
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600">
+                            {globalFreePercent.toFixed(1)}% Disponibles
+                        </span>
+                    </div>
                     <div className="flex items-center justify-between">
                         <h4 className="text-3xl font-black text-emerald-600">{globalDisponibles}</h4>
                         <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center">
@@ -228,7 +235,12 @@ const ComparativaHoteles = () => {
                 </div>
 
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Hab. En Aseo Totales</p>
+                    <div className="flex justify-between items-start mb-2">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hab. En Aseo Totales</p>
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-600">
+                            {globalAseoPercent.toFixed(1)}% En Aseo
+                        </span>
+                    </div>
                     <div className="flex items-center justify-between">
                         <h4 className="text-3xl font-black text-amber-600">{globalAseo}</h4>
                         <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center">
