@@ -253,7 +253,7 @@ const Reports = () => {
                     </div>
 
                     {/* KPIs secundarios */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
                             <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
                                 <TrendingUp size={20} />
@@ -270,6 +270,15 @@ const Reports = () => {
                             <div>
                                 <p className="text-xs text-gray-400 font-bold uppercase">Hospedaje</p>
                                 <p className="text-lg font-black text-gray-900">${formatCurrency(totalHospedaje)}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+                            <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center">
+                                <DollarSign size={20} />
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 font-bold uppercase">Otros Ingresos</p>
+                                <p className="text-lg font-black text-gray-900">${formatCurrency(totalManualIncomes)}</p>
                             </div>
                         </div>
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">

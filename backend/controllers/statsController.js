@@ -3,6 +3,7 @@ const CierreCaja = require('../models/CierreCaja');
 const Venta = require('../models/Venta');
 const Registro = require('../models/Registro');
 const Gasto = require('../models/Gasto');
+const CategoriaGasto = require('../models/CategoriaGasto');
 
 // Configuración para la conexión al Hotel Colonial
 const COLONIAL_URI = 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
@@ -23,7 +24,8 @@ const getColonialModels = async () => {
         CierreCaja: conn.model('CierreCaja', CierreCaja.schema),
         Venta: conn.model('Venta', Venta.schema),
         Registro: conn.model('Registro', Registro.schema),
-        Gasto: conn.model('Gasto', Gasto.schema)
+        Gasto: conn.model('Gasto', Gasto.schema),
+        CategoriaGasto: conn.model('CategoriaGasto', CategoriaGasto.schema)
     };
 };
 
@@ -84,13 +86,27 @@ async function getStatsFromDB(models, startDateStr, endDateStr) {
         }
     ]);
 
-    // 3. Aggregation for Gasto (Expenses)
+    // 3. Aggregation for Gasto (Expenses AND Manual Incomes)
     const gastoStats = await Gasto.aggregate([
         { $match: { fecha: { $gte: startDate, $lte: endDate } } },
         {
+            $lookup: {
+                from: 'categoriagastos',
+                localField: 'categoria',
+                foreignField: '_id',
+                as: 'catInfo'
+            }
+        },
+        { $unwind: { path: '$catInfo', preserveNullAndEmptyArrays: true } },
+        {
             $group: {
                 _id: useMonthly ? { $month: "$fecha" } : { $dateToString: { format: "%Y-%m-%d", date: "$fecha" } },
-                total: { $sum: "$monto" }
+                totalGasto: {
+                    $sum: { $cond: [{ $eq: ["$catInfo.tipo", "Ingreso"] }, 0, "$monto"] }
+                },
+                totalIngreso: {
+                    $sum: { $cond: [{ $eq: ["$catInfo.tipo", "Ingreso"] }, "$monto", 0] }
+                }
             }
         }
     ]);
@@ -102,6 +118,10 @@ async function getStatsFromDB(models, startDateStr, endDateStr) {
         stats.forEach(s => {
             const entry = resultsMap.get(s._id) || { ingresos: 0, egresos: 0 };
             if (key === 'ingresos') entry.ingresos += s.total;
+            else if (key === 'gastos_mixed') {
+                entry.ingresos += s.totalIngreso || 0;
+                entry.egresos += s.totalGasto || 0;
+            }
             else entry.egresos += s.total;
             resultsMap.set(s._id, entry);
         });
@@ -109,7 +129,7 @@ async function getStatsFromDB(models, startDateStr, endDateStr) {
 
     addToMap(ventaStats, 'ingresos');
     addToMap(registroStats, 'ingresos');
-    addToMap(gastoStats, 'egresos');
+    addToMap(gastoStats, 'gastos_mixed');
 
     // Convert to sorted array
     const sortedKeys = Array.from(resultsMap.keys()).sort();
