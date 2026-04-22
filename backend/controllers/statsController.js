@@ -77,20 +77,28 @@ async function getRoomCounts(HabitacionModel) {
             },
             { $unwind: { path: '$estadoInfo', preserveNullAndEmptyArrays: true } },
             {
-                $group: {
-                    _id: '$estadoInfo.nombre',
-                    count: { $sum: 1 }
+                $project: {
+                    nombreEstado: '$estadoInfo.nombre',
+                    estadoLimpieza: 1
                 }
             }
         ]);
         
         const result = { disponibles: 0, ocupadas: 0, aseo: 0, total: 0 };
         stats.forEach(s => {
-            const nombre = (s._id || '').toLowerCase();
-            if (nombre.includes('disponible')) result.disponibles += s.count;
-            else if (nombre.includes('ocupada')) result.ocupadas += s.count;
-            else if (nombre.includes('aseo') || nombre.includes('limpieza') || nombre.includes('asear')) result.aseo += s.count;
-            result.total += s.count;
+            const nombre = (s.nombreEstado || '').toLowerCase();
+            const limpieza = (s.estadoLimpieza || '').toLowerCase();
+            
+            if (limpieza === 'sucia') {
+                result.aseo++;
+            } else if (nombre.includes('disponible')) {
+                result.disponibles++;
+            } else if (nombre.includes('ocupada')) {
+                result.ocupadas++;
+            } else if (nombre.includes('aseo') || nombre.includes('limpieza') || nombre.includes('asear')) {
+                result.aseo++;
+            }
+            result.total++;
         });
         return result;
     } catch (error) {
