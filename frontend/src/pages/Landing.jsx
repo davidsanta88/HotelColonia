@@ -155,8 +155,8 @@ const Landing = () => {
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: 'Hotel Balcón Plaza',
-                    text: 'Tu hogar en Belalcázar, Caldas. Conoce nuestras habitaciones y servicios.',
+                    title: '🏨 Hotel Balcón Plaza',
+                    text: '✨ ¡Descubre el corazón de Belalcázar! Hospédate en el Hotel Balcón Plaza y vive una experiencia cafetera inolvidable. ☕⛰️ ¡Mira sus habitaciones!',
                     url: window.location.href,
                 });
             } catch (err) {
