@@ -14,7 +14,9 @@ import {
     RefreshCw,
     Loader2,
     LayoutDashboard,
-    PieChart as PieIcon
+    PieChart as PieIcon,
+    Users,
+    Zap
 } from 'lucide-react';
 import { format, subDays, startOfMonth } from 'date-fns';
 
@@ -101,6 +103,12 @@ const ComparativaHoteles = () => {
     const plazaExpenses = data?.plaza?.history?.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
     const colonialExpenses = data?.colonial?.history?.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
 
+    // Totales Consolidados
+    const totalGlobalIngresos = totalPlaza + totalColonial;
+    const totalGlobalEgresos = plazaExpenses + colonialExpenses;
+    const globalDisponibles = (data?.plaza?.rooms?.disponibles || 0) + (data?.colonial?.rooms?.disponibles || 0);
+    const globalOcupadas = (data?.plaza?.rooms?.ocupadas || 0) + (data?.colonial?.rooms?.ocupadas || 0);
+
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">
             {/* Header */}
@@ -140,6 +148,42 @@ const ComparativaHoteles = () => {
                             <button onClick={fetchComparativeData} className="text-primary-600 hover:text-primary-800 transition" title="Actualizar">
                                 <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Consolidado General */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-gradient-to-br from-primary-600 to-primary-700 p-6 rounded-[2rem] text-white shadow-lg shadow-primary-100">
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-1">Ingresos Globales</p>
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-2xl font-black">${new Intl.NumberFormat().format(totalGlobalIngresos)}</h4>
+                        <DollarSign size={20} className="opacity-50" />
+                    </div>
+                </div>
+                <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Egresos Globales</p>
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-2xl font-black text-slate-800">${new Intl.NumberFormat().format(totalGlobalEgresos)}</h4>
+                        <ArrowDownRight size={20} className="text-rose-400" />
+                    </div>
+                </div>
+                <div className="bg-emerald-50 p-6 rounded-[2rem] border border-emerald-100 shadow-sm">
+                    <p className="text-[10px] font-black text-emerald-600/60 uppercase tracking-widest mb-1">Hab. Libres Totales</p>
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-2xl font-black text-emerald-700">{globalDisponibles}</h4>
+                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                            <Zap size={16} />
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-rose-50 p-6 rounded-[2rem] border border-rose-100 shadow-sm">
+                    <p className="text-[10px] font-black text-rose-600/60 uppercase tracking-widest mb-1">Hab. Ocupadas Totales</p>
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-2xl font-black text-rose-700">{globalOcupadas}</h4>
+                        <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center text-rose-600">
+                            <Users size={16} />
                         </div>
                     </div>
                 </div>
