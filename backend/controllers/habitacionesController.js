@@ -5,6 +5,9 @@ const cloudinary = require('../config/cloudinary');
 const fs = require('fs');
 const path = require('path');
 const Venta = require('../models/Venta');
+const TipoHabitacion = require('../models/TipoHabitacion');
+const EstadoHabitacion = require('../models/EstadoHabitacion');
+const Cliente = require('../models/Cliente'); // Necesario para populate en mapa-visual
  
 // Helper para subir buffer a Cloudinary
 const streamUpload = (buffer) => {

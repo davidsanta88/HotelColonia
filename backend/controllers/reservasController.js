@@ -1,5 +1,6 @@
 const Reserva = require('../models/Reserva');
 const Habitacion = require('../models/Habitacion');
+const Cliente = require('../models/Cliente'); // Asegurar registro
 
 // Helper to check for overlapping reservations
 const verificarDisponibilidad = async (habitacionesIds, fechaEntrada, fechaSalida, excludeReservaId = null) => {

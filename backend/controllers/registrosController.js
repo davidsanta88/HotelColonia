@@ -4,6 +4,8 @@ const Cliente = require('../models/Cliente');
 const Reserva = require('../models/Reserva');
 const MedioPago = require('../models/MedioPago');
 const EstadoHabitacion = require('../models/EstadoHabitacion');
+const TipoHabitacion = require('../models/TipoHabitacion'); // Asegurar registro
+const Empresa = require('../models/Empresa'); // Asegurar registro
 
 exports.getRegistros = async (req, res) => {
     try {
