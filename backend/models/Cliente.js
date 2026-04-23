@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const sharedConn = require('../config/sharedConn');
 
 const clienteSchema = new mongoose.Schema({
