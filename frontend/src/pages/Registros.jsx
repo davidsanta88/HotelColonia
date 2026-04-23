@@ -571,6 +571,11 @@ const Registros = () => {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm font-bold text-gray-900 uppercase leading-none mb-1">{res.nombre_cliente}</div>
                                                 <div className="flex flex-col">
+                                                    <div className="flex items-center gap-1.5 mb-1">
+                                                        <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ${res.cliente?.empresa_id ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-slate-50 text-slate-500 border border-slate-100'}`}>
+                                                            {res.cliente?.empresa_id ? res.cliente.empresa_id.nombre : 'Particular'}
+                                                        </span>
+                                                    </div>
                                                     <span className="text-[10px] text-gray-500 font-medium leading-none mb-1">Doc: {res.documento_cliente || 'N/A'}</span>
                                                     {(res.telefono_cliente || res.cliente?.telefono) && (
                                                         <div className="flex items-center gap-2">

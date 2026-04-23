@@ -15,7 +15,7 @@ exports.getRegistros = async (req, res) => {
         
         // Población manual de clientes (desde sharedConn)
         const clienteIds = [...new Set(registros.map(r => r.cliente).filter(id => id))];
-        const clientes = await Cliente.find({ _id: { $in: clienteIds } });
+        const clientes = await Cliente.find({ _id: { $in: clienteIds } }).populate('empresa_id', 'nombre');
         const clienteMap = new Map(clientes.map(c => [c._id.toString(), c]));
 
         // Mapeo para compatibilidad total con el frontend
@@ -53,7 +53,7 @@ exports.getActiveRegistros = async (req, res) => {
             
         // Población manual de clientes (desde sharedConn)
         const clienteIds = [...new Set(registros.map(r => r.cliente).filter(id => id))];
-        const clientes = await Cliente.find({ _id: { $in: clienteIds } });
+        const clientes = await Cliente.find({ _id: { $in: clienteIds } }).populate('empresa_id', 'nombre');
         const clienteMap = new Map(clientes.map(c => [c._id.toString(), c]));
 
         const mapped = registros.map(r => {
@@ -93,7 +93,7 @@ exports.getRegistroById = async (req, res) => {
         // Población manual de cliente (desde sharedConn)
         let clienteObj = null;
         if (registro.cliente) {
-            clienteObj = await Cliente.findById(registro.cliente);
+            clienteObj = await Cliente.findById(registro.cliente).populate('empresa_id', 'nombre');
         }
         
         const raw = registro.toObject();
