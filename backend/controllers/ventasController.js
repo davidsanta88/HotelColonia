@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Venta = require('../models/Venta');
 const Producto = require('../models/Producto');
 const Registro = require('../models/Registro');
+const Cliente = require('../models/Cliente');
 
 exports.getVentas = async (req, res) => {
     try {
@@ -25,18 +26,23 @@ exports.getVentaById = async (req, res) => {
 
         const venta = await Venta.findById(id)
             .populate('items.producto')
-            .populate('empleado', 'nombre')
-            .populate('cliente', 'nombre');
+            .populate('empleado', 'nombre');
         
         if (!venta) {
             return res.status(404).json({ message: 'Venta no encontrada en la base de datos' });
         }
         
-        // Formatear para compatibilidad: Asegurar que items existan
+        // Población manual de cliente (desde sharedConn)
+        let clienteObj = null;
+        if (venta.cliente) {
+            clienteObj = await Cliente.findById(venta.cliente);
+        }
+
+        // Formatear para compatibilidad
         const mappedVenta = venta.toObject();
+        mappedVenta.cliente = clienteObj;
+
         if (!mappedVenta.items || mappedVenta.items.length === 0) {
-            // Si no hay items en el array pero hay un total, algo está mal, 
-            // pero intentamos devolver el objeto íntegro.
             console.warn(`[GET VENTA BY ID WARNING] Venta ${id} no tiene items en el array.`);
         }
         

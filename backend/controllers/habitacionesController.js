@@ -56,12 +56,27 @@ exports.getMapaVisual = async (req, res) => {
         console.log('[DEBUG] Consultando base de datos...');
         const [habitaciones, registrosActivos, todasReservas] = await Promise.all([
             Habitacion.find().sort({ numero: 1 }).populate('tipo', 'nombre').populate('estado', 'nombre'),
-            Registro.find({ estado: 'activo' }).populate('cliente', 'nombre'),
+            Registro.find({ estado: 'activo' }),
             Reserva.find({
                 fecha_salida: { $gte: hoy },
                 estado: { $in: ['Confirmada', 'Pendiente'] }
-            }).populate('cliente', 'nombre')
+            })
         ]);
+
+        // Población manual de clientes (desde sharedConn) para máxima estabilidad
+        const allClienteIds = [
+            ...registrosActivos.map(r => r.cliente),
+            ...todasReservas.map(r => r.cliente)
+        ].filter(id => id);
+        
+        const uniqueClienteIds = [...new Set(allClienteIds.map(id => id.toString()))];
+        const clientesShared = await Cliente.find({ _id: { $in: uniqueClienteIds } });
+        const clienteMap = new Map(clientesShared.map(c => [c._id.toString(), c]));
+
+        // Inyectar clientes en registros y reservas
+        registrosActivos.forEach(r => { if (r.cliente) r.cliente = clienteMap.get(r.cliente.toString()); });
+        todasReservas.forEach(r => { if (r.cliente) r.cliente = clienteMap.get(r.cliente.toString()); });
+
         console.log(`[DEBUG] Datos cargados: ${habitaciones.length} habs, ${registrosActivos.length} registros, ${todasReservas.length} reservas`);
 
         // 2. Procesar cada habitación

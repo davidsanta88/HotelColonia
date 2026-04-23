@@ -11,20 +11,27 @@ exports.getRegistros = async (req, res) => {
     try {
         const registros = await Registro.find()
             .populate('habitacion', 'numero')
-            .populate('cliente', 'nombre documento telefono')
             .sort({ fechaCreacion: -1 });
         
+        // Población manual de clientes (desde sharedConn)
+        const clienteIds = [...new Set(registros.map(r => r.cliente).filter(id => id))];
+        const clientes = await Cliente.find({ _id: { $in: clienteIds } });
+        const clienteMap = new Map(clientes.map(c => [c._id.toString(), c]));
+
         // Mapeo para compatibilidad total con el frontend
         const mapped = registros.map(r => {
             const raw = r.toObject ? r.toObject() : r;
+            const clienteObj = raw.cliente ? clienteMap.get(raw.cliente.toString()) : null;
+            
             return {
                 ...raw,
                 id: raw._id,
+                cliente: clienteObj,
                 fecha_ingreso: raw.fecha_ingreso || raw.fechaEntrada || raw.fechaCreacion,
                 fecha_salida: raw.fecha_salida || raw.fechaSalida || raw.fechaEntrada || raw.fechaCreacion,
-                nombre_cliente: raw.nombre_cliente || (raw.cliente ? raw.cliente.nombre : 'Sín Nombre'),
-                documento_cliente: raw.documento_cliente || (raw.cliente ? raw.cliente.documento : '-'),
-                telefono_cliente: raw.telefono_cliente || (raw.cliente ? raw.cliente.telefono : ''),
+                nombre_cliente: raw.nombre_cliente || (clienteObj ? clienteObj.nombre : 'Sín Nombre'),
+                documento_cliente: raw.documento_cliente || (clienteObj ? clienteObj.documento : '-'),
+                telefono_cliente: raw.telefono_cliente || (clienteObj ? clienteObj.telefono : ''),
                 numero_habitacion: raw.numero_habitacion || (raw.habitacion ? raw.habitacion.numero : '?'),
                 tipo_registro_nombre: raw.tipo_registro_nombre || 'Formal',
                 notasSalida: raw.notasSalida || '',
@@ -42,19 +49,26 @@ exports.getActiveRegistros = async (req, res) => {
     try {
         const registros = await Registro.find({ estado: 'activo' })
             .populate('habitacion', 'numero')
-            .populate('cliente', 'nombre documento telefono')
             .sort({ fechaCreacion: -1 });
             
+        // Población manual de clientes (desde sharedConn)
+        const clienteIds = [...new Set(registros.map(r => r.cliente).filter(id => id))];
+        const clientes = await Cliente.find({ _id: { $in: clienteIds } });
+        const clienteMap = new Map(clientes.map(c => [c._id.toString(), c]));
+
         const mapped = registros.map(r => {
             const raw = r.toObject ? r.toObject() : r;
+            const clienteObj = raw.cliente ? clienteMap.get(raw.cliente.toString()) : null;
+
             return {
                 ...raw,
                 id: raw._id,
+                cliente: clienteObj,
                 fecha_ingreso: raw.fecha_ingreso || raw.fechaEntrada || raw.fechaCreacion,
                 fecha_salida: raw.fecha_salida || raw.fechaSalida || raw.fechaEntrada || raw.fechaCreacion,
-                nombre_cliente: raw.nombre_cliente || (raw.cliente ? raw.cliente.nombre : 'Sín Nombre'),
-                documento_cliente: raw.documento_cliente || (raw.cliente ? raw.cliente.documento : '-'),
-                telefono_cliente: raw.telefono_cliente || (raw.cliente ? raw.cliente.telefono : ''),
+                nombre_cliente: raw.nombre_cliente || (clienteObj ? clienteObj.nombre : 'Sín Nombre'),
+                documento_cliente: raw.documento_cliente || (clienteObj ? clienteObj.documento : '-'),
+                telefono_cliente: raw.telefono_cliente || (clienteObj ? clienteObj.telefono : ''),
                 numero_habitacion: raw.numero_habitacion || (raw.habitacion ? raw.habitacion.numero : '?'),
                 notasSalida: raw.notasSalida || '',
                 valor_pagado: (raw.pagos || []).reduce((acc, p) => acc + (p.monto || 0), 0)
@@ -72,18 +86,25 @@ exports.getRegistroById = async (req, res) => {
         const { id } = req.params;
         const registro = await Registro.findById(id)
             .populate('habitacion')
-            .populate('cliente')
             .populate('huespedes');
         
         if (!registro) return res.status(404).json({ message: 'Registro no encontrado' });
+
+        // Población manual de cliente (desde sharedConn)
+        let clienteObj = null;
+        if (registro.cliente) {
+            clienteObj = await Cliente.findById(registro.cliente);
+        }
         
         const raw = registro.toObject();
+        raw.cliente = clienteObj;
+
         const mapped = {
             ...raw,
             id: raw._id,
             fecha_ingreso: raw.fecha_ingreso || raw.fechaEntrada || raw.fechaCreacion,
             fecha_salida: raw.fecha_salida || raw.fechaSalida || raw.fechaEntrada || raw.fechaCreacion,
-            nombre_cliente: raw.nombre_cliente || (raw.cliente ? raw.cliente.nombre : 'Sín Nombre'),
+            nombre_cliente: raw.nombre_cliente || (clienteObj ? clienteObj.nombre : 'Sín Nombre'),
             numero_habitacion: raw.numero_habitacion || (raw.habitacion ? raw.habitacion.numero : '?'),
             notas: raw.notas || raw.observaciones || '',
             notasSalida: raw.notasSalida || '',

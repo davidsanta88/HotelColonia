@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-const sharedUri = process.env.SHARED_MONGODB_URI;
+const sharedUri = process.env.SHARED_MONGODB_URI || "mongodb+srv://adminhotel:hotel2026@cluster0.zsiq9ye.mongodb.net/HotelDB?retryWrites=true&w=majority";
 const mainUri = process.env.MONGODB_URI;
 
 // Normalizar URIs para comparación (ignorar parámetros y barras finales)

@@ -30,14 +30,20 @@ const verificarDisponibilidad = async (habitacionesIds, fechaEntrada, fechaSalid
 exports.getReservas = async (req, res) => {
     try {
         const reservas = await Reserva.find()
-            .populate('cliente')
             .populate('habitacion') // legacy
             .populate('habitaciones.habitacion') // new
             .sort({ fechaCreacion: -1 });
         
+        // Población manual de clientes (desde sharedConn)
+        const clienteIds = [...new Set(reservas.map(r => r.cliente).filter(id => id))];
+        const clientes = await Cliente.find({ _id: { $in: clienteIds } });
+        const clienteMap = new Map(clientes.map(c => [c._id.toString(), c]));
+
         // Ensure every reservation has expected fields even if not migrated
         const formatted = reservas.map(r => {
             const obj = r.toObject({ virtuals: true });
+            const clienteObj = r.cliente ? clienteMap.get(r.cliente.toString()) : null;
+            obj.cliente = clienteObj;
             
             // Fallback for rooms (legacy support)
             if ((!obj.habitaciones || obj.habitaciones.length === 0) && obj.habitacion) {
@@ -62,7 +68,7 @@ exports.getReservas = async (req, res) => {
 
             // Ensure client_nombre is present
             if (!obj.cliente_nombre || obj.cliente_nombre === 'Desconocido') {
-                obj.cliente_nombre = obj.cliente?.nombre || 'Desconocido';
+                obj.cliente_nombre = clienteObj ? clienteObj.nombre : 'Desconocido';
             }
 
             return obj;
@@ -223,13 +229,19 @@ exports.getReservaById = async (req, res) => {
     try {
         const { id } = req.params;
         const r = await Reserva.findById(id)
-            .populate('cliente')
             .populate('habitacion')
             .populate('habitaciones.habitacion');
         
         if (!r) return res.status(404).json({ message: 'Reserva no encontrada' });
 
+        // Población manual de cliente (desde sharedConn)
+        let clienteObj = null;
+        if (r.cliente) {
+            clienteObj = await Cliente.findById(r.cliente);
+        }
+
         const obj = r.toObject({ virtuals: true });
+        obj.cliente = clienteObj;
         
         // Formateo idéntico al de getReservas para consistencia
         if ((!obj.habitaciones || obj.habitaciones.length === 0) && obj.habitacion) {
@@ -248,7 +260,7 @@ exports.getReservaById = async (req, res) => {
         if (!obj.fecha_entrada && obj.fechaInicio) obj.fecha_entrada = obj.fechaInicio;
         if (!obj.fecha_salida && obj.fechaFin) obj.fecha_salida = obj.fechaFin;
         if (!obj.cliente_nombre || obj.cliente_nombre === 'Desconocido') {
-            obj.cliente_nombre = obj.cliente?.nombre || 'Desconocido';
+            obj.cliente_nombre = clienteObj ? clienteObj.nombre : 'Desconocido';
         }
 
         res.json(obj);

@@ -96,15 +96,18 @@ app.get('/', (req, res) => res.send('Hotel System API is running (v1.2.12)'));
 
 // Ping route for deployment verification (Versioned)
 app.get('/api/ping', (req, res) => {
+    const sharedConn = require('./config/sharedConn');
     res.json({ 
         status: 'UP', 
-        version: '1.2.12 (Model Registration Fix)', 
+        version: '1.2.13 (Diagnostic)', 
         time: new Date().toISOString(),
+        sharedConn: {
+            readyState: sharedConn.readyState, 
+            isSharedInstance: sharedConn === mongoose,
+            hasSharedUri: process.env.SHARED_MONGODB_URI ? 'YES' : 'NO'
+        },
         cloudinary: {
-            url: process.env.CLOUDINARY_URL ? 'PRESENT' : 'MISSING',
-            cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'PRESENT' : 'MISSING',
-            api_key: process.env.CLOUDINARY_API_KEY ? 'PRESENT' : 'MISSING',
-            api_secret: process.env.CLOUDINARY_API_SECRET ? 'PRESENT' : 'MISSING'
+            url: process.env.CLOUDINARY_URL ? 'PRESENT' : 'MISSING'
         }
     });
 });
