@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const sharedConn = require('../config/sharedConn');
 
 const empresaSchema = new mongoose.Schema({
     razon_social: { type: String, required: true },
@@ -13,4 +13,4 @@ const empresaSchema = new mongoose.Schema({
     fechaModificacion: Date
 });
 
-module.exports = mongoose.model('Empresa', empresaSchema);
+module.exports = sharedConn.model('Empresa', empresaSchema);
