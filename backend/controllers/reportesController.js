@@ -5,6 +5,7 @@ const Habitacion = require('../models/Habitacion');
 const Producto = require('../models/Producto');
 const Reserva = require('../models/Reserva');
 const Usuario = require('../models/Usuario');
+const Cliente = require('../models/Cliente');
 
 exports.getReporteVentas = async (req, res) => {
     try {
@@ -116,10 +117,14 @@ exports.getResumenGeneral = async (req, res) => {
         const ingresos_hoy = ventas_hoy + pagos_hoy + ingresos_manuales_hoy;
 
         const recientes_registros = await Registro.find()
-            .populate('cliente')
             .populate('habitacion')
             .sort({ fechaCreacion: -1 })
             .limit(5);
+
+        // Población manual de clientes para registros recientes
+        const clienteIdsRecientes = [...new Set(recientes_registros.map(r => r.cliente).filter(id => id))];
+        const clientesRecientes = await Cliente.find({ _id: { $in: clienteIdsRecientes } });
+        const clienteMapRecientes = new Map(clientesRecientes.map(c => [c._id.toString(), c]));
 
         const recientes_ventas = await Venta.find()
             .populate('empleado')
@@ -127,13 +132,16 @@ exports.getResumenGeneral = async (req, res) => {
             .limit(5);
 
         // Mapeo para el frontend del dashboard
-        const mapped_registros = recientes_registros.map(r => ({
-            id: r._id,
-            cliente: r.cliente?.nombre || 'Huésped',
-            habitacion: r.habitacion?.numero || 'S/N',
-            fecha: r.fechaCreacion || r.fechaEntrada,
-            estado: r.estado === 'activo' ? 'CHECK-IN' : r.estado.toUpperCase()
-        }));
+        const mapped_registros = recientes_registros.map(r => {
+            const clienteObj = r.cliente ? clienteMapRecientes.get(r.cliente.toString()) : null;
+            return {
+                id: r._id,
+                cliente: clienteObj?.nombre || 'Huésped',
+                habitacion: r.habitacion?.numero || 'S/N',
+                fecha: r.fechaCreacion || r.fechaEntrada,
+                estado: r.estado === 'activo' ? 'CHECK-IN' : r.estado.toUpperCase()
+            };
+        });
 
         const mapped_ventas = recientes_ventas.map(v => ({
             id: v._id,
@@ -344,17 +352,32 @@ exports.getCuadreCaja = async (req, res) => {
         // 1. Pagos de Registros (Hospedajes)
         const pagosRegistros = await Registro.find({
             "pagos.fecha": { $gte: startDate, $lte: endDate }
-        }).populate('cliente', 'nombre').populate('habitacion', 'numero');
+        }).populate('habitacion', 'numero');
+
+        // 2. Abonos de Reservas
+        const abonosReservas = await Reserva.find({
+            "abonos.fecha": { $gte: startDate, $lte: endDate }
+        });
+
+        // Población manual de clientes para Cuadre
+        const allClienteIds = [
+            ...pagosRegistros.map(r => r.cliente),
+            ...abonosReservas.map(r => r.cliente)
+        ].filter(id => id);
+        const uniqueClienteIds = [...new Set(allClienteIds.map(id => id.toString()))];
+        const clientesCuadre = await Cliente.find({ _id: { $in: uniqueClienteIds } });
+        const clienteMapCuadre = new Map(clientesCuadre.map(c => [c._id.toString(), c]));
 
         let transacciones = [];
 
         pagosRegistros.forEach(reg => {
+            const clienteObj = reg.cliente ? clienteMapCuadre.get(reg.cliente.toString()) : null;
             reg.pagos.forEach(pago => {
                 if (pago.fecha >= startDate && pago.fecha <= endDate) {
                     transacciones.push({
                         fecha: pago.fecha,
                         tipo: 'HOSPEDAJE',
-                        descripcion: `Pago Hab ${reg.habitacion?.numero || 'S/N'} - ${reg.cliente?.nombre || 'Huésped'}`,
+                        descripcion: `Pago Hab ${reg.habitacion?.numero || 'S/N'} - ${clienteObj?.nombre || 'Huésped'}`,
                         usuario: pago.usuario_nombre || reg.usuarioCreacion,
                         medioPago: (pago.medio || 'EFECTIVO').toUpperCase(),
                         monto: pago.monto,
@@ -364,18 +387,14 @@ exports.getCuadreCaja = async (req, res) => {
             });
         });
 
-        // 2. Abonos de Reservas
-        const abonosReservas = await Reserva.find({
-            "abonos.fecha": { $gte: startDate, $lte: endDate }
-        }).populate('cliente', 'nombre');
-
         abonosReservas.forEach(reserva => {
+            const clienteObj = reserva.cliente ? clienteMapCuadre.get(reserva.cliente.toString()) : null;
             reserva.abonos.forEach(abono => {
                 if (abono.fecha >= startDate && abono.fecha <= endDate) {
                     transacciones.push({
                         fecha: abono.fecha,
                         tipo: 'RESERVA',
-                        descripcion: `Abono Reserva - ${reserva.cliente?.nombre || 'Cliente'}`,
+                        descripcion: `Abono Reserva - ${clienteObj?.nombre || 'Cliente'}`,
                         usuario: abono.usuario_nombre || reserva.usuarioCreacion,
                         medioPago: (abono.medio_pago || 'EFECTIVO').toUpperCase(),
                         monto: abono.monto,
