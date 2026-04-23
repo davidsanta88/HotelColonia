@@ -17,6 +17,7 @@ const Clientes = () => {
     const { canEdit, canDelete } = usePermissions('clientes');
     const [clientes, setClientes] = useState([]);
     const [municipios, setMunicipios] = useState([]);
+    const [empresas, setEmpresas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [fechaInicio, setFechaInicio] = useState(format(subMonths(new Date(), 1), 'yyyy-MM-dd'));
@@ -30,6 +31,7 @@ const Clientes = () => {
         telefono: '',
         email: '',
         municipio_origen_id: '',
+        empresa_id: '',
         observaciones: ''
     });
     const [isEditing, setIsEditing] = useState(false);
@@ -57,12 +59,14 @@ const Clientes = () => {
 
     const fetchClientes = async () => {
         try {
-            const [clientesRes, municipiosRes] = await Promise.all([
+            const [clientesRes, municipiosRes, empresasRes] = await Promise.all([
                 api.get('/clientes'),
-                api.get('/municipios')
+                api.get('/municipios'),
+                api.get('/empresas')
             ]);
             setClientes(clientesRes.data);
             setMunicipios(municipiosRes.data);
+            setEmpresas(empresasRes.data);
             setLoading(false);
         } catch (error) {
             console.error('Error fetching clientes:', error);
@@ -76,11 +80,12 @@ const Clientes = () => {
             setCurrentCliente({
                 ...cliente,
                 tipo_documento: cliente.tipo_documento || 'CC',
-                municipio_origen_id: cliente.municipio_origen_id || ''
+                municipio_origen_id: cliente.municipio_origen_id || '',
+                empresa_id: cliente.empresa_id || ''
             });
             setIsEditing(true);
         } else {
-            setCurrentCliente({ nombre: '', documento: '', tipo_documento: 'CC', telefono: '', email: '', municipio_origen_id: '', observaciones: '' });
+            setCurrentCliente({ nombre: '', documento: '', tipo_documento: 'CC', telefono: '', email: '', municipio_origen_id: '', empresa_id: '', observaciones: '' });
             setIsEditing(false);
         }
         setShowModal(true);
@@ -88,7 +93,7 @@ const Clientes = () => {
 
     const handleCloseModal = () => {
         setShowModal(false);
-        setCurrentCliente({ nombre: '', documento: '', tipo_documento: 'CC', telefono: '', email: '', municipio_origen_id: '', observaciones: '' });
+        setCurrentCliente({ nombre: '', documento: '', tipo_documento: 'CC', telefono: '', email: '', municipio_origen_id: '', empresa_id: '', observaciones: '' });
     };
 
     const handleSave = async (e) => {
@@ -326,6 +331,7 @@ const Clientes = () => {
                                 <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">T. Doc</th>
                                 <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Documento</th>
                                 <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Nombre Completo</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Empresa</th>
                                 <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Contacto</th>
                                 <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Origen</th>
                                 <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
@@ -351,6 +357,7 @@ const Clientes = () => {
                                         onChange={(e) => handleFilterChange('nombre', e.target.value)}
                                     />
                                 </th>
+                                <th className="px-6 py-2 border-b border-slate-50"></th>
                                 <th className="px-6 py-2 border-b border-slate-50">
                                     <input 
                                         type="text" 
@@ -384,7 +391,23 @@ const Clientes = () => {
                                     <tr key={cliente.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                                         <td className="p-4 font-medium text-gray-600 font-mono text-sm">{cliente.tipo_documento}</td>
                                         <td className="p-4 font-medium text-gray-800">{cliente.documento}</td>
-                                        <td className="p-4 text-gray-600">{cliente.nombre}</td>
+                                        <td className="p-4">
+                                            <div className="text-gray-800 font-bold">{cliente.nombre}</div>
+                                        </td>
+                                        <td className="p-4">
+                                            {cliente.empresa_nombre && cliente.empresa_nombre !== '-' ? (
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                                                        <Building size={12} />
+                                                    </div>
+                                                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-tight leading-tight">
+                                                        {cliente.empresa_nombre}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-[10px] font-bold text-gray-300 uppercase italic">Particular</span>
+                                            )}
+                                        </td>
                                         <td className="p-4 text-gray-600 text-sm">
                                             <div className="flex items-center gap-2">
                                                 <span>{cliente.telefono || '-'}</span>
@@ -541,6 +564,22 @@ const Clientes = () => {
                                     noOptionsMessage={() => "No se encontró el municipio"}
                                     isClearable
                                 />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Empresa / Convenio</label>
+                                <select
+                                    className="input-field uppercase font-bold text-indigo-600 bg-indigo-50/50"
+                                    value={currentCliente.empresa_id || ''}
+                                    onChange={e => setCurrentCliente({...currentCliente, empresa_id: e.target.value})}
+                                >
+                                    <option value="">-- NINGUNA / PARTICULAR --</option>
+                                    {empresas.map(emp => (
+                                        <option key={emp._id} value={emp._id}>
+                                            {emp.razon_social} (NIT: {emp.nit})
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div>

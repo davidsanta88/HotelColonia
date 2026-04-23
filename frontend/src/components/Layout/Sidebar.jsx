@@ -28,7 +28,8 @@ import {
     TrendingUp,
     Building2,
     Wallet,
-    FileText
+    FileText,
+    Mail
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -53,11 +54,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { name: 'Productos Tienda', path: '/inventario', icon: <Package size={20} />, code: 'inventario' },
                 { name: 'Reservas a Futuro', path: '/reservas', icon: <CalendarCheck size={20} />, code: 'reservas' },
                 { name: 'Clientes', path: '/clientes', icon: <Users size={20} />, code: 'clientes' },
+                { name: 'Empresas', path: '/empresas', icon: <Building2 size={20} />, code: 'configuracion' },
                 { name: 'Gastos e Ingresos', path: '/gastos', icon: <TrendingDown size={20} />, code: 'gastos' },
                 { name: 'Solicitudes Reserva', path: '/solicitudes', icon: <Bell size={20} />, code: 'solicitudes' },
                 { name: 'Mantenimiento', path: '/mantenimiento', icon: <Wrench size={20} />, code: 'mantenimiento' },
-                { name: 'Aseo Diario', path: '/aseo', icon: <Brush size={20} />, code: 'mantenimiento' },
-                { name: 'Auditoría Limpieza', path: '/auditoria-limpieza', icon: <ShieldCheck size={20} />, code: 'configuracion' }
+                { name: 'Aseo Diario', path: '/aseo', icon: <Brush size={20} />, code: 'aseo' },
+                { name: 'Auditoría Limpieza', path: '/auditoria-limpieza', icon: <ShieldCheck size={20} />, code: 'aseo' }
             ]
         },
         {
@@ -71,8 +73,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             items: [
                 { name: 'Notas y Alertas', path: '/notas', icon: <StickyNote size={20} />, code: 'notas' },
                 { name: 'Reportes', path: '/reportes', icon: <PieChart size={20} />, code: 'reportes' },
-                { name: 'Cuadre de Caja', path: '/cuadre-caja', icon: <Wallet size={20} />, code: 'reportes' },
-                { name: 'Cotizaciones', path: '/cotizaciones', icon: <FileText size={20} />, code: 'reportes' },
+                { name: 'Cuadre de Caja', path: '/cuadre-caja', icon: <Wallet size={20} />, code: 'cuadre_caja' },
+                { name: 'Cotizaciones', path: '/cotizaciones', icon: <FileText size={20} />, code: 'cotizaciones' },
+                { name: 'Invitación Religiosa', path: '/invitacion-religiosa', icon: <Mail size={20} />, code: 'invitacion' },
                 { name: 'Estadísticas Avanzadas', path: '/estadisticas', icon: <TrendingUp size={20} />, code: 'estadisticas' },
                 { name: 'Comparativa Hoteles', path: '/comparativa', icon: <LayoutDashboard size={20} />, code: 'estadisticas' },
                 { name: 'Medios de Pago', path: '/medios-pago', icon: <CreditCard size={20} />, code: 'medios_pago' },

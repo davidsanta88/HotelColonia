@@ -21,6 +21,11 @@ const SLIDES = [
         sub: 'El monumento más icónico de la región, visible desde nuestro hotel',
     },
     {
+        img: '/castillo_cafe.png',
+        title: 'Castillo del Café',
+        sub: 'Descubre el hermoso Castillo del Café en Belalcázar, Caldas',
+    },
+    {
         img: '/hotel_hab1.jpg',
         title: 'Hermosas Habitaciones',
         sub: 'Confort y descanso con el mejor estilo cafetero',

@@ -125,6 +125,7 @@ app.use('/api/tipos-registro', require('./routes/tiposRegistro'));
 app.use('/api/notas', require('./routes/notas'));
 app.use('/api/ventas', require('./routes/ventas'));
 app.use('/api/clientes', require('./routes/clientes'));
+app.use('/api/empresas', require('./routes/empresas'));
 app.use('/api/estados-habitacion', require('./routes/estadosHabitacion'));
 app.use('/api/inventario', require('./routes/inventario'));
 app.use('/api/reportes', require('./routes/reportes'));

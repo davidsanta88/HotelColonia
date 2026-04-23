@@ -29,6 +29,7 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
     const [municipios, setMunicipios] = useState([]);
     const [mediosPago, setMediosPago] = useState([]);
     const [tiposRegistro, setTiposRegistro] = useState([]);
+    const [empresas, setEmpresas] = useState([]);
     const [clienteSearch, setClienteSearch] = useState('');
     const [selectedCliente, setSelectedCliente] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -52,12 +53,10 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
 
     const [huespedesList, setHuespedesList] = useState([]);
     const [guestForm, setGuestForm] = useState({ 
-        nombre: '', 
-        documento: '', 
-        tipo_documento: 'CC', 
         telefono: '', 
         email: '', 
-        municipio_origen_id: '' 
+        municipio_origen_id: '',
+        empresa_id: ''
     });
 
     useEffect(() => {
@@ -73,7 +72,8 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
                 tipo_documento: 'CC', 
                 telefono: '', 
                 email: '', 
-                municipio_origen_id: '' 
+                municipio_origen_id: '',
+                empresa_id: ''
             });
             setFormData({
                 habitacion_id: initialHabitacionId || '',
@@ -138,7 +138,8 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
                     tipo_documento: cli.tipo_documento || 'CC',
                     telefono: cli.telefono || '',
                     email: cli.email || '',
-                    municipio_origen_id: cli.municipio_origen_id || ''
+                    municipio_origen_id: cli.municipio_origen_id || '',
+                    empresa_id: cli.empresa_id || ''
                 };
                 setHuespedesList([newGuest]);
                 
@@ -167,13 +168,15 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
                 api.get('/clientes'),
                 api.get('/municipios'),
                 api.get('/medios-pago'),
-                api.get('/tipos-registro')
+                api.get('/tipos-registro'),
+                api.get('/empresas')
             ]);
             setHabitaciones(resHab.data);
             setClientes(resClientes.data);
             setMunicipios(resMuni.data);
             setMediosPago(resMedios.data);
             setTiposRegistro(resTipos.data);
+            setEmpresas(empresasRes.data);
             
             // Si hay un ID inicial y tipos de registro, preseleccionar NORMAL por defecto
             if (resTipos.data.length > 0) {
@@ -235,7 +238,8 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
             tipo_documento: cliente.tipo_documento || 'CC',
             telefono: cliente.telefono || '',
             email: cliente.email || '',
-            municipio_origen_id: cliente.municipio_origen_id || ''
+            municipio_origen_id: cliente.municipio_origen_id || '',
+            empresa_id: cliente.empresa_id || ''
         });
         setClienteSearch('');
     };
@@ -249,7 +253,7 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
         }
         
         setHuespedesList(prev => [...prev, guestForm]);
-        setGuestForm({ nombre: '', documento: '', tipo_documento: 'CC', telefono: '', email: '', municipio_origen_id: '' });
+        setGuestForm({ nombre: '', documento: '', tipo_documento: 'CC', telefono: '', email: '', municipio_origen_id: '', empresa_id: '' });
         setSelectedCliente(null);
     };
 
@@ -475,12 +479,28 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
                                                 <Plus size={18} />
                                             </button>
                                         </div>
+                                        <div className="sm:col-span-2">
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-1 mb-1 block">Empresa / Convenio</label>
+                                            <div className="relative">
+                                                <Building size={14} className="absolute left-3 top-2.5 text-gray-300" />
+                                                <select 
+                                                    className="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-xs font-bold focus:border-emerald-500 outline-none uppercase text-indigo-600" 
+                                                    value={guestForm.empresa_id || ''} 
+                                                    onChange={e => setGuestForm({...guestForm, empresa_id: e.target.value})}
+                                                >
+                                                    <option value="">-- NINGUNA / PARTICULAR --</option>
+                                                    {empresas.map(emp => (
+                                                        <option key={emp._id} value={emp._id}>{emp.razon_social}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
                                     {selectedCliente && (
                                         <div className="flex items-center gap-2 px-3 py-2 bg-emerald-100/50 rounded-xl border border-emerald-100">
                                             <CheckCircle size={14} className="text-emerald-600" />
                                             <span className="text-[9px] font-bold text-emerald-600 uppercase">Cliente cargado del sistema</span>
-                                            <button type="button" onClick={() => { setSelectedCliente(null); setGuestForm({ nombre: '', documento: '', tipo_documento: 'CC', telefono: '', email: '', municipio_origen_id: '' }); }} className="ml-auto text-[9px] font-black text-gray-400 hover:text-red-500 uppercase tracking-tighter">Limpiar</button>
+                                            <button type="button" onClick={() => { setSelectedCliente(null); setGuestForm({ nombre: '', documento: '', tipo_documento: 'CC', telefono: '', email: '', municipio_origen_id: '', empresa_id: '' }); }} className="ml-auto text-[9px] font-black text-gray-400 hover:text-red-500 uppercase tracking-tighter">Limpiar</button>
                                         </div>
                                     )}
                                 </div>
@@ -497,6 +517,11 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
                                                     <div className="text-xs font-black text-gray-800 flex items-center gap-2">
                                                         {h.nombre}
                                                         {idx === 0 && <span className="text-[7px] bg-emerald-100 text-emerald-700 px-1 rounded-sm uppercase tracking-widest">Titular</span>}
+                                                        {h.empresa_id && (
+                                                            <span className="text-[7px] bg-indigo-100 text-indigo-700 px-1 rounded-sm uppercase tracking-widest">
+                                                                {empresas.find(e => String(e._id) === String(h.empresa_id))?.razon_social}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     <div className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">Doc: {h.documento}</div>
                                                 </div>

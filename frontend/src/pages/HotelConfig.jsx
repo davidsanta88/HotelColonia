@@ -250,6 +250,107 @@ const HotelConfig = () => {
                         </div>
                         <p className="mt-2 text-[10px] text-slate-400 font-medium italic">* Este mensaje aparecerá como despedida en el pie de página de los vouchers.</p>
                     </div>
+
+                    {/* SECCIÓN ADMINISTRADOR (FIRMA) */}
+                    <div className="md:col-span-2 mt-4">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="h-px flex-1 bg-slate-100"></div>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Datos del Firmante (Administrador)</span>
+                            <div className="h-px flex-1 bg-slate-100"></div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                                <label className="block text-xs font-black text-slate-400 uppercase mb-2 ml-1">Nombre del Administrador</label>
+                                <input
+                                    type="text"
+                                    name="adminNombre"
+                                    value={config.adminNombre}
+                                    onChange={handleChange}
+                                    className="block w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm font-bold text-slate-700"
+                                />
+                            </div>
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                                <label className="block text-xs font-black text-slate-400 uppercase mb-2 ml-1">Celular del Administrador</label>
+                                <input
+                                    type="text"
+                                    name="adminCelular"
+                                    value={config.adminCelular}
+                                    onChange={handleChange}
+                                    className="block w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm font-bold text-slate-700"
+                                />
+                            </div>
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                                <label className="block text-xs font-black text-slate-400 uppercase mb-2 ml-1">Cédula / Documento</label>
+                                <input
+                                    type="text"
+                                    name="adminDocumento"
+                                    value={config.adminDocumento}
+                                    onChange={handleChange}
+                                    className="block w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm font-bold text-slate-700"
+                                />
+                            </div>
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                                <label className="block text-xs font-black text-slate-400 uppercase mb-2 ml-1">Correo Administrativo</label>
+                                <input
+                                    type="text"
+                                    name="adminCorreo"
+                                    value={config.adminCorreo}
+                                    onChange={handleChange}
+                                    className="block w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm font-bold text-slate-700"
+                                />
+                            </div>
+
+                            {/* Firma Digital */}
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 md:col-span-2">
+                                <label className="block text-xs font-black text-slate-400 uppercase mb-4 ml-1">Imagen de la Firma Digital</label>
+                                <div className="flex flex-col md:flex-row items-center gap-6">
+                                    <div className="w-48 h-24 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden shadow-inner">
+                                        {config.firmaUrl ? (
+                                            <img src={config.firmaUrl} alt="Firma" className="max-w-full max-h-full object-contain p-2" />
+                                        ) : (
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Sin Firma</span>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 space-y-3">
+                                        <input
+                                            type="file"
+                                            id="firma-upload"
+                                            className="hidden"
+                                            accept="image/*"
+                                            onChange={async (e) => {
+                                                const file = e.target.files[0];
+                                                if (!file) return;
+                                                
+                                                const formData = new FormData();
+                                                formData.append('firma', file);
+                                                
+                                                try {
+                                                    Swal.fire({ title: 'Subiendo firma...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                                                    const res = await api.post('/hotel-config/upload-firma', formData, {
+                                                        headers: { 'Content-Type': 'multipart/form-data' }
+                                                    });
+                                                    setConfig(prev => ({ ...prev, firmaUrl: res.data.firmaUrl }));
+                                                    Swal.fire('Éxito', 'Firma actualizada correctamente', 'success');
+                                                } catch (err) {
+                                                    Swal.fire('Error', 'No se pudo subir la firma', 'error');
+                                                }
+                                            }}
+                                        />
+                                        <label
+                                            htmlFor="firma-upload"
+                                            className="inline-flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase cursor-pointer hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
+                                        >
+                                            <FileText size={16} />
+                                            Subir Foto de Firma
+                                        </label>
+                                        <p className="text-[10px] text-slate-400 font-medium">Recomendado: Fondo blanco o transparente, formato PNG o JPG.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 {/* Checklist de Auditoría */}

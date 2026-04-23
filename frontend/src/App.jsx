@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Rooms from './pages/Rooms';
 import Registros from './pages/Registros';
 import Clientes from './pages/Clientes';
+import Empresas from './pages/Empresas';
 import Municipios from './pages/Municipios';
 import TiposHabitacion from './pages/TiposHabitacion';
 import EstadosHabitacion from './pages/EstadosHabitacion';
@@ -35,6 +36,7 @@ import CuadreCaja from './pages/CuadreCaja';
 import AuditoriaLimpieza from './pages/AuditoriaLimpieza';
 import ComparativaHoteles from './pages/ComparativaHoteles';
 import Cotizaciones from './pages/Cotizaciones';
+import InvitacionReligiosa from './pages/InvitacionReligiosa';
 import Layout from './components/Layout/Layout';
 
 const PrivateRoute = ({ children, roles, code }) => {
@@ -74,6 +76,7 @@ const AppRoutes = () => {
                 <Route path="habitaciones" element={<PrivateRoute code="habitaciones"><Rooms /></PrivateRoute>} />
                 <Route path="registros" element={<PrivateRoute code="registros"><Registros /></PrivateRoute>} />
                 <Route path="clientes" element={<PrivateRoute code="clientes"><Clientes /></PrivateRoute>} />
+                <Route path="empresas" element={<PrivateRoute code="configuracion"><Empresas /></PrivateRoute>} />
                 <Route path="municipios" element={<PrivateRoute code="municipios"><Municipios /></PrivateRoute>} />
                 <Route path="tipos-habitaciones" element={<PrivateRoute code="tipos_habitaciones"><TiposHabitacion /></PrivateRoute>} />
                 <Route path="estados-habitaciones" element={<PrivateRoute code="estados_habitaciones"><EstadosHabitacion /></PrivateRoute>} />
@@ -99,6 +102,7 @@ const AppRoutes = () => {
                 <Route path="estadisticas" element={<PrivateRoute><Estadisticas /></PrivateRoute>} />
                 <Route path="comparativa" element={<PrivateRoute><ComparativaHoteles /></PrivateRoute>} />
                 <Route path="cotizaciones" element={<PrivateRoute code="reportes"><Cotizaciones /></PrivateRoute>} />
+                <Route path="invitacion-religiosa" element={<PrivateRoute code="reportes"><InvitacionReligiosa /></PrivateRoute>} />
                 <Route path="config" element={<PrivateRoute code="configuracion"><HotelConfig /></PrivateRoute>} />
             </Route>
             <Route path="/checkin" element={<CheckinPublico />} />

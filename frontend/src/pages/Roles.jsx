@@ -14,10 +14,15 @@ const TODOS_LOS_PERMISOS = [
     { id: 'tienda', nombre: 'Tienda (Punto de Venta)' },
     { id: 'inventario', nombre: 'Inventario de Tienda' },
     { id: 'reservas', nombre: 'Reservas a Futuro' },
+    { id: 'solicitudes', nombre: 'Solicitudes de Reserva' },
     { id: 'gastos', nombre: 'Registro de Gastos' },
     { id: 'categorias_productos', nombre: 'Categorías de Productos' },
     { id: 'categorias_gastos', nombre: 'Categorías de Gastos' },
     { id: 'reportes', nombre: 'Generador de Reportes' },
+    { id: 'cotizaciones', nombre: 'Cotizaciones Profesionales' },
+    { id: 'invitacion', nombre: 'Invitaciones Religiosas' },
+    { id: 'cuadre_caja', nombre: 'Cuadre de Caja' },
+    { id: 'notas', nombre: 'Notas y Alertas' },
     { id: 'medios_pago', nombre: 'Medios de Pago' },
     { id: 'municipios', nombre: 'Orígenes y Municipios' },
     { id: 'usuarios', nombre: 'Personal y Accesos' },
@@ -25,7 +30,9 @@ const TODOS_LOS_PERMISOS = [
     { id: 'mantenimiento', nombre: 'Mantenimiento y Reparaciones' },
     { id: 'checkin_digital', nombre: 'Check-in Digital QR' },
     { id: 'estadisticas', nombre: 'Estadísticas Avanzadas' },
-    { id: 'roles_permisos', nombre: 'Configuración de Roles' }
+    { id: 'roles_permisos', nombre: 'Configuración de Roles' },
+    { id: 'configuracion', nombre: 'Información del Hotel (Config)' },
+    { id: 'notificaciones', nombre: 'Notificaciones del Sistema' }
 ];
 
 const Roles = () => {

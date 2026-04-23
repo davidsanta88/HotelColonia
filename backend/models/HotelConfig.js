@@ -43,6 +43,27 @@ const HotelConfigSchema = new mongoose.Schema({
         type: String,
         default: '¡Gracias por su preferencia!'
     },
+    // Datos del Administrador para documentos
+    adminNombre: {
+        type: String,
+        default: 'David Fernando Santa Ospina'
+    },
+    adminCelular: {
+        type: String,
+        default: '316 279 9224'
+    },
+    adminDocumento: {
+        type: String,
+        default: '12.345.678'
+    },
+    adminCorreo: {
+        type: String,
+        default: 'administracion@hotelbalconplaza.com'
+    },
+    firmaUrl: {
+        type: String,
+        default: null
+    },
     checklistAuditoria: {
         type: [String],
         default: ['Baños', 'Paredes', 'Vidrios', 'Balcones', 'Camas', 'Pisos', 'Iluminación']

@@ -2,7 +2,7 @@ const Cliente = require('../models/Cliente');
 
 exports.getClientes = async (req, res) => {
     try {
-        const clientes = await Cliente.find().populate('municipio_origen_id', 'nombre').sort({ fechaCreacion: -1 });
+        const clientes = await Cliente.find().populate('municipio_origen_id', 'nombre').populate('empresa_id', 'razon_social').sort({ fechaCreacion: -1 });
         const mappedClientes = [];
         for (const cRaw of clientes) {
             const c = cRaw.toObject ? cRaw.toObject() : cRaw;
@@ -35,6 +35,8 @@ exports.getClientes = async (req, res) => {
                 municipio_origen_id: munObj?._id || munObj || null,
                 municipio_nombre: municipio_nombre,
                 ciudad_nombre: municipio_nombre,
+                empresa_id: c.empresa_id?._id || c.empresa_id || null,
+                empresa_nombre: c.empresa_id?.razon_social || '-',
                 UsuarioCreacion: c.usuarioCreacion || c.UsuarioCreacion || 'Sistema',
                 usuarioCreacion: c.usuarioCreacion || c.UsuarioCreacion || 'Sistema',
                 FechaCreacion: c.fechaCreacion || c.FechaCreacion,
@@ -77,6 +79,7 @@ exports.createCliente = async (req, res) => {
             telefono,
             email,
             municipio_origen_id: originId,
+            empresa_id: payload.empresa_id || null,
             usuarioCreacion: req.userName || 'Sistema',
             fechaCreacion: Date.now()
         });
@@ -104,6 +107,7 @@ exports.updateCliente = async (req, res) => {
         
         let originId = payload.municipio_origen_id || payload.ciudad || payload.municipio_id;
         cliente.municipio_origen_id = (originId === '' || !originId) ? null : originId;
+        cliente.empresa_id = payload.empresa_id || null;
         
         cliente.usuarioModificacion = req.userName || 'Sistema';
         cliente.fechaModificacion = Date.now();
