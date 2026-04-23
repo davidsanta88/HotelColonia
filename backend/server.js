@@ -75,13 +75,13 @@ app.use((req, res, next) => {
 const { verifyToken } = require('./middleware/auth');
 
 // Root route for initial health check
-app.get('/', (req, res) => res.send('Hotel System API is running (v1.2.11)'));
+app.get('/', (req, res) => res.send('Hotel System API is running (v1.2.12)'));
 
 // Ping route for deployment verification (Versioned)
 app.get('/api/ping', (req, res) => {
     res.json({ 
         status: 'UP', 
-        version: '1.2.11 (Ultimate Compatibility)', 
+        version: '1.2.12 (Model Registration Fix)', 
         time: new Date().toISOString(),
         cloudinary: {
             url: process.env.CLOUDINARY_URL ? 'PRESENT' : 'MISSING',
