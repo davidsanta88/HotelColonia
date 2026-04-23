@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
-import { Plus, Edit2, Trash2, Search, MessageSquare, FileSpreadsheet, FileText, UserPlus, Phone, Mail, MapPin, Calendar, Filter } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, MessageSquare, FileSpreadsheet, FileText, UserPlus, Phone, Mail, MapPin, Calendar, Filter, Building } from 'lucide-react';
 import Select from 'react-select';
 import Swal from 'sweetalert2';
 import { format, subMonths, startOfDay, endOfDay, isWithinInterval, parseISO } from 'date-fns';

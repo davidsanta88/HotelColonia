@@ -18,7 +18,8 @@ import {
     Phone,
     Mail,
     MapPin,
-    Loader2
+    Loader2,
+    Building
 } from 'lucide-react';
 import Select from 'react-select';
 import { formatCurrency, cleanNumericValue } from '../../utils/format';
@@ -163,7 +164,7 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
     const fetchInitialData = async () => {
         setLoading(true);
         try {
-            const [resHab, resClientes, resMuni, resMedios, resTipos] = await Promise.all([
+            const [resHab, resClientes, resMuni, resMedios, resTipos, resEmpresas] = await Promise.all([
                 api.get('/habitaciones'),
                 api.get('/clientes'),
                 api.get('/municipios'),
@@ -176,7 +177,7 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
             setMunicipios(resMuni.data);
             setMediosPago(resMedios.data);
             setTiposRegistro(resTipos.data);
-            setEmpresas(empresasRes.data);
+            setEmpresas(resEmpresas.data);
             
             // Si hay un ID inicial y tipos de registro, preseleccionar NORMAL por defecto
             if (resTipos.data.length > 0) {
