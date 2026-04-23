@@ -33,7 +33,7 @@ const InvitacionReligiosa = () => {
     };
 
     const handleWhatsAppShare = () => {
-        const message = `✨ *INVITACIÓN ESPECIAL* ✨\n\nCordial saludo,\n\nEn nombre de *Hotel Balcón Colonial* y *Hotel Balcón Plaza*, nos complace compartirles esta invitación especial para vivir una experiencia única de fe y turismo en el majestuoso *Cristo Rey de Belalcázar*, Caldas. 🏔️🙏\n\nDisfrute de los mejores paisajes del Eje Cafetero y la mejor hospitalidad con nosotros.\n\n📍 Belalcázar, Caldas\n📱 Más info: ${hotelConfig?.adminCelular || '316 279 9224'}\n\n*¡Los esperamos para vivir una experiencia inolvidable!*`;
+        const message = `✨ *INVITACIÓN ESPECIAL* ✨\n\nCordial saludo,\n\nEn nombre de *Hotel Balcón Colonial* y *Hotel Balcón Plaza*, nos complace compartirles esta invitación especial para vivir una experiencia única de fe y turismo en el majestuoso *Cristo Rey de Belalcázar*, Caldas. 🏔️🙏\n\nDisfrute de los mejores paisajes del Eje Cafetero y la mejor hospitalidad con nosotros.\n\n📍 Belalcázar, Caldas\n📱 Más info: ${hotelConfig?.adminCelular || '316 279 9224'}\n\n*¡Los esperamos para vivir una experiencia inolvidable!* Para mayor detalle vea el siguiente video: https://www.youtube.com/shorts/ec5zd524VOI?si=xZLtkY5gMhRhWtGJ`;
         
         const encodedMessage = encodeURIComponent(message);
         window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
@@ -93,6 +93,17 @@ const InvitacionReligiosa = () => {
             const primaryColor = [28, 15, 5]; // Café oscuro elegante
             const redColor = [204, 0, 0];    // Rojo
             const blueColor = [0, 51, 153];  // Azul
+
+            try {
+                // Background Image (Cristo de Belalcázar)
+                const bgImg = '/bg_cristo.png';
+                // Añadir imagen de fondo con opacidad baja
+                doc.saveGraphicsState();
+                const gState = { opacity: 0.12 }; // Opacidad ajustada para la foto real
+                doc.setGState(new doc.GState(gState));
+                doc.addImage(bgImg, 'PNG', 0, 0, 216, 279); // Tamaño carta aproximado en mm
+                doc.restoreGraphicsState();
+            } catch (e) { console.error("Error background image", e); }
 
             // --- LOGOS ---
             try {
@@ -179,8 +190,27 @@ const InvitacionReligiosa = () => {
             const p1_rest = 'extenderles una cordial invitación a vivir una experiencia única de fe, reflexión y turismo en nuestro hermoso municipio de Belalcázar, Caldas.';
             currentY += justifyText(p1_rest, contentX, currentY, 175, 6) + 4;
 
-            const text2 = 'Nuestro municipio es reconocido por albergar el imponente Cristo Rey de Belalcázar, un majestuoso monumento que se levanta como símbolo de esperanza, espiritualidad y encuentro con Dios. Este lugar no solo es un referente religioso de gran importancia, sino también un destino turístico privilegiado que ofrece una vista panorámica incomparable del paisaje cafetero colombiano.';
-            currentY += justifyText(text2, contentX, currentY, 175, 6) + 4;
+            const text2 = 'Nuestro municipio es reconocido por albergar el imponente Cristo Rey de Belalcázar, un majestuoso monumento que se levanta como símbolo de esperanza, espiritualidad y encuentro con Dios. Este lugar no solo es un referente religioso de gran importancia, sino también un destino turístico privilegiado que ofrece una vista panorámica incomparable del paisaje caldense colombiano.';
+            currentY += justifyText(text2, contentX, currentY, 175, 6) + 6;
+
+            // --- NUEVA SECCIÓN: UNA VISTA QUE ENAMORA ---
+            doc.setFillColor(blueColor[0], blueColor[1], blueColor[2]);
+            doc.circle(contentX + 5, currentY + 3, 5, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.text('V', contentX + 5, currentY + 4.5, { align: 'center' }); // Placeholder para el icono de ojo
+            
+            doc.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.text('UNA VISTA QUE ENAMORA DESDE LO MÁS ALTO', contentX + 12, currentY + 4);
+            currentY += 8;
+            
+            doc.setTextColor(40, 40, 40);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+            const textExtra = 'El Cristo Rey de Belalcázar cuenta con un mirador al nivel de sus ojos al cual se puede acceder mediante una cómoda escalera interna (aprox. 140 escalones). Desde allí, se obtiene una vista 360° que permite divisar varios municipios de los departamentos de Caldas, Risaralda y Valle del Cauca, así como los majestuosos ríos Cauca y Risaralda, que serpentean entre montañas y valles llenos de vida.';
+            currentY += justifyText(textExtra, contentX + 12, currentY, 163, 5) + 6;
 
             doc.text('Visitar el Cristo de Belalcázar es vivir una experiencia integral, donde los grupos pueden disfrutar de:', contentX, currentY);
             currentY += 8;
@@ -189,7 +219,7 @@ const InvitacionReligiosa = () => {
                 'Espacios propicios para la oración, reflexión y fortalecimiento espiritual.',
                 'Caminatas y recorridos hacia el monumento, ideales para la integración de grupos.',
                 'Conocer el Hermoso Castillo del Café, un lugar mágico que rinde tributo a nuestra cultura.',
-                'Contacto con la cultura cafetera y la calidez de nuestra gente.',
+                'Contacto con la cultura caldense y la calidez de nuestra gente.',
                 'Paisajes únicos que invitan al descanso, la contemplación y la renovación interior.'
             ];
 
