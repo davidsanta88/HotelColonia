@@ -15,7 +15,7 @@ const InvitacionReligiosa = () => {
         asunto: 'Invitación especial a visitar el Cristo de Belalcázar'
     });
 
-    useState(() => {
+    useEffect(() => {
         const fetchConfig = async () => {
             try {
                 const res = await api.get('/hotel-config');
