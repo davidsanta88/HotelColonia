@@ -392,7 +392,7 @@ const Gastos = () => {
                                         className="input-field"
                                         placeholder={current.tipo === 'Ingreso' ? "Ej. Cobro Lavandería..." : "Ej. Factura de Luz..."}
                                         value={current.concepto}
-                                        onChange={e => setCurrent({...current, concepto: e.target.value})}
+                                        onChange={e => setCurrent({...current, concepto: e.target.value.toUpperCase()})}
                                     />
                                 </div>
                                 <div className="w-full sm:w-1/3">
@@ -461,7 +461,7 @@ const Gastos = () => {
                                     className="input-field h-20 resize-none text-sm"
                                     placeholder="Detalles sobre este movimiento, referencias, número de factura..."
                                     value={current.notas}
-                                    onChange={e => setCurrent({...current, notas: e.target.value})}
+                                    onChange={e => setCurrent({...current, notas: e.target.value.toUpperCase()})}
                                 />
                             </div>
 

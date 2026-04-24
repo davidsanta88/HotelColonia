@@ -62,10 +62,10 @@ const gastosController = {
             }
 
             const newGasto = new Gasto({
-                descripcion: concepto,
+                descripcion: concepto ? concepto.toUpperCase() : concepto,
                 categoria: categoria_id,
                 monto: parseFloat(monto) || 0,
-                observaciones: notas,
+                observaciones: notas ? notas.toUpperCase() : notas,
                 fecha: finalFecha,
                 usuario: req.userId,
                 medioPago: medioPago || 'EFECTIVO',
@@ -84,8 +84,8 @@ const gastosController = {
             const updateData = { ...req.body };
             
             // Mapeo de campos si vienen del frontend con nombres distintos
-            if (updateData.concepto) updateData.descripcion = updateData.concepto;
-            if (updateData.notas) updateData.observaciones = updateData.notas;
+            if (updateData.concepto) updateData.descripcion = updateData.concepto.toUpperCase();
+            if (updateData.notas) updateData.observaciones = updateData.notas.toUpperCase();
             if (updateData.fecha_gasto) {
                 const now = new Date();
                 const timeStr = now.toLocaleTimeString('en-GB', { hour12: false, timeZone: 'America/Bogota' });
