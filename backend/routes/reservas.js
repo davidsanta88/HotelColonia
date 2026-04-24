@@ -6,7 +6,8 @@ const { verifyToken } = require('../middleware/auth');
 
 router.use(verifyToken);
 
-router.get('/', reservasController.getAllReservas);
+router.get('/cross-availability', reservasController.getCrossHotelAvailability);
+router.get('/', reservasController.getReservas);
 router.get('/:id', reservasController.getReservaById);
 router.post('/', reservasController.createReserva);
 router.put('/:id', reservasController.updateReserva);

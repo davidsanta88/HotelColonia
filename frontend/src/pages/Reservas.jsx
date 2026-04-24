@@ -7,7 +7,7 @@ import moment from 'moment';
 import 'moment/locale/es';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import Select from 'react-select';
-import { Plus, Calendar as CalendarIcon, List, Search, Save, X, Trash2, CheckCircle, AlertCircle, Edit2, MessageSquare, Eye, DollarSign, Map, LogIn, Users, Printer } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, List, Search, Save, X, Trash2, CheckCircle, AlertCircle, Edit2, MessageSquare, Eye, DollarSign, Map, LogIn, Users, Printer, RefreshCw, Hotel, ArrowUpRight, Zap } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { usePermissions } from '../hooks/usePermissions';
 import { formatCurrency, cleanNumericValue } from '../utils/format';
@@ -38,6 +38,15 @@ const Reservas = () => {
     const [abonoLoading, setAbonoLoading] = useState(false);
     const [showRegistroModal, setShowRegistroModal] = useState(false);
     const [selectedHabitacionId, setSelectedHabitacionId] = useState(null);
+    
+    // Cross-hotel availability states
+    const [showCrossModal, setShowCrossModal] = useState(false);
+    const [crossLoading, setCrossLoading] = useState(false);
+    const [crossResults, setCrossResults] = useState(null);
+    const [crossDates, setCrossDates] = useState({
+        entrada: moment().format('YYYY-MM-DD'),
+        salida: moment().add(1, 'days').format('YYYY-MM-DD')
+    });
     
     // Estados para búsqueda y paginación
     const [searchTerm, setSearchTerm] = useState('');
@@ -399,6 +408,19 @@ const Reservas = () => {
         }
     };
 
+    const fetchCrossAvailability = async () => {
+        setCrossLoading(true);
+        try {
+            const res = await api.get(`/reservas/cross-availability?fecha_entrada=${crossDates.entrada}&fecha_salida=${crossDates.salida}`);
+            setCrossResults(res.data);
+            setShowCrossModal(true);
+        } catch (err) {
+            Swal.fire('Error', err.response?.data?.message || 'No se pudo consultar el otro hotel', 'error');
+        } finally {
+            setCrossLoading(false);
+        }
+    };
+
     const resetForm = () => {
         setFormData({
             id: null,
@@ -511,13 +533,23 @@ const Reservas = () => {
                     </button>
 
                     {canEdit && (
-                        <button 
-                            onClick={() => setShowModal(true)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white font-bold text-sm shadow-md hover:bg-emerald-600 transition-all"
-                        >
-                            <Plus size={18} />
-                            Nueva Reserva
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={fetchCrossAvailability}
+                                disabled={crossLoading}
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-600 font-bold text-sm border border-blue-100 hover:bg-blue-100 transition-all disabled:opacity-50"
+                            >
+                                {crossLoading ? <RefreshCw className="animate-spin" size={18} /> : <Hotel size={18} />}
+                                Disponibilidad Colonial
+                            </button>
+                            <button 
+                                onClick={() => setShowModal(true)}
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white font-bold text-sm shadow-md hover:bg-emerald-600 transition-all"
+                            >
+                                <Plus size={18} />
+                                Nueva Reserva
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>

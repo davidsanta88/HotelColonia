@@ -101,8 +101,20 @@ export const generateVoucher = async (data) => {
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(100, 116, 139);
         doc.text(`NIT: ${hotelInfo.nit} | TEL: ${hotelInfo.telefono}`, pageWidth / 2, headerY + 5, { align: 'center' });
-        doc.text(`${hotelInfo.direccion}`, pageWidth / 2, headerY + 9, { align: 'center' });
+        doc.text(`${hotelInfo.direccion} | EMAIL: ${hotelInfo.correo}`, pageWidth / 2, headerY + 9, { align: 'center' });
         doc.text(`${hotelInfo.sitioWeb}`, pageWidth / 2, headerY + 13, { align: 'center' });
+
+        // FONDO: Cristo de Belalcázar (Marca de agua)
+        try {
+            const { dataURL } = await loadImage('/bg_cristo.png');
+            doc.saveGraphicsState();
+            // Muy transparente para no afectar legibilidad
+            doc.setGState(new doc.GState({ opacity: 0.12 })); 
+            doc.addImage(dataURL, 'PNG', (pageWidth / 2) - 65, 70, 130, 160);
+            doc.restoreGraphicsState();
+        } catch (e) {
+            console.warn("Fondo Cristo warning:", e.message);
+        }
  
         doc.setDrawColor(226, 232, 240);
         doc.line(margin, headerY + 18, pageWidth - margin, headerY + 18);

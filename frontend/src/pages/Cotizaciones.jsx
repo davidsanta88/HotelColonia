@@ -232,7 +232,13 @@ const Cotizaciones = () => {
                 </button>
 
                 {/* COTIZACION PRINTABLE VIEW */}
-                <div className="bg-white p-8 md:p-16 shadow-2xl border border-slate-100 print:shadow-none print:border-none print:p-0">
+                <div className="bg-white p-8 md:p-16 shadow-2xl border border-slate-100 print:shadow-none print:border-none print:p-0 relative overflow-hidden">
+                    {/* Imagen de fondo para impresión (Cristo de Belalcázar) */}
+                    <img 
+                        src="/bg_cristo.png" 
+                        alt="" 
+                        className="hidden print:block absolute top-0 -right-20 w-full h-full object-contain opacity-[0.18] -z-10 pointer-events-none"
+                    />
                     {/* Header: Logo and Basic Hotel Info */}
                     <div className="flex flex-row justify-between items-center gap-8 mb-12 border-b-2 border-slate-900 pb-8">
                         <div className="flex flex-row items-center gap-6">

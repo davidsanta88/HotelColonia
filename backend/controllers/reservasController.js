@@ -1,6 +1,23 @@
+const mongoose = require('mongoose');
 const Reserva = require('../models/Reserva');
 const Habitacion = require('../models/Habitacion');
 const Cliente = require('../models/Cliente'); // Asegurar registro
+const TipoHabitacion = require('../models/TipoHabitacion');
+
+// Configuración para la conexión al Hotel Hermano (Colonial)
+const COLONIAL_URI = 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
+let colonialConn = null;
+
+const getColonialModels = async () => {
+    if (!colonialConn || colonialConn.readyState !== 1) {
+        colonialConn = await mongoose.createConnection(COLONIAL_URI).asPromise();
+    }
+    return {
+        Habitacion: colonialConn.model('Habitacion', Habitacion.schema),
+        Reserva: colonialConn.model('Reserva', Reserva.schema),
+        TipoHabitacion: colonialConn.model('TipoHabitacion', TipoHabitacion.schema)
+    };
+};
 
 // Helper to check for overlapping reservations
 const verificarDisponibilidad = async (habitacionesIds, fechaEntrada, fechaSalida, excludeReservaId = null) => {
@@ -36,7 +53,7 @@ exports.getReservas = async (req, res) => {
         
         // Población manual de clientes (desde sharedConn)
         const clienteIds = [...new Set(reservas.map(r => r.cliente).filter(id => id))];
-        const clientes = await Cliente.find({ _id: { $in: clienteIds } });
+        const clientes = await Cliente.find({ _id: { $in: clienteIds } }).sort({ nombre: 1 });
         const clienteMap = new Map(clientes.map(c => [c._id.toString(), c]));
 
         // Ensure every reservation has expected fields even if not migrated
@@ -266,5 +283,73 @@ exports.getReservaById = async (req, res) => {
         res.json(obj);
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getCrossHotelAvailability = async (req, res) => {
+    try {
+        const { fecha_entrada, fecha_salida } = req.query;
+        if (!fecha_entrada || !fecha_salida) {
+            return res.status(400).json({ message: 'Fecha de entrada y salida son requeridas' });
+        }
+
+        const entrada = new Date(fecha_entrada);
+        const salida = new Date(fecha_salida);
+
+        // Obtener modelos del hotel hermano
+        const models = await getColonialModels();
+
+        // 1. Obtener todas las habitaciones del otro hotel
+        const allRooms = await models.Habitacion.find().populate('tipo');
+        
+        // 2. Obtener reservas conflictivas en el otro hotel
+        const activeReservas = await models.Reserva.find({
+            estado: { $in: ['Pendiente', 'Confirmada'] },
+            $and: [
+                { fecha_entrada: { $lt: salida } },
+                { fecha_salida: { $gt: entrada } }
+            ]
+        });
+
+        // 3. Identificar IDs de habitaciones ocupadas
+        const occupiedRoomIds = new Set();
+        activeReservas.forEach(r => {
+            if (r.habitaciones) {
+                r.habitaciones.forEach(h => occupiedRoomIds.add(h.habitacion.toString()));
+            } else if (r.habitacion) {
+                occupiedRoomIds.add(r.habitacion.toString());
+            }
+        });
+
+        // 4. Filtrar disponibles y agrupar por tipo
+        const availableRooms = allRooms.filter(room => !occupiedRoomIds.has(room._id.toString()));
+        
+        const availabilityByType = {};
+        availableRooms.forEach(room => {
+            const typeName = room.tipo?.nombre || 'General';
+            if (!availabilityByType[typeName]) {
+                availabilityByType[typeName] = {
+                    tipo: typeName,
+                    count: 0,
+                    precio_base: room.precio_1 || room.precio || 0,
+                    habitaciones: []
+                };
+            }
+            availabilityByType[typeName].count++;
+            availabilityByType[typeName].habitaciones.push({
+                id: room._id,
+                numero: room.numero
+            });
+        });
+
+        res.json({
+            hotel: 'Hotel Balcón Colonial',
+            url: 'https://hotelbalconcolonial.com/reservas',
+            disponibilidad: Object.values(availabilityByType)
+        });
+
+    } catch (err) {
+        console.error('Error in getCrossHotelAvailability:', err);
+        res.status(500).json({ message: 'Error al consultar disponibilidad en el otro hotel', error: err.message });
     }
 };
