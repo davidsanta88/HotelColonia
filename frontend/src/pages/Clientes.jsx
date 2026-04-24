@@ -170,7 +170,7 @@ const Clientes = () => {
                 (c.telefono || '').toLowerCase().includes(columnFilters.telefono.toLowerCase());
                 
             const matchesMunicipio = columnFilters.municipio === '' || 
-                (c.municipio_origen_nombre || '').toLowerCase().includes(columnFilters.municipio.toLowerCase());
+                (c.municipio_nombre || c.municipio_origen_nombre || '').toLowerCase().includes(columnFilters.municipio.toLowerCase());
 
             return matchesDocumento && matchesNombre && matchesTelefono && matchesMunicipio;
         });
@@ -337,18 +337,18 @@ const Clientes = () => {
                 </div>
             </div>
 
-            <div className="card">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead className="bg-slate-50 border-b border-slate-100">
+            <div className="card !p-0 overflow-hidden border border-slate-100 shadow-xl rounded-3xl">
+                <div className="overflow-x-auto max-h-[70vh] scrollbar-thin scrollbar-thumb-slate-200">
+                    <table className="w-full text-left border-separate border-spacing-0">
+                        <thead className="sticky top-0 z-20 bg-white shadow-sm">
                             <tr>
-                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">T. Doc</th>
-                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Documento</th>
-                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Nombre Completo</th>
-                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Empresa</th>
-                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Contacto</th>
-                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Origen</th>
-                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 bg-slate-50/80 backdrop-blur-md">T. Doc</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 bg-slate-50/80 backdrop-blur-md">Documento</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 bg-slate-50/80 backdrop-blur-md">Nombre Completo</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 bg-slate-50/80 backdrop-blur-md">Empresa</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 bg-slate-50/80 backdrop-blur-md">Contacto</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 bg-slate-50/80 backdrop-blur-md">Origen</th>
+                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 bg-slate-50/80 backdrop-blur-md">Acciones</th>
                             </tr>
                             {/* Fila de Filtros */}
                             <tr className="bg-white">
