@@ -102,12 +102,15 @@ const ComparativaHoteles = () => {
 
     const totalPlaza = data?.plaza?.history?.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;
     const totalColonial = data?.colonial?.history?.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;
+    const shopPlaza = data?.plaza?.history?.reduce((acc, curr) => acc + (curr.ventasTienda || 0), 0) || 0;
+    const shopColonial = data?.colonial?.history?.reduce((acc, curr) => acc + (curr.ventasTienda || 0), 0) || 0;
     const plazaExpenses = data?.plaza?.history?.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
     const colonialExpenses = data?.colonial?.history?.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
 
     // Totales Consolidados
     const totalGlobalIngresos = totalPlaza + totalColonial;
     const totalGlobalEgresos = plazaExpenses + colonialExpenses;
+    const totalGlobalTienda = shopPlaza + shopColonial;
     const globalDisponibles = (data?.plaza?.rooms?.disponibles || 0) + (data?.colonial?.rooms?.disponibles || 0);
     const globalOcupadas = (data?.plaza?.rooms?.ocupadas || 0) + (data?.colonial?.rooms?.ocupadas || 0);
     const globalAseo = (data?.plaza?.rooms?.aseo || 0) + (data?.colonial?.rooms?.aseo || 0);
@@ -185,6 +188,17 @@ const ComparativaHoteles = () => {
                         <h4 className="text-3xl font-black">${new Intl.NumberFormat().format(totalGlobalIngresos)}</h4>
                         <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
                             <DollarSign size={24} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* 1b. Ventas Tienda Global */}
+                <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 p-8 rounded-[2.5rem] text-white shadow-xl shadow-indigo-100">
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-2">Ventas Tienda Global</p>
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-3xl font-black">${new Intl.NumberFormat().format(totalGlobalTienda)}</h4>
+                        <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                            <Zap size={24} />
                         </div>
                     </div>
                 </div>
@@ -311,6 +325,7 @@ const ComparativaHoteles = () => {
                     dailyAvg={plazaDailyAvg}
                     expensesAvg={plazaExpensesAvg}
                     profitAvg={plazaProfitAvg}
+                    shopSales={shopPlaza}
                     rooms={data?.plaza.rooms}
                     color="primary"
                 />
@@ -321,6 +336,7 @@ const ComparativaHoteles = () => {
                     dailyAvg={colonialDailyAvg}
                     expensesAvg={colonialExpensesAvg}
                     profitAvg={colonialProfitAvg}
+                    shopSales={shopColonial}
                     rooms={data?.colonial.rooms}
                     color="slate"
                 />
@@ -469,7 +485,7 @@ const ComparativaHoteles = () => {
     );
 };
 
-const HotelCard = ({ hotelName, income, expenses, dailyAvg, expensesAvg, profitAvg, rooms, color }) => {
+const HotelCard = ({ hotelName, income, expenses, dailyAvg, expensesAvg, profitAvg, shopSales, rooms, color }) => {
     const margin = income - expenses;
     const marginPercent = income > 0 ? (margin / income) * 100 : 0;
     const themeColor = color === 'primary' ? 'blue' : 'slate';
@@ -521,6 +537,10 @@ const HotelCard = ({ hotelName, income, expenses, dailyAvg, expensesAvg, profitA
                     <div className="space-y-1">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Promedio Gasto</p>
                         <p className="text-3xl font-black text-orange-600">${new Intl.NumberFormat().format(Math.round(expensesAvg))}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ventas Tienda</p>
+                        <p className="text-3xl font-black text-indigo-600">${new Intl.NumberFormat().format(shopSales)}</p>
                     </div>
                     <div className="space-y-1">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Promedio Ganancia</p>

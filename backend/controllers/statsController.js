@@ -171,8 +171,12 @@ async function getStatsFromDB(models, startDateStr, endDateStr) {
 
     const addToMap = (stats, key) => {
         stats.forEach(s => {
-            const entry = resultsMap.get(s._id) || { ingresos: 0, egresos: 0 };
-            if (key === 'ingresos') entry.ingresos += s.total;
+            const entry = resultsMap.get(s._id) || { ingresos: 0, egresos: 0, ventasTienda: 0 };
+            if (key === 'ingresos_tienda') {
+                entry.ingresos += s.total;
+                entry.ventasTienda += s.total;
+            }
+            else if (key === 'ingresos') entry.ingresos += s.total;
             else if (key === 'gastos_mixed') {
                 entry.ingresos += s.totalIngreso || 0;
                 entry.egresos += s.totalGasto || 0;
@@ -182,7 +186,7 @@ async function getStatsFromDB(models, startDateStr, endDateStr) {
         });
     };
 
-    addToMap(ventaStats, 'ingresos');
+    addToMap(ventaStats, 'ingresos_tienda');
     addToMap(registroStats, 'ingresos');
     addToMap(gastoStats, 'gastos_mixed');
 
@@ -209,6 +213,7 @@ async function getStatsFromDB(models, startDateStr, endDateStr) {
             label,
             ingresos: data.ingresos,
             egresos: data.egresos,
+            ventasTienda: data.ventasTienda,
             margen: data.ingresos - data.egresos
         };
     });
