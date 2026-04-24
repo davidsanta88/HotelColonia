@@ -588,6 +588,23 @@ const Registros = () => {
                                                         </span>
                                                     </div>
                                                     <span className="text-[10px] text-gray-500 font-medium leading-none mb-1">Doc: {res.documento_cliente || 'N/A'}</span>
+                                                    
+                                                    {/* Mostrar Otros Huéspedes si existen */}
+                                                    {res.huespedes && res.huespedes.length > 1 && (
+                                                        <div className="mt-2 p-2 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                                                            <div className="flex items-center gap-1.5 mb-1">
+                                                                <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">Acompañantes ({res.huespedes.length - 1})</span>
+                                                            </div>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {res.huespedes.slice(1).map((h, i) => (
+                                                                    <span key={i} className="text-[9px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-100 shadow-sm">
+                                                                        {h.nombre || h.cliente_nombre}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
                                                     {(res.telefono_cliente || res.cliente?.telefono) && (
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-[9px] font-bold text-gray-400 bg-teal-50 px-1.5 py-0.5 rounded-md leading-none">{(res.telefono_cliente || res.cliente?.telefono)}</span>
@@ -726,131 +743,10 @@ const Registros = () => {
                 }}
             />
 
-            {/* Modal de Detalle Original (Restaurado) */}
-            {showDetailsModal && selectedRegistroDetails && !initialEditMode && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
-                    <div className="bg-white p-6 md:p-8 rounded-xl shadow-xl w-full max-w-4xl m-4 relative animate-in zoom-in duration-300">
-                        <button 
-                            onClick={() => setShowDetailsModal(false)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                            <XCircle size={24} />
-                        </button>
-                        
-                        <div className="flex justify-between items-center mb-6 border-b pb-4">
-                            <div>
-                                <h2 className="text-2xl font-black text-gray-800 tracking-tight">Detalles del Registro</h2>
-                                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Resumen General Operativo</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <button 
-                                    onClick={() => {
-                                        setInitialEditMode(true);
-                                    }}
-                                    className="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl hover:bg-indigo-100 transition-all font-bold text-xs uppercase"
-                                >
-                                    <Edit2 size={16} />
-                                    <span>Editar / Pagos</span>
-                                </button>
-                                <span className={`px-4 py-1.5 text-[10px] font-black rounded-full uppercase tracking-widest
-                                    ${selectedRegistroDetails.estado === 'activa' ? 'bg-green-100 text-green-800' : 
-                                    selectedRegistroDetails.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-800' :
-                                    selectedRegistroDetails.estado === 'completada' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
-                                    {selectedRegistroDetails.estado}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Alojamiento</div>
-                                <div className="text-xl font-black text-slate-800">${formatCurrency(selectedRegistroDetails.total)}</div>
-                            </div>
-                            <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                                <div className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Consumos</div>
-                                <div className="text-xl font-black text-blue-800">
-                                    ${formatCurrency(consumos.reduce((acc, c) => acc + (c.cantidad * c.precio), 0))}
-                                </div>
-                            </div>
-                            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
-                                <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Abonado</div>
-                                <div className="text-xl font-black text-emerald-800">
-                                    ${formatCurrency(selectedRegistroDetails.valor_pagado || 0)}
-                                </div>
-                            </div>
-                            <div className={`p-4 rounded-2xl border ${ ((selectedRegistroDetails.total + consumos.reduce((acc, c) => acc + (c.cantidad * c.precio), 0)) - (selectedRegistroDetails.valor_pagado || 0) > 0) ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
-                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Saldo</div>
-                                <div className={`text-xl font-black ${((selectedRegistroDetails.total + consumos.reduce((acc, c) => acc + (c.cantidad * c.precio), 0)) - (selectedRegistroDetails.valor_pagado || 0) > 0) ? 'text-red-600' : 'text-green-600'}`}>
-                                    ${formatCurrency(Math.max(0, (selectedRegistroDetails.total + consumos.reduce((acc, c) => acc + (c.cantidad * c.precio), 0)) - (selectedRegistroDetails.valor_pagado || 0)))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-6">
-                                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                                    <h3 className="font-black text-slate-700 border-b border-slate-200 pb-2 mb-4 text-xs uppercase tracking-widest flex items-center gap-2">
-                                        <Info size={14} className="text-slate-400" /> Información General
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-y-5 text-sm">
-                                        <div>
-                                            <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Habitación</span>
-                                            <span className="font-black text-slate-800 text-base">#{selectedRegistroDetails.numero_habitacion}</span>
-                                        </div>
-                                        <div>
-                                            <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Huésped Titular</span>
-                                            <span className="font-black text-slate-800 truncate block text-base">{selectedRegistroDetails.nombre_cliente}</span>
-                                        </div>
-                                        <div>
-                                            <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Check-in</span>
-                                            <span className="font-black text-slate-800">{format(new Date(selectedRegistroDetails.fecha_ingreso), 'dd/MM/yyyy')}</span>
-                                        </div>
-                                        <div>
-                                            <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Check-out (Est.)</span>
-                                            <span className="font-black text-slate-800">{format(new Date(selectedRegistroDetails.fecha_salida), 'dd/MM/yyyy')}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="space-y-6">
-                                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                                    <h3 className="font-black text-slate-700 border-b border-slate-200 pb-2 mb-4 text-xs uppercase tracking-widest flex items-center gap-2">
-                                        <CreditCard size={14} className="text-slate-400" /> Notas y Observaciones
-                                    </h3>
-                                    <p className="text-sm text-slate-600 italic leading-relaxed bg-white p-4 rounded-xl border border-slate-100 min-h-[100px]">
-                                        {selectedRegistroDetails.notas || 'Sin notas registradas para este ingreso.'}
-                                    </p>
-                                    
-                                    {selectedRegistroDetails.estado === 'finalizado' && (
-                                        <div className="mt-4 pt-4 border-t border-red-100">
-                                            <h4 className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-2 flex items-center gap-1">
-                                                <Info size={12} /> Notas de Salida (Check-out)
-                                            </h4>
-                                            <div className="bg-red-50/50 p-4 rounded-xl border border-red-100 italic font-black text-red-900 text-xs shadow-sm min-h-[50px] flex items-center px-4">
-                                                {selectedRegistroDetails.notasSalida || 'Sin observaciones registradas en la salida.'}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end">
-                            <button 
-                                onClick={() => setShowDetailsModal(false)}
-                                className="bg-slate-800 text-white px-10 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-slate-200 active:scale-95"
-                            >
-                                Cerrar Ventana
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Nuevo Modal de Edición */}
+            {/* Modal de Detalles (Nuevo Estandarizado) */}
             <DetallesRegistroModal 
                 registroId={selectedRegistroId}
-                isOpen={showDetailsModal && (initialEditMode || !selectedRegistroDetails)}
+                isOpen={showDetailsModal}
                 initialEditMode={initialEditMode}
                 onClose={() => {
                     setShowDetailsModal(false);
