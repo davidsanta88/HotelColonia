@@ -16,21 +16,21 @@ const Header = ({ setSidebarOpen }) => {
                 </button>
                 
                 {/* Identidad del Hotel */}
-                <div className="hidden sm:flex items-center gap-4 px-5 py-2.5 bg-white border border-slate-200 rounded-2xl mr-4 shadow-sm">
-                    <img src="/logo.jpg" alt="Logo Hotel Plaza" className="w-12 h-12 rounded-xl object-cover shadow-md border-2 border-white" />
+                <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-2 bg-white border border-slate-200 rounded-3xl shadow-md transition-all hover:shadow-lg border-b-4 border-b-slate-100 active:border-b-0 active:translate-y-0.5">
+                    <img src="/logo.jpg" alt="Logo Hotel Plaza" className="w-10 h-10 sm:w-14 sm:h-14 rounded-2xl object-cover shadow-md border-2 border-white" />
                     <div className="flex flex-col">
-                        <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-none">Hotel Balcón Plaza</h2>
+                        <h2 className="text-base sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tighter leading-none uppercase">Hotel Balcón Plaza</h2>
                     </div>
                 </div>
-
+ 
                 {/* Botón de Cambio de Hotel */}
                 <a 
                     href="https://www.hotelbalconcolonial.com/login"
-                    className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-xs font-bold hover:bg-amber-100 transition-all shadow-sm"
+                    className="flex items-center gap-2 px-3 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-[10px] sm:text-xs font-black hover:bg-amber-100 transition-all shadow-sm hover:scale-105"
                     title="Ir a Hotel Colonial"
                 >
                     <ExternalLink size={14} className="text-amber-500" />
-                    <span>Ir a Colonial</span>
+                    <span className="hidden xs:inline uppercase tracking-widest">Ir a Colonial</span>
                 </a>
             </div>
             <div className="flex items-center space-x-4">
