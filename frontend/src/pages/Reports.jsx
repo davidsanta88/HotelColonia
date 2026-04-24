@@ -221,10 +221,18 @@ const Reports = () => {
                         <KpiCard
                             title="Ventas Totales"
                             value={`$${formatCurrency(totalIngresos)}`}
-                            sub="Ventas + Hospedaje + Otros"
+                            sub="Consolidado de todas las fuentes"
                             icon={<DollarSign size={22} />}
                             color="primary"
                             trend={totalIngresos > 0}
+                        />
+                        <KpiCard
+                            title="Ventas Tienda"
+                            value={`$${formatCurrency(totalVentas)}`}
+                            sub={`${numVentas} transacciones realizadas`}
+                            icon={<ShoppingCart size={22} />}
+                            color="indigo"
+                            trend={totalVentas > 0}
                         />
                         <KpiCard
                             title="Total Gastos"
@@ -237,18 +245,10 @@ const Reports = () => {
                         <KpiCard
                             title="Utilidad Neta"
                             value={`$${formatCurrency(Math.abs(utilidadNeta))}`}
-                            sub={utilidadNeta >= 0 ? '✅ Positiva' : '⚠️ Negativa'}
+                            sub={utilidadNeta >= 0 ? '✅ Flujo Positivo' : '⚠️ Revisar Egresos'}
                             icon={utilidadNeta >= 0 ? <TrendingUp size={22} /> : <TrendingDown size={22} />}
                             color={utilidadNeta >= 0 ? 'green' : 'red'}
                             trend={utilidadNeta >= 0}
-                        />
-                        <KpiCard
-                            title="Ventas Tienda"
-                            value={`${numVentas}`}
-                            sub={`$${formatCurrency(totalVentas)} recaudado`}
-                            icon={<ShoppingCart size={22} />}
-                            color="purple"
-                            trend={totalVentas > 0}
                         />
                     </div>
 
