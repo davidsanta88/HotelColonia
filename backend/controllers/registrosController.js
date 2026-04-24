@@ -13,20 +13,29 @@ exports.getRegistros = async (req, res) => {
             .populate('habitacion', 'numero')
             .sort({ fechaCreacion: -1 });
         
-        // Población manual de clientes (desde sharedConn)
-        const clienteIds = [...new Set(registros.map(r => r.cliente).filter(id => id))];
-        const clientes = await Cliente.find({ _id: { $in: clienteIds } }).populate('empresa_id', 'nombre').sort({ nombre: 1 });
+        // Población manual de clientes y huéspedes (desde sharedConn)
+        const allClientIds = new Set();
+        registros.forEach(r => {
+            if (r.cliente) allClientIds.add(r.cliente.toString());
+            if (r.huespedes && Array.isArray(r.huespedes)) {
+                r.huespedes.forEach(hId => allClientIds.add(hId.toString()));
+            }
+        });
+        
+        const clientes = await Cliente.find({ _id: { $in: Array.from(allClientIds) } }).populate('empresa_id', 'nombre').sort({ nombre: 1 });
         const clienteMap = new Map(clientes.map(c => [c._id.toString(), c]));
 
         // Mapeo para compatibilidad total con el frontend
         const mapped = registros.map(r => {
             const raw = r.toObject ? r.toObject() : r;
             const clienteObj = raw.cliente ? clienteMap.get(raw.cliente.toString()) : null;
-            
+            const huespedesObjs = (raw.huespedes || []).map(hId => clienteMap.get(hId.toString())).filter(h => h);
+
             return {
                 ...raw,
                 id: raw._id,
                 cliente: clienteObj,
+                huespedes: huespedesObjs,
                 fecha_ingreso: raw.fecha_ingreso || raw.fechaEntrada || raw.fechaCreacion,
                 fecha_salida: raw.fecha_salida || raw.fechaSalida || raw.fechaEntrada || raw.fechaCreacion,
                 nombre_cliente: raw.nombre_cliente || (clienteObj ? clienteObj.nombre : 'Sín Nombre'),
@@ -51,19 +60,28 @@ exports.getActiveRegistros = async (req, res) => {
             .populate('habitacion', 'numero')
             .sort({ fechaCreacion: -1 });
             
-        // Población manual de clientes (desde sharedConn)
-        const clienteIds = [...new Set(registros.map(r => r.cliente).filter(id => id))];
-        const clientes = await Cliente.find({ _id: { $in: clienteIds } }).populate('empresa_id', 'nombre').sort({ nombre: 1 });
+        // Población manual de clientes y huéspedes (desde sharedConn)
+        const allClientIds = new Set();
+        registros.forEach(r => {
+            if (r.cliente) allClientIds.add(r.cliente.toString());
+            if (r.huespedes && Array.isArray(r.huespedes)) {
+                r.huespedes.forEach(hId => allClientIds.add(hId.toString()));
+            }
+        });
+        
+        const clientes = await Cliente.find({ _id: { $in: Array.from(allClientIds) } }).populate('empresa_id', 'nombre').sort({ nombre: 1 });
         const clienteMap = new Map(clientes.map(c => [c._id.toString(), c]));
 
         const mapped = registros.map(r => {
             const raw = r.toObject ? r.toObject() : r;
             const clienteObj = raw.cliente ? clienteMap.get(raw.cliente.toString()) : null;
+            const huespedesObjs = (raw.huespedes || []).map(hId => clienteMap.get(hId.toString())).filter(h => h);
 
             return {
                 ...raw,
                 id: raw._id,
                 cliente: clienteObj,
+                huespedes: huespedesObjs,
                 fecha_ingreso: raw.fecha_ingreso || raw.fechaEntrada || raw.fechaCreacion,
                 fecha_salida: raw.fecha_salida || raw.fechaSalida || raw.fechaEntrada || raw.fechaCreacion,
                 nombre_cliente: raw.nombre_cliente || (clienteObj ? clienteObj.nombre : 'Sín Nombre'),
