@@ -17,9 +17,10 @@ import {
     PieChart as PieIcon,
     Users,
     Zap,
-    Brush
+    Brush,
+    Activity
 } from 'lucide-react';
-import { format, subDays, startOfMonth } from 'date-fns';
+import { format, subDays, startOfMonth, differenceInDays, parseISO } from 'date-fns';
 
 const PERIODOS = [
     { label: 'Hoy', getDates: () => ({ inicio: format(new Date(), 'yyyy-MM-dd'), fin: format(new Date(), 'yyyy-MM-dd') }) },
@@ -114,6 +115,12 @@ const ComparativaHoteles = () => {
     const totalGlobalMargen = totalGlobalIngresos - totalGlobalEgresos;
     const globalMargenPercent = totalGlobalIngresos > 0 ? (totalGlobalMargen / totalGlobalIngresos) * 100 : 0;
     
+    // Cálculo de Promedio Diario
+    const diffDays = Math.max(1, differenceInDays(parseISO(dates.fin), parseISO(dates.inicio)) + 1);
+    const globalDailyAvg = totalGlobalIngresos / diffDays;
+    const plazaDailyAvg = totalPlaza / diffDays;
+    const colonialDailyAvg = totalColonial / diffDays;
+    
     const globalTotalHabitaciones = globalDisponibles + globalOcupadas + globalAseo;
     const globalOccupancyPercent = globalTotalHabitaciones > 0 ? (globalOcupadas / globalTotalHabitaciones) * 100 : 0;
     const globalFreePercent = globalTotalHabitaciones > 0 ? (globalDisponibles / globalTotalHabitaciones) * 100 : 0;
@@ -164,7 +171,7 @@ const ComparativaHoteles = () => {
             </div>
 
             {/* Consolidado General */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Fila 1: Financiero */}
                 <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 p-8 rounded-[2.5rem] text-white shadow-xl shadow-emerald-100">
                     <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-2">Ingresos Globales</p>
@@ -172,6 +179,16 @@ const ComparativaHoteles = () => {
                         <h4 className="text-3xl font-black">${new Intl.NumberFormat().format(totalGlobalIngresos)}</h4>
                         <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
                             <DollarSign size={24} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-8 rounded-[2.5rem] text-white shadow-xl shadow-blue-100">
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-2">Promedio Diario Global</p>
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-3xl font-black">${new Intl.NumberFormat().format(Math.round(globalDailyAvg))}</h4>
+                        <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                            <Activity size={24} />
                         </div>
                     </div>
                 </div>
@@ -256,6 +273,7 @@ const ComparativaHoteles = () => {
                     hotelName="Hotel Balcón Plaza"
                     income={totalPlaza}
                     expenses={plazaExpenses}
+                    dailyAvg={plazaDailyAvg}
                     rooms={data?.plaza.rooms}
                     color="primary"
                 />
@@ -263,6 +281,7 @@ const ComparativaHoteles = () => {
                     hotelName="Hotel Balcón Colonial"
                     income={totalColonial}
                     expenses={colonialExpenses}
+                    dailyAvg={colonialDailyAvg}
                     rooms={data?.colonial.rooms}
                     color="slate"
                 />
@@ -411,7 +430,7 @@ const ComparativaHoteles = () => {
     );
 };
 
-const HotelCard = ({ hotelName, income, expenses, rooms, color }) => {
+const HotelCard = ({ hotelName, income, expenses, dailyAvg, rooms, color }) => {
     const margin = income - expenses;
     const marginPercent = income > 0 ? (margin / income) * 100 : 0;
     const themeColor = color === 'primary' ? 'blue' : 'slate';
@@ -455,6 +474,10 @@ const HotelCard = ({ hotelName, income, expenses, rooms, color }) => {
                     <div className="space-y-1">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Egresos Totales</p>
                         <p className="text-3xl font-black text-slate-600">${new Intl.NumberFormat().format(expenses)}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Promedio Diario</p>
+                        <p className="text-3xl font-black text-primary-600">${new Intl.NumberFormat().format(Math.round(dailyAvg))}</p>
                     </div>
                 </div>
 
