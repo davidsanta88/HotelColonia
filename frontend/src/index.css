@@ -27,4 +27,12 @@
   .card {
     @apply bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden;
   }
+  
+  .sticky-header {
+    @apply sticky top-0 z-20 bg-white shadow-sm;
+  }
+  
+  .sticky-header th {
+    @apply bg-slate-50/90 backdrop-blur-md border-b border-slate-100;
+  }
 }

@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import { User, Menu, RefreshCw } from 'lucide-react';
+import { User, Menu, ExternalLink } from 'lucide-react';
 
 const Header = ({ setSidebarOpen }) => {
     const { user } = useContext(AuthContext);
@@ -16,11 +16,10 @@ const Header = ({ setSidebarOpen }) => {
                 </button>
                 
                 {/* Identidad del Hotel */}
-                <div className="hidden sm:flex items-center gap-3 px-4 py-1.5 bg-slate-50 border border-slate-100 rounded-2xl mr-2">
-                    <img src="/logo.jpg" alt="Logo Hotel Plaza" className="w-8 h-8 rounded-lg object-cover shadow-sm border border-white" />
+                <div className="hidden sm:flex items-center gap-4 px-5 py-2.5 bg-white border border-slate-200 rounded-2xl mr-4 shadow-sm">
+                    <img src="/logo.jpg" alt="Logo Hotel Plaza" className="w-12 h-12 rounded-xl object-cover shadow-md border-2 border-white" />
                     <div className="flex flex-col">
-                        <h2 className="text-sm font-black text-slate-800 leading-none">Hotel Balcón Plaza</h2>
-                        <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">Sede Principal</span>
+                        <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-none">Hotel Balcón Plaza</h2>
                     </div>
                 </div>
 
@@ -30,7 +29,7 @@ const Header = ({ setSidebarOpen }) => {
                     className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-xs font-bold hover:bg-amber-100 transition-all shadow-sm"
                     title="Ir a Hotel Colonial"
                 >
-                    <RefreshCw size={14} className="text-amber-500" />
+                    <ExternalLink size={14} className="text-amber-500" />
                     <span>Ir a Colonial</span>
                 </a>
             </div>

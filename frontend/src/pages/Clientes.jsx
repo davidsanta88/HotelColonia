@@ -156,7 +156,8 @@ const Clientes = () => {
             const searchStr = searchTerm.toLowerCase();
             const matchesGlobal = searchTerm === '' || 
                 c.nombre?.toLowerCase().includes(searchStr) || 
-                c.documento?.toLowerCase().includes(searchStr);
+                c.documento?.toLowerCase().includes(searchStr) ||
+                (c.municipio_nombre || '').toLowerCase().includes(searchStr);
             if (!matchesGlobal) return false;
             
             // 2. Filtros por columna
@@ -340,7 +341,7 @@ const Clientes = () => {
             <div className="card !p-0 overflow-hidden border border-slate-100 shadow-xl rounded-3xl">
                 <div className="overflow-x-auto max-h-[70vh] scrollbar-thin scrollbar-thumb-slate-200">
                     <table className="w-full text-left border-separate border-spacing-0">
-                        <thead className="sticky top-0 z-20 bg-white shadow-sm">
+                        <thead className="sticky-header">
                             <tr>
                                 <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 bg-slate-50/80 backdrop-blur-md">T. Doc</th>
                                 <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 bg-slate-50/80 backdrop-blur-md">Documento</th>

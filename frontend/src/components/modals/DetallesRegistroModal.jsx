@@ -521,6 +521,9 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                                 {/* Left Column */}
                                 <div className="space-y-8">
                                     {/* General Info */}
+                                    </div>
+                                    
+                                    {/* General Info */}
                                     <div className="bg-white p-5 rounded-[1.5rem] border border-gray-100 shadow-sm relative overflow-hidden">
                                         <div className="absolute top-0 left-0 w-1.5 h-full bg-slate-100"></div>
                                         <h3 className="text-xs font-black text-gray-800 uppercase tracking-widest flex items-center gap-2 mb-4">
@@ -569,6 +572,51 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                                                     </div>
                                                 )}
                                             </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Huéspedes Acompañantes */}
+                                    <div className="bg-white p-5 rounded-[1.5rem] border border-gray-100 shadow-sm relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-100"></div>
+                                        <h3 className="text-xs font-black text-gray-800 uppercase tracking-widest flex items-center gap-2 mb-4">
+                                            <User size={14} className="text-blue-500" /> Huéspedes / Acompañantes
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {details?.huespedes && details.huespedes.length > 0 ? (
+                                                details.huespedes.map((h, idx) => (
+                                                    <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors group">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${idx === 0 ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-white text-blue-600 border border-blue-50 shadow-sm'}`}>
+                                                                {h.nombre?.charAt(0) || 'G'}
+                                                            </div>
+                                                            <div>
+                                                                <div className="text-[11px] font-black text-gray-800 uppercase leading-none mb-1 flex items-center gap-1.5">
+                                                                    {h.nombre}
+                                                                    {idx === 0 && <span className="text-[7px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-md font-black uppercase tracking-tighter">Titular</span>}
+                                                                </div>
+                                                                <div className="text-[9px] font-bold text-gray-400 uppercase tracking-tight flex items-center gap-2">
+                                                                    <span>{h.tipo_documento || 'CC'} {h.documento}</span>
+                                                                    {h.telefono && <span className="w-1 h-1 bg-gray-200 rounded-full"></span>}
+                                                                    {h.telefono && <span>{h.telefono}</span>}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        {h.municipio_origen_id && (
+                                                            <div className="hidden md:flex flex-col items-end opacity-40 group-hover:opacity-100 transition-opacity">
+                                                                <span className="text-[7px] font-black text-gray-400 uppercase mb-0.5">Origen</span>
+                                                                <span className="text-[9px] font-bold text-gray-600 uppercase truncate max-w-[80px]">
+                                                                    {habitaciones.length > 0 && "PROCEDENCIA"}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-center py-8 border-2 border-dashed border-gray-50 rounded-2xl">
+                                                    <User size={24} className="mx-auto text-gray-200 mb-2" />
+                                                    <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">No hay acompañantes registrados</p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 

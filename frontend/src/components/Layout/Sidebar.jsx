@@ -29,7 +29,8 @@ import {
     Building2,
     Wallet,
     FileText,
-    Mail
+    Mail,
+    ExternalLink
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -151,7 +152,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     href="https://www.hotelbalconcolonial.com/login"
                     className="flex w-full items-center space-x-3 px-4 py-3 text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all border border-transparent hover:border-blue-500/20"
                 >
-                    <Building2 size={20} />
+                    <ExternalLink size={20} />
                     <span className="font-bold text-sm">Ir a Hotel Colonial</span>
                 </a>
 

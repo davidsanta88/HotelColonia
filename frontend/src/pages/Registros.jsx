@@ -82,7 +82,8 @@ const Registros = () => {
         huesped: '',
         habitacion: '',
         fechas: '',
-        estado: ''
+        estado: '',
+        origen: ''
     });
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -115,8 +116,9 @@ const Registros = () => {
             const matchesHabitacion = !columnFilters.habitacion || res.numero_habitacion?.toString().includes(columnFilters.habitacion);
             const matchesFechas = !columnFilters.fechas || format(new Date(res.fecha_ingreso), 'dd/MM/yyyy').includes(columnFilters.fechas);
             const matchesEstado = !columnFilters.estado || res.estado?.toLowerCase().includes(columnFilters.estado.toLowerCase());
+            const matchesOrigen = !columnFilters.origen || (res.cliente?.municipio_nombre || res.cliente?.municipio_origen_id?.nombre || '').toLowerCase().includes(columnFilters.origen.toLowerCase());
 
-            return matchesHuesped && matchesHabitacion && matchesFechas && matchesEstado;
+            return matchesHuesped && matchesHabitacion && matchesFechas && matchesEstado && matchesOrigen;
         });
     }, [registros, searchTerm, columnFilters, fechaInicio, fechaFin]);
 
@@ -507,12 +509,13 @@ const Registros = () => {
                     <div className="text-center p-8 text-gray-400">Cargando registros...</div>
                 ) : (
                     <div className="card overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-slate-50 border-b border-slate-100">
+                        <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
+                            <thead className="sticky-header">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Huésped</th>
                                     <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Hab.</th>
                                     <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Fechas</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Origen</th>
                                     <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Alojamiento</th>
                                     <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Abonado</th>
                                     <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Saldo</th>
@@ -548,7 +551,15 @@ const Registros = () => {
                                             onChange={(e) => handleFilterChange('fechas', e.target.value)}
                                         />
                                     </th>
-                                    <th className="px-6 py-2 border-b border-slate-50"></th>
+                                    <th className="px-6 py-2 border-b border-slate-50">
+                                        <input 
+                                            type="text" 
+                                            placeholder="Origen..."
+                                            className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-3 font-bold text-slate-600 placeholder:text-slate-300"
+                                            value={columnFilters.origen}
+                                            onChange={(e) => handleFilterChange('origen', e.target.value)}
+                                        />
+                                    </th>
                                     <th className="px-6 py-2 border-b border-slate-50"></th>
                                     <th className="px-6 py-2 border-b border-slate-50"></th>
                                     <th className="px-6 py-2 border-b border-slate-50">
@@ -596,6 +607,11 @@ const Registros = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-bold">#{res.numero_habitacion}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-[11px] text-gray-500 font-medium">
                                                 {format(new Date(res.fecha_ingreso), 'dd/MM/yyyy')} - {format(new Date(res.fecha_salida), 'dd/MM/yyyy')}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-tight">
+                                                    {res.cliente?.municipio_nombre || res.cliente?.municipio_origen_id?.nombre || '-'}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-center">
                                                 <div className="font-bold text-gray-700 text-sm">${formatCurrency(res.total)}</div>

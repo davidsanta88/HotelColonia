@@ -3,11 +3,14 @@ import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
 import moment from 'moment';
 import 'moment/locale/es';
-import { Calendar as CalendarIcon, List, Search, AlertCircle, Eye, Printer, RefreshCw, Hotel, Building2, Calendar, User, MessageSquare } from 'lucide-react';
+import { Calendar as CalendarIcon, List, Search, AlertCircle, Eye, Printer, RefreshCw, Hotel, Building2, Calendar, User, MessageSquare, FileSpreadsheet, FileText } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { formatCurrency } from '../utils/format';
 import Pagination from '../components/common/Pagination';
 import { generateVoucher } from '../utils/voucherGenerator';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 moment.locale('es');
 
@@ -60,6 +63,60 @@ const ReservasConsolidadas = () => {
         const start = (currentPage - 1) * itemsPerPage;
         return filteredReservas.slice(start, start + itemsPerPage);
     }, [filteredReservas, currentPage, itemsPerPage]);
+
+    // Funciones de Exportación
+    const handleExportExcel = () => {
+        const dataToExport = filteredReservas.map(r => ({
+            'Hotel': r.hotel,
+            'Cliente': r.cliente_nombre?.toUpperCase(),
+            'Identificación': r.documento,
+            'Habitaciones': r.habitaciones_desc,
+            'Entrada': moment.utc(r.fecha_entrada).format('DD/MM/YYYY'),
+            'Salida': moment.utc(r.fecha_salida).format('DD/MM/YYYY'),
+            'Noches': moment.utc(r.fecha_salida).diff(moment.utc(r.fecha_entrada), 'days'),
+            'Valor Total': r.valor_total,
+            'Valor Abonado': r.valor_abonado,
+            'Saldo': (r.valor_total || 0) - (r.valor_abonado || 0)
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Reservas");
+        XLSX.writeFile(workbook, `Consolidado_Reservas_${fechaInicio}_al_${fechaFin}.xlsx`);
+    };
+
+    const handleExportPDF = () => {
+        const doc = new jsPDF('l', 'mm', 'a4'); // Paisaje para más espacio
+        const tableColumn = ["Hotel", "Cliente", "Habitaciones", "Entrada", "Salida", "Total", "Abonado", "Saldo"];
+        const tableRows = filteredReservas.map(r => [
+            r.hotel,
+            r.cliente_nombre?.toUpperCase(),
+            r.habitaciones_desc,
+            moment.utc(r.fecha_entrada).format('DD/MM/YYYY'),
+            moment.utc(r.fecha_salida).format('DD/MM/YYYY'),
+            `$${formatCurrency(r.valor_total)}`,
+            `$${formatCurrency(r.valor_abonado)}`,
+            `$${formatCurrency((r.valor_total || 0) - (r.valor_abonado || 0))}`
+        ]);
+
+        doc.setFontSize(18);
+        doc.text("Consolidado Global de Reservas", 14, 22);
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Rango: ${fechaInicio} al ${fechaFin}`, 14, 30);
+        doc.text(`Generado el: ${moment().format('DD/MM/YYYY HH:mm')}`, 14, 35);
+
+        autoTable(doc, {
+            startY: 40,
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'striped',
+            headStyles: { fillColor: [71, 85, 105] },
+            styles: { fontSize: 8 }
+        });
+
+        doc.save(`Consolidado_Reservas_${new Date().getTime()}.pdf`);
+    };
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center p-20">
@@ -130,6 +187,23 @@ const ReservasConsolidadas = () => {
                     >
                         <RefreshCw size={20} />
                     </button>
+
+                    <div className="flex items-center gap-2 border-l pl-3 ml-1 border-gray-200">
+                        <button 
+                            onClick={handleExportExcel}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl font-bold text-xs hover:bg-emerald-100 transition-all shadow-sm"
+                        >
+                            <FileSpreadsheet size={16} />
+                            <span className="hidden sm:inline">Excel</span>
+                        </button>
+                        <button 
+                            onClick={handleExportPDF}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-rose-50 text-rose-700 border border-rose-100 rounded-xl font-bold text-xs hover:bg-rose-100 transition-all shadow-sm"
+                        >
+                            <FileText size={16} />
+                            <span className="hidden sm:inline">PDF</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -148,9 +222,9 @@ const ReservasConsolidadas = () => {
             </div>
 
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead className="bg-slate-50 border-b border-slate-100">
+                <div className="overflow-x-auto max-h-[60vh]">
+                    <table className="w-full text-left border-separate border-spacing-0">
+                        <thead className="sticky-header">
                             <tr className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
                                 <th className="p-4">Hotel</th>
                                 <th className="p-4">Cliente</th>
