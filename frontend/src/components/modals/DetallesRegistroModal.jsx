@@ -37,7 +37,8 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
     const [editData, setEditData] = useState({
         fecha_salida: '',
         total: '',
-        notas: ''
+        notas: '',
+        huespedes: []
     });
 
     const [showAbonoForm, setShowAbonoForm] = useState(false);
@@ -82,7 +83,8 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
             setEditData({
                 fecha_salida: det.fecha_salida ? det.fecha_salida.split('T')[0] : '',
                 total: det.total || 0,
-                notas: det.notas || ''
+                notas: det.notas || '',
+                huespedes: det.huespedes || []
             });
         } catch (error) {
             console.error("Error fetching registro details:", error);
@@ -126,6 +128,70 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
         }
     };
 
+    const handleRemoveHuesped = (index) => {
+        const newHuespedes = [...editData.huespedes];
+        newHuespedes.splice(index, 1);
+        
+        // Recalcular total si hay habitación
+        let newTotal = editData.total;
+        const hab = habitaciones.find(h => String(h.id || h._id) === String(details.habitacion_id || details.habitacion?._id));
+        if (hab && details.fecha_ingreso && editData.fecha_salida) {
+            const inDate = new Date(details.fecha_ingreso);
+            const outDate = new Date(editData.fecha_salida);
+            const diffTime = outDate - inDate;
+            const diffDays = Math.max(Math.ceil(diffTime / (1000 * 60 * 60 * 24)), 1);
+            const numPersonas = Math.min(Math.max(newHuespedes.length, 1), 6);
+            const pNoche = parseFloat(hab[`precio_${numPersonas}`]) || parseFloat(hab.precio_1) || 0;
+            newTotal = (pNoche * diffDays).toFixed(0);
+        }
+
+        setEditData(prev => ({ ...prev, huespedes: newHuespedes, total: newTotal }));
+    };
+
+    const handleAddHuesped = async () => {
+        try {
+            const { data: clientes } = await api.get('/clientes');
+            
+            const { value: selectedId } = await Swal.fire({
+                title: 'Agregar Acompañante',
+                input: 'select',
+                inputOptions: clientes.reduce((acc, c) => {
+                    acc[c.id || c._id] = `${c.nombre} (${c.documento})`;
+                    return acc;
+                }, {}),
+                inputPlaceholder: 'Seleccione un cliente...',
+                showCancelButton: true,
+                confirmButtonText: 'Agregar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#3b82f6'
+            });
+
+            if (selectedId) {
+                const cliente = clientes.find(c => String(c.id || c._id) === String(selectedId));
+                if (cliente) {
+                    const newHuespedes = [...editData.huespedes, cliente];
+                    
+                    // Recalcular total
+                    let newTotal = editData.total;
+                    const hab = habitaciones.find(h => String(h.id || h._id) === String(details.habitacion_id || details.habitacion?._id));
+                    if (hab && details.fecha_ingreso && editData.fecha_salida) {
+                        const inDate = new Date(details.fecha_ingreso);
+                        const outDate = new Date(editData.fecha_salida);
+                        const diffTime = outDate - inDate;
+                        const diffDays = Math.max(Math.ceil(diffTime / (1000 * 60 * 60 * 24)), 1);
+                        const numPersonas = Math.min(Math.max(newHuespedes.length, 1), 6);
+                        const pNoche = parseFloat(hab[`precio_${numPersonas}`]) || parseFloat(hab.precio_1) || 0;
+                        newTotal = (pNoche * diffDays).toFixed(0);
+                    }
+
+                    setEditData(prev => ({ ...prev, huespedes: newHuespedes, total: newTotal }));
+                }
+            }
+        } catch (error) {
+            Swal.fire('Error', 'No se pudieron cargar los clientes', 'error');
+        }
+    };
+
     const handleSave = async () => {
         try {
             Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
@@ -134,7 +200,9 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                 fechaSalida: editData.fecha_salida,
                 total: editData.total,
                 notas: editData.notas,
-                observaciones: editData.notas // For compatibility
+                observaciones: editData.notas, // For compatibility
+                huespedes: editData.huespedes.map(h => h.id || h._id),
+                cliente: editData.huespedes[0]?.id || editData.huespedes[0]?._id
             };
             
             await api.put(`/registros/${registroId}`, dataToUpdate);
@@ -581,40 +649,49 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                                             <User size={14} className="text-blue-500" /> Huéspedes / Acompañantes
                                         </h3>
                                         <div className="space-y-3">
-                                            {details?.huespedes && details.huespedes.length > 0 ? (
-                                                details.huespedes.map((h, idx) => (
-                                                    <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors group">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${idx === 0 ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-white text-blue-600 border border-blue-50 shadow-sm'}`}>
-                                                                {h.nombre?.charAt(0) || 'G'}
+                                            {(isEditing ? editData.huespedes : details?.huespedes)?.map((h, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors group">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${idx === 0 ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-white text-blue-600 border border-blue-50 shadow-sm'}`}>
+                                                            {h.nombre?.charAt(0) || 'G'}
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[11px] font-black text-gray-800 uppercase leading-none mb-1 flex items-center gap-1.5">
+                                                                {h.nombre}
+                                                                {idx === 0 && <span className="text-[7px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-md font-black uppercase tracking-tighter">Titular</span>}
                                                             </div>
-                                                            <div>
-                                                                <div className="text-[11px] font-black text-gray-800 uppercase leading-none mb-1 flex items-center gap-1.5">
-                                                                    {h.nombre}
-                                                                    {idx === 0 && <span className="text-[7px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-md font-black uppercase tracking-tighter">Titular</span>}
-                                                                </div>
-                                                                <div className="text-[9px] font-bold text-gray-400 uppercase tracking-tight flex items-center gap-2">
-                                                                    <span>{h.tipo_documento || 'CC'} {h.documento}</span>
-                                                                    {h.telefono && <span className="w-1 h-1 bg-gray-200 rounded-full"></span>}
-                                                                    {h.telefono && <span>{h.telefono}</span>}
-                                                                </div>
+                                                            <div className="text-[9px] font-bold text-gray-400 uppercase tracking-tight flex items-center gap-2">
+                                                                <span>{h.tipo_documento || 'CC'} {h.documento}</span>
+                                                                {h.telefono && <span className="w-1 h-1 bg-gray-200 rounded-full"></span>}
+                                                                {h.telefono && <span>{h.telefono}</span>}
                                                             </div>
                                                         </div>
-                                                        {h.municipio_origen_id && (
-                                                            <div className="hidden md:flex flex-col items-end opacity-40 group-hover:opacity-100 transition-opacity">
-                                                                <span className="text-[7px] font-black text-gray-400 uppercase mb-0.5">Origen</span>
-                                                                <span className="text-[9px] font-bold text-gray-600 uppercase truncate max-w-[80px]">
-                                                                    {habitaciones.length > 0 && "PROCEDENCIA"}
-                                                                </span>
-                                                            </div>
-                                                        )}
                                                     </div>
-                                                ))
-                                            ) : (
+                                                    {isEditing && (
+                                                        <button 
+                                                            onClick={() => handleRemoveHuesped(idx)}
+                                                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                            title="Eliminar Huésped"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ))}
+                                            {(isEditing ? editData.huespedes : details?.huespedes)?.length === 0 && (
                                                 <div className="text-center py-8 border-2 border-dashed border-gray-50 rounded-2xl">
                                                     <User size={24} className="mx-auto text-gray-200 mb-2" />
                                                     <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">No hay acompañantes registrados</p>
                                                 </div>
+                                            )}
+                                            {isEditing && (
+                                                <button 
+                                                    onClick={handleAddHuesped}
+                                                    className="w-full py-3 border-2 border-dashed border-blue-100 rounded-2xl text-blue-500 font-black text-[10px] uppercase tracking-widest hover:bg-blue-50 hover:border-blue-200 transition-all flex items-center justify-center gap-2 mt-2"
+                                                >
+                                                    <Plus size={16} />
+                                                    Agregar Acompañante
+                                                </button>
                                             )}
                                         </div>
                                     </div>
