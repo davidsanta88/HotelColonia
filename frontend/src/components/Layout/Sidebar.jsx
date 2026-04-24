@@ -145,7 +145,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 </ul>
             </nav>
 
-            <div className="p-4 border-t border-slate-800 bg-slate-950 mt-auto">
+            <div className="p-4 border-t border-slate-800 bg-slate-950 mt-auto space-y-2">
+                <a
+                    href="https://www.hotelbalconcolonial.com/login"
+                    className="flex w-full items-center space-x-3 px-4 py-3 text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all border border-transparent hover:border-blue-500/20"
+                >
+                    <Building2 size={20} />
+                    <span className="font-bold text-sm">Ir a Hotel Colonial</span>
+                </a>
+
                 <button
                     onClick={logout}
                     className="flex w-full items-center space-x-3 px-4 py-3 text-slate-400 hover:bg-red-600/20 hover:text-red-400 rounded-xl transition-all border border-transparent hover:border-red-600/30"
