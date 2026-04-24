@@ -6,6 +6,8 @@ const Gasto = require('../models/Gasto');
 const CategoriaGasto = require('../models/CategoriaGasto');
 const Habitacion = require('../models/Habitacion');
 const EstadoHabitacion = require('../models/EstadoHabitacion');
+const Reserva = require('../models/Reserva');
+const Cliente = require('../models/Cliente');
 
 // Configuración para la conexión al Hotel Colonial
 const COLONIAL_URI = 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
@@ -29,7 +31,9 @@ const getColonialModels = async () => {
         Gasto: conn.model('Gasto', Gasto.schema),
         CategoriaGasto: conn.model('CategoriaGasto', CategoriaGasto.schema),
         Habitacion: conn.model('Habitacion', Habitacion.schema),
-        EstadoHabitacion: conn.model('EstadoHabitacion', EstadoHabitacion.schema)
+        EstadoHabitacion: conn.model('EstadoHabitacion', EstadoHabitacion.schema),
+        Reserva: conn.model('Reserva', Reserva.schema),
+        Cliente: conn.model('Cliente', Cliente.schema)
     };
 };
 
@@ -61,6 +65,68 @@ exports.getComparativeStats = async (req, res) => {
     } catch (error) {
         console.error('Error fetching comparative stats:', error);
         res.status(500).json({ message: 'Error al obtener estadísticas comparativas', error: error.message });
+    }
+};
+
+exports.getConsolidatedReservations = async (req, res) => {
+    try {
+        const { inicio, fin } = req.query;
+        const moment = require('moment-timezone');
+        
+        let query = {
+            estado: { $in: ['Confirmada', 'Pendiente'] }
+        };
+
+        if (inicio && fin) {
+            query.fecha_entrada = {
+                $gte: moment.tz(inicio, "America/Bogota").startOf('day').toDate(),
+                $lte: moment.tz(fin, "America/Bogota").endOf('day').toDate()
+            };
+        } else {
+            // Por defecto, traer desde hoy en adelante
+            query.fecha_entrada = { $gte: moment.tz("America/Bogota").startOf('day').toDate() };
+        }
+
+        // Fetch Plaza Reservations
+        const plazaReservas = await Reserva.find(query)
+            .populate('cliente', 'nombre documento telefono')
+            .sort({ fecha_entrada: 1 })
+            .lean();
+
+        const plazaFormatted = plazaReservas.map(r => ({
+            ...r,
+            hotel: 'Hotel Balcón Plaza',
+            hotel_id: 'plaza',
+            cliente_nombre: r.cliente?.nombre || 'Particular',
+            documento: r.cliente?.documento || '-',
+            habitaciones_desc: r.habitaciones?.map(h => h.numero).join(', ') || r.numero || '-'
+        }));
+
+        // Fetch Colonial Reservations
+        const colonialModels = await getColonialModels();
+        const colonialReservas = await colonialModels.Reserva.find(query)
+            .populate('cliente', 'nombre documento telefono')
+            .sort({ fecha_entrada: 1 })
+            .lean();
+
+        const colonialFormatted = colonialReservas.map(r => ({
+            ...r,
+            hotel: 'Hotel Balcón Colonial',
+            hotel_id: 'colonial',
+            cliente_nombre: r.cliente?.nombre || 'Particular',
+            documento: r.cliente?.documento || '-',
+            habitaciones_desc: r.habitaciones?.map(h => h.numero).join(', ') || r.numero || '-'
+        }));
+
+        // Combine and Sort
+        const allReservas = [...plazaFormatted, ...colonialFormatted].sort((a, b) => 
+            new Date(a.fecha_entrada) - new Date(b.fecha_entrada)
+        );
+
+        res.json(allReservas);
+    } catch (error) {
+        console.error('Error fetching consolidated reservations:', error);
+        res.status(500).json({ message: 'Error al obtener reservaciones consolidadas', error: error.message });
     }
 };
 

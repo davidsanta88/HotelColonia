@@ -35,6 +35,7 @@ import HotelConfig from './pages/HotelConfig';
 import CuadreCaja from './pages/CuadreCaja';
 import AuditoriaLimpieza from './pages/AuditoriaLimpieza';
 import ComparativaHoteles from './pages/ComparativaHoteles';
+import ReservasConsolidadas from './pages/ReservasConsolidadas';
 import Cotizaciones from './pages/Cotizaciones';
 import InvitacionReligiosa from './pages/InvitacionReligiosa';
 import Layout from './components/Layout/Layout';
@@ -101,6 +102,7 @@ const AppRoutes = () => {
                 <Route path="checkin-digital" element={<PrivateRoute><CheckinAdmin /></PrivateRoute>} />
                 <Route path="estadisticas" element={<PrivateRoute><Estadisticas /></PrivateRoute>} />
                 <Route path="comparativa" element={<PrivateRoute><ComparativaHoteles /></PrivateRoute>} />
+                <Route path="reservas-consolidadas" element={<PrivateRoute><ReservasConsolidadas /></PrivateRoute>} />
                 <Route path="cotizaciones" element={<PrivateRoute code="reportes"><Cotizaciones /></PrivateRoute>} />
                 <Route path="invitacion-religiosa" element={<PrivateRoute code="reportes"><InvitacionReligiosa /></PrivateRoute>} />
                 <Route path="config" element={<PrivateRoute code="configuracion"><HotelConfig /></PrivateRoute>} />
