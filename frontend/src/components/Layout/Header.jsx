@@ -15,6 +15,15 @@ const Header = ({ setSidebarOpen }) => {
                     <Menu size={24} />
                 </button>
                 
+                {/* Identidad del Hotel */}
+                <div className="hidden sm:flex items-center gap-3 px-4 py-1.5 bg-slate-50 border border-slate-100 rounded-2xl mr-2">
+                    <img src="/logo.jpg" alt="Logo Hotel Plaza" className="w-8 h-8 rounded-lg object-cover shadow-sm border border-white" />
+                    <div className="flex flex-col">
+                        <h2 className="text-sm font-black text-slate-800 leading-none">Hotel Balcón Plaza</h2>
+                        <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">Sede Principal</span>
+                    </div>
+                </div>
+
                 {/* Botón de Cambio de Hotel */}
                 <a 
                     href="https://www.hotelbalconcolonial.com/login"
@@ -22,7 +31,7 @@ const Header = ({ setSidebarOpen }) => {
                     title="Ir a Hotel Colonial"
                 >
                     <RefreshCw size={14} className="text-amber-500" />
-                    <span>Ir a Hotel Colonial</span>
+                    <span>Ir a Colonial</span>
                 </a>
             </div>
             <div className="flex items-center space-x-4">
