@@ -624,6 +624,7 @@ const Registros = () => {
                                                 <button 
                                                     onClick={async () => {
                                                         await generateVoucher({
+                                                            id: res.id,
                                                             cliente_nombre: res.nombre_cliente || res.cliente?.nombre || 'Huésped',
                                                             identificacion: res.documento_cliente || res.cliente?.documento || 'N/A',
                                                             telefono: res.telefono_cliente || res.cliente?.telefono || 'N/A',

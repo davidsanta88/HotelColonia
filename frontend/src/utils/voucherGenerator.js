@@ -126,6 +126,15 @@ export const generateVoucher = async (data) => {
         doc.setTextColor(37, 99, 235);
         const titleText = data.tipo === 'reserva' ? 'COMPROBANTE DE RESERVA' : 'RECIBO DE HOSPEDAJE';
         doc.text(titleText, margin, startInfoY);
+
+        // Número de Factura / Registro
+        if (data.id || data._id) {
+            const displayId = (data.id || data._id).toString().slice(-6).toUpperCase();
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(100, 116, 139);
+            doc.text(`N° ${displayId}`, pageWidth - margin, startInfoY, { align: 'right' });
+        }
  
         // 3. Información del Cliente
         doc.setFontSize(9);
