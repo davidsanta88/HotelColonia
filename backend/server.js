@@ -114,6 +114,7 @@ app.use('/api/checkin-digital', (req, res, next) => {
     next();
 }, require('./routes/checkin'));
 app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/hotel-config', require('./routes/hotelConfig'));
 
 // 2. PROTECTED ROUTES (Require Token)
 app.use('/api', verifyToken);
@@ -145,7 +146,6 @@ app.use('/api/reservas', require('./routes/reservas'));
 app.use('/api/notificaciones', require('./routes/notificaciones'));
 app.use('/api/mantenimiento', require('./routes/mantenimiento'));
 app.use('/api/estadisticas', require('./routes/estadisticas'));
-app.use('/api/hotel-config', require('./routes/hotelConfig'));
 app.use('/api/cierres-caja', require('./routes/cierresCaja'));
 app.use('/api/auditoria-limpieza', require('./routes/auditoriaLimpieza'));
 app.use('/api/cotizaciones', require('./routes/cotizaciones'));
