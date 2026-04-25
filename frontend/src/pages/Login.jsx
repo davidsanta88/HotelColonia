@@ -31,8 +31,17 @@ const Login = () => {
         setError('');
         setLoading(true);
         try {
-            await login(email, password);
-            navigate('/mapa-habitaciones'); 
+            const loggedUser = await login(email, password);
+            
+            const isSuperAdmin = loggedUser?.rol_id === 1 || 
+                               loggedUser?.rol_nombre?.toLowerCase()?.includes('admin') || 
+                               loggedUser?.nombre === 'Administrador';
+
+            if (isSuperAdmin) {
+                navigate('/mapa-habitaciones-consolidado');
+            } else {
+                navigate('/mapa-habitaciones');
+            }
         } catch {
             setError('Correo o contraseña incorrectos. Intenta de nuevo.');
         } finally {
