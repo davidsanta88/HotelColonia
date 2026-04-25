@@ -6,18 +6,8 @@ exports.getClientes = async (req, res) => {
         const mappedClientes = [];
         for (const cRaw of clientes) {
             const c = cRaw.toObject ? cRaw.toObject() : cRaw;
-            let munObj = c.municipio_origen_id || c.ciudad || c.municipio_id;
-            let municipio_nombre = '-';
-
-            if (munObj && typeof munObj === 'object' && munObj.nombre) {
-                municipio_nombre = munObj.nombre;
-            } else if (munObj) {
-                const Municipio = require('../models/Municipio');
-                const m = await Municipio.findById(munObj);
-                if (m) {
-                    municipio_nombre = m.nombre;
-                }
-            }
+            const munObj = c.municipio_origen_id;
+            const municipio_nombre = munObj?.nombre || '-';
 
             const docNum = c.documento || c.documentoNumero || c.documento_numero || '';
             const docTip = c.tipo_documento || c.documentoTipo || c.tipo_doc || '';
