@@ -7,6 +7,7 @@ const Reserva = require('../models/Reserva');
 const Usuario = require('../models/Usuario');
 const Cliente = require('../models/Cliente');
 const CierreCaja = require('../models/CierreCaja');
+const CategoriaGasto = require('../models/CategoriaGasto');
 const mongoose = require('mongoose');
 
 // Configuración para la conexión al Hotel Colonial
@@ -23,11 +24,14 @@ const getColonialConnection = async () => {
 const getColonialModels = async () => {
     const conn = await getColonialConnection();
     return {
-        Venta: conn.model('Venta', Venta.schema),
-        Registro: conn.model('Registro', Registro.schema),
-        Gasto: conn.model('Gasto', Gasto.schema),
-        Reserva: conn.model('Reserva', Reserva.schema),
-        Cliente: conn.model('Cliente', Cliente.schema)
+        Venta: conn.models.Venta || conn.model('Venta', Venta.schema),
+        Registro: conn.models.Registro || conn.model('Registro', Registro.schema),
+        Gasto: conn.models.Gasto || conn.model('Gasto', Gasto.schema),
+        Reserva: conn.models.Reserva || conn.model('Reserva', Reserva.schema),
+        Cliente: conn.models.Cliente || conn.model('Cliente', Cliente.schema),
+        Habitacion: conn.models.Habitacion || conn.model('Habitacion', Habitacion.schema),
+        Usuario: conn.models.Usuario || conn.model('Usuario', Usuario.schema),
+        CategoriaGasto: conn.models.CategoriaGasto || conn.model('CategoriaGasto', CategoriaGasto.schema)
     };
 };
 
