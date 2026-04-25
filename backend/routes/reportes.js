@@ -12,7 +12,7 @@ router.get('/gastos-categoria', verifyToken, checkPermission('reportes', 'v'), r
 router.get('/ventas-mensuales', verifyToken, checkPermission('reportes', 'v'), reportesController.getVentasMensuales);
 router.get('/ingresos-hospedaje', verifyToken, checkPermission('reportes', 'v'), reportesController.getIngresosHospedaje);
 router.get('/cuadre-caja', verifyToken, checkPermission('cuadre_caja', 'v'), reportesController.getCuadreCaja);
-router.get('/detalle-ingresos', verifyToken, checkPermission('reportes', 'v'), reportesController.getDetalleIngresos);
+router.get('/detalle-ingresos', verifyToken, checkPermission('reporte_ingresos', 'v'), reportesController.getDetalleIngresos);
 router.get('/detalle-ingresos-consolidado', verifyToken, checkPermission('reporte_ingresos_consolidado', 'v'), reportesController.getDetalleIngresosConsolidado);
 router.get('/huespedes', verifyToken, checkPermission('reportes', 'v'), reportesController.getReporteHuespedes);
 router.get('/ingresos-calendario', verifyToken, checkPermission('reportes', 'v'), reportesController.getIngresosCalendario);
