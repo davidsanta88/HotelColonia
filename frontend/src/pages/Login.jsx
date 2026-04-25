@@ -9,10 +9,23 @@ const Login = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPass, setShowPass] = useState(false);
-    const { login } = useContext(AuthContext);
+    const { user, login } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const [hotelInfo, setHotelInfo] = useState({ nombre: 'HOTEL BALCÓN PLAZA' });
+
+    useEffect(() => {
+        if (user) {
+            const isSuperAdmin = user?.rol_id === 1 || 
+                               user?.rol_nombre?.toLowerCase()?.includes('admin') || 
+                               user?.nombre === 'Administrador';
+            if (isSuperAdmin) {
+                navigate('/mapa-habitaciones-consolidado');
+            } else {
+                navigate('/mapa-habitaciones');
+            }
+        }
+    }, [user, navigate]);
 
     useEffect(() => {
         const fetchHotelInfo = async () => {
