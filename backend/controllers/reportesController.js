@@ -339,6 +339,112 @@ exports.getIngresosHospedaje = async (req, res) => {
     }
 };
 
+exports.getDetalleIngresos = async (req, res) => {
+    try {
+        const { inicio, fin } = req.query;
+        let startDate = inicio ? (inicio.includes('T') ? new Date(inicio) : new Date(`${inicio}T00:00:00-05:00`)) : new Date();
+        if (!inicio) startDate.setHours(0,0,0,0);
+        
+        let endDate = fin ? (fin.includes('T') ? new Date(fin) : new Date(`${fin}T23:59:59-05:00`)) : new Date();
+        if (!fin) endDate.setHours(23,59,59,999);
+
+        // 1. Pagos de Registros (Hospedajes)
+        const pagosRegistros = await Registro.find({
+            "pagos.fecha": { $gte: startDate, $lte: endDate }
+        }).populate('habitacion', 'numero');
+
+        // 2. Abonos de Reservas
+        const abonosReservas = await Reserva.find({
+            "abonos.fecha": { $gte: startDate, $lte: endDate }
+        });
+
+        // Población manual de clientes
+        const allClienteIds = [
+            ...pagosRegistros.map(r => r.cliente),
+            ...abonosReservas.map(r => r.cliente)
+        ].filter(id => id);
+        const uniqueClienteIds = [...new Set(allClienteIds.map(id => id.toString()))];
+        const clientesCuadre = await Cliente.find({ _id: { $in: uniqueClienteIds } });
+        const clienteMapCuadre = new Map(clientesCuadre.map(c => [c._id.toString(), c]));
+
+        let ingresos = [];
+
+        pagosRegistros.forEach(reg => {
+            const clienteObj = reg.cliente ? clienteMapCuadre.get(reg.cliente.toString()) : null;
+            reg.pagos.forEach(pago => {
+                if (pago.fecha >= startDate && pago.fecha <= endDate) {
+                    ingresos.push({
+                        fecha: pago.fecha,
+                        tipo: 'HOSPEDAJE',
+                        descripcion: `Pago Hab ${reg.habitacion?.numero || 'S/N'} - ${clienteObj?.nombre || 'Huésped'}`,
+                        usuario: pago.usuario_nombre || reg.usuarioCreacion,
+                        medioPago: (pago.medio || 'EFECTIVO').toUpperCase(),
+                        monto: pago.monto
+                    });
+                }
+            });
+        });
+
+        abonosReservas.forEach(reserva => {
+            const clienteObj = reserva.cliente ? clienteMapCuadre.get(reserva.cliente.toString()) : null;
+            reserva.abonos.forEach(abono => {
+                if (abono.fecha >= startDate && abono.fecha <= endDate) {
+                    ingresos.push({
+                        fecha: abono.fecha,
+                        tipo: 'RESERVA',
+                        descripcion: `Abono Reserva - ${clienteObj?.nombre || 'Cliente'}`,
+                        usuario: abono.usuario_nombre || reserva.usuarioCreacion,
+                        medioPago: (abono.medio_pago || 'EFECTIVO').toUpperCase(),
+                        monto: abono.monto
+                    });
+                }
+            });
+        });
+
+        // 3. Ventas de Productos
+        const ventas = await Venta.find({
+            fecha: { $gte: startDate, $lte: endDate }
+        }).populate('empleado', 'nombre');
+
+        ventas.forEach(venta => {
+            ingresos.push({
+                fecha: venta.fecha,
+                tipo: 'VENTA',
+                descripcion: `Venta de productos`,
+                usuario: venta.empleado?.nombre || venta.usuarioCreacion,
+                medioPago: (venta.medioPago || 'EFECTIVO').toUpperCase(),
+                monto: venta.total
+            });
+        });
+
+        // 4. Ingresos manuales
+        const gastos = await Gasto.find({
+            fecha: { $gte: startDate, $lte: endDate }
+        }).populate('categoria').populate('usuario', 'nombre');
+
+        gastos.forEach(gasto => {
+            const esIngreso = gasto.categoria?.tipo === 'Ingreso';
+            if (esIngreso) {
+                ingresos.push({
+                    fecha: gasto.fecha,
+                    tipo: 'INGRESO MANUAL',
+                    descripcion: gasto.descripcion,
+                    usuario: gasto.usuario?.nombre || 'Sistema',
+                    medioPago: (gasto.medioPago || 'EFECTIVO').toUpperCase(),
+                    monto: gasto.monto
+                });
+            }
+        });
+
+        // Ordenar por fecha desc
+        ingresos.sort((a, b) => b.fecha - a.fecha);
+
+        res.json(ingresos);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
 exports.getCuadreCaja = async (req, res) => {
     try {
         const { inicio, fin } = req.query;

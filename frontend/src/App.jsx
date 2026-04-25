@@ -38,6 +38,7 @@ import ComparativaHoteles from './pages/ComparativaHoteles';
 import ReservasConsolidadas from './pages/ReservasConsolidadas';
 import Cotizaciones from './pages/Cotizaciones';
 import InvitacionReligiosa from './pages/InvitacionReligiosa';
+import ReporteIngresos from './pages/ReporteIngresos';
 import Layout from './components/Layout/Layout';
 
 const PrivateRoute = ({ children, roles, code }) => {
@@ -105,6 +106,7 @@ const AppRoutes = () => {
                 <Route path="reservas-consolidadas" element={<PrivateRoute><ReservasConsolidadas /></PrivateRoute>} />
                 <Route path="cotizaciones" element={<PrivateRoute code="reportes"><Cotizaciones /></PrivateRoute>} />
                 <Route path="invitacion-religiosa" element={<PrivateRoute code="reportes"><InvitacionReligiosa /></PrivateRoute>} />
+                <Route path="reporte-ingresos" element={<PrivateRoute code="reportes"><ReporteIngresos /></PrivateRoute>} />
                 <Route path="config" element={<PrivateRoute code="configuracion"><HotelConfig /></PrivateRoute>} />
             </Route>
             <Route path="/checkin" element={<CheckinPublico />} />
