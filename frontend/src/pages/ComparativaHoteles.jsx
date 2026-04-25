@@ -188,110 +188,75 @@ const ComparativaHoteles = () => {
                 </div>
             </div>
 
-            {/* Resumen de Caja Consolidado */}
+            {/* Resumen de Caja Consolidado Simplificado */}
             <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm overflow-hidden relative">
                 <div className="absolute top-0 right-0 p-8 opacity-5">
                     <DollarSign size={120} className="text-slate-900" />
                 </div>
                 
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 relative z-10">
-                    <div>
-                        <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                            <RefreshCw size={20} className="text-primary-500" /> 
-                            Consolidado de Cuadre de Caja
-                        </h2>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Saldos pendientes de cierre en ambos hoteles</p>
-                    </div>
-                    <div className="bg-primary-50 px-4 py-2 rounded-2xl border border-primary-100">
-                        <span className="text-[10px] font-black text-primary-600 uppercase tracking-widest">Balance Final Combinado</span>
-                        <div className="text-2xl font-black text-primary-700">${new Intl.NumberFormat().format(globalCashTotal)}</div>
-                    </div>
+                <div className="mb-8 relative z-10">
+                    <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                        <RefreshCw size={20} className="text-primary-500" /> 
+                        Saldos en Efectivo (+Base)
+                    </h2>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Total disponible físicamente en caja por cada hotel</p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
-                    {/* Efectivo */}
-                    <div className="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100 flex flex-col justify-between">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-100">
-                                <DollarSign size={18} />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                    {/* Hotel Plaza */}
+                    <div className="bg-blue-50/50 p-8 rounded-[2rem] border border-blue-100 flex flex-col justify-between group hover:bg-blue-600 transition-all duration-500 hover:shadow-xl hover:shadow-blue-100">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-3 bg-blue-600 text-white rounded-2xl group-hover:bg-white group-hover:text-blue-600 transition-colors">
+                                <Hotel size={24} />
                             </div>
-                            <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Efectivo Hoy</span>
-                        </div>
-                        <div className="text-2xl font-black text-emerald-600">${new Intl.NumberFormat().format(globalCashEfectivo)}</div>
-                        <div className="mt-3 pt-3 border-t border-emerald-100 flex justify-between text-[9px] font-bold text-emerald-500/60 uppercase">
-                            <span>Plaza: ${new Intl.NumberFormat().format(data?.plaza?.cash?.efectivo || 0)}</span>
-                            <span>Colonial: ${new Intl.NumberFormat().format(data?.colonial?.cash?.efectivo || 0)}</span>
-                        </div>
-                    </div>
-
-                    {/* Nequi */}
-                    <div className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100 flex flex-col justify-between">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-100">
-                                <Zap size={18} />
+                            <div>
+                                <span className="text-[10px] font-black text-blue-700 group-hover:text-blue-100 uppercase tracking-widest block">Hotel Plaza</span>
+                                <span className="text-[9px] font-bold text-blue-400 group-hover:text-blue-200 uppercase">Total en Caja</span>
                             </div>
-                            <span className="text-[10px] font-black text-indigo-700 uppercase tracking-widest">Total Nequi</span>
                         </div>
-                        <div className="text-2xl font-black text-indigo-600">${new Intl.NumberFormat().format(globalCashNequi)}</div>
-                        <div className="mt-3 pt-3 border-t border-indigo-100 flex justify-between text-[9px] font-bold text-indigo-500/60 uppercase">
-                            <span>Plaza: ${new Intl.NumberFormat().format(data?.plaza?.cash?.nequi || 0)}</span>
-                            <span>Colonial: ${new Intl.NumberFormat().format(data?.colonial?.cash?.nequi || 0)}</span>
+                        <div className="text-3xl font-black text-blue-700 group-hover:text-white">${new Intl.NumberFormat().format((data?.plaza?.cash?.total || 0) + (data?.plaza?.cash?.base || 0))}</div>
+                        <div className="mt-4 pt-4 border-t border-blue-100 group-hover:border-blue-500/30 flex justify-between items-center">
+                            <span className="text-[10px] font-bold text-blue-500 group-hover:text-blue-200 uppercase tracking-tighter">Base: ${new Intl.NumberFormat().format(data?.plaza?.cash?.base || 0)}</span>
+                            <span className="text-[10px] font-bold text-blue-500 group-hover:text-blue-200 uppercase tracking-tighter">Hoy: ${new Intl.NumberFormat().format(data?.plaza?.cash?.efectivo || 0)}</span>
                         </div>
                     </div>
 
-                    {/* Bancolombia */}
-                    <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100 flex flex-col justify-between">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-100">
-                                <Activity size={18} />
+                    {/* Hotel Colonial */}
+                    <div className="bg-slate-50/50 p-8 rounded-[2rem] border border-slate-100 flex flex-col justify-between group hover:bg-slate-700 transition-all duration-500 hover:shadow-xl hover:shadow-slate-100">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-3 bg-slate-700 text-white rounded-2xl group-hover:bg-white group-hover:text-slate-700 transition-colors">
+                                <Hotel size={24} />
                             </div>
-                            <span className="text-[10px] font-black text-blue-700 uppercase tracking-widest">Trans. Bancolombia</span>
+                            <div>
+                                <span className="text-[10px] font-black text-slate-700 group-hover:text-slate-100 uppercase tracking-widest block">Hotel Colonial</span>
+                                <span className="text-[9px] font-bold text-slate-400 group-hover:text-slate-200 uppercase">Total en Caja</span>
+                            </div>
                         </div>
-                        <div className="text-2xl font-black text-blue-600">${new Intl.NumberFormat().format(globalCashBancolombia)}</div>
-                        <div className="mt-3 pt-3 border-t border-blue-100 flex justify-between text-[9px] font-bold text-blue-500/60 uppercase">
-                            <span>Plaza: ${new Intl.NumberFormat().format(data?.plaza?.cash?.bancolombia || 0)}</span>
-                            <span>Colonial: ${new Intl.NumberFormat().format(data?.colonial?.cash?.bancolombia || 0)}</span>
-                        </div>
-                    </div>
-
-                    {/* Total en Caja (+Base) */}
-                    <div className="bg-primary-600 p-6 rounded-3xl border border-primary-700 flex flex-col justify-between shadow-xl shadow-primary-100 text-white">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-white/20 text-white rounded-xl">
-                                <Lock size={18} />
-                            </div>
-                            <span className="text-[10px] font-black uppercase tracking-widest opacity-80">Total en Caja (+Base)</span>
-                        </div>
-                        <div className="text-2xl font-black">${new Intl.NumberFormat().format(globalCashTotalConBase)}</div>
-                        <div className="mt-3 pt-3 border-t border-white/10 flex flex-col gap-1 text-[9px] font-bold opacity-70 uppercase">
-                            <div className="flex justify-between">
-                                <span>Plaza: ${new Intl.NumberFormat().format((data?.plaza?.cash?.total || 0) + (data?.plaza?.cash?.base || 0))}</span>
-                                <span>(Base: ${new Intl.NumberFormat().format(data?.plaza?.cash?.base || 0)})</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Colonial: ${new Intl.NumberFormat().format((data?.colonial?.cash?.total || 0) + (data?.colonial?.cash?.base || 0))}</span>
-                                <span>(Base: ${new Intl.NumberFormat().format(data?.colonial?.cash?.base || 0)})</span>
-                            </div>
+                        <div className="text-3xl font-black text-slate-700 group-hover:text-white">${new Intl.NumberFormat().format((data?.colonial?.cash?.total || 0) + (data?.colonial?.cash?.base || 0))}</div>
+                        <div className="mt-4 pt-4 border-t border-slate-200 group-hover:border-slate-500/30 flex justify-between items-center">
+                            <span className="text-[10px] font-bold text-slate-500 group-hover:text-slate-200 uppercase tracking-tighter">Base: ${new Intl.NumberFormat().format(data?.colonial?.cash?.base || 0)}</span>
+                            <span className="text-[10px] font-bold text-slate-500 group-hover:text-slate-200 uppercase tracking-tighter">Hoy: ${new Intl.NumberFormat().format(data?.colonial?.cash?.efectivo || 0)}</span>
                         </div>
                     </div>
 
-                    {/* Promedio x Hotel */}
-                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col justify-center">
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hotel Plaza</span>
-                                <span className="text-sm font-black text-slate-700">${new Intl.NumberFormat().format((data?.plaza?.cash?.total || 0) + (data?.plaza?.cash?.base || 0))}</span>
+                    {/* Consolidado */}
+                    <div className="bg-emerald-600 p-8 rounded-[2rem] border border-emerald-700 flex flex-col justify-between shadow-2xl shadow-emerald-200 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform duration-700">
+                            <Lock size={100} />
+                        </div>
+                        <div className="flex items-center gap-3 mb-6 relative z-10">
+                            <div className="p-3 bg-white/20 text-white rounded-2xl backdrop-blur-md">
+                                <Activity size={24} />
                             </div>
-                            <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                <div className="h-full bg-primary-500 rounded-full" style={{ width: `${globalCashTotalConBase > 0 ? (((data?.plaza?.cash?.total || 0) + (data?.plaza?.cash?.base || 0)) / globalCashTotalConBase) * 100 : 0}%` }}></div>
+                            <div>
+                                <span className="text-[10px] font-black text-emerald-100 uppercase tracking-widest block">Consolidado Total</span>
+                                <span className="text-[9px] font-bold text-emerald-200/60 uppercase tracking-tighter">Suma de Ambos Hoteles</span>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hotel Colonial</span>
-                                <span className="text-sm font-black text-slate-700">${new Intl.NumberFormat().format((data?.colonial?.cash?.total || 0) + (data?.colonial?.cash?.base || 0))}</span>
-                            </div>
-                            <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                <div className="h-full bg-slate-500 rounded-full" style={{ width: `${globalCashTotalConBase > 0 ? (((data?.colonial?.cash?.total || 0) + (data?.colonial?.cash?.base || 0)) / globalCashTotalConBase) * 100 : 0}%` }}></div>
-                            </div>
+                        </div>
+                        <div className="text-4xl font-black text-white relative z-10 tracking-tight">${new Intl.NumberFormat().format(globalCashTotalConBase)}</div>
+                        <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center relative z-10">
+                            <span className="text-[10px] font-bold text-emerald-100 uppercase tracking-tighter">Gran Total en Caja (+Base)</span>
+                            <TrendingUp size={18} className="text-emerald-100 animate-bounce" />
                         </div>
                     </div>
                 </div>
