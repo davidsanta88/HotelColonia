@@ -613,6 +613,11 @@ const CuadreCaja = () => {
                         <span>Base Inicio:</span>
                         <span className="bg-white px-1.5 py-0.5 rounded border border-indigo-100 text-indigo-600">${formatCurrency(montoUltimoCierre)}</span>
                     </div>
+                    {ultimoCierre && (
+                        <div className="mt-2 text-[9px] font-bold text-indigo-300 uppercase tracking-tight text-center">
+                            Último Cierre: {new Date(ultimoCierre.fecha).toLocaleString()}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -628,6 +633,7 @@ const CuadreCaja = () => {
                         <thead>
                             <tr className="bg-white border-b border-gray-100 text-gray-400">
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest">Fecha/Hora</th>
+                                <th className="p-4 text-[10px] uppercase font-black tracking-widest">Estado</th>
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest">Tipo</th>
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest w-1/3">Descripción</th>
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest">Usuario</th>
@@ -712,11 +718,21 @@ const CuadreCaja = () => {
                                         <td className="p-4 whitespace-nowrap">
                                             <div className={`text-xs font-black ${esNuevo ? 'text-blue-900' : 'text-gray-900'} ${!esNuevo ? 'border-l-2 border-primary-500 pl-2' : 'pl-2'}`}>
                                                 {new Date(t.fecha).toLocaleDateString()}
-                                                {esNuevo && <span className="ml-2 bg-blue-700 text-white text-[9px] px-2 py-0.5 rounded-full shadow-sm animate-pulse uppercase tracking-tighter">Pendiente de Cierre</span>}
                                             </div>
                                             <div className="text-[10px] text-gray-400 font-bold pl-2">
                                                 {new Date(t.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </div>
+                                        </td>
+                                        <td className="p-4 whitespace-nowrap">
+                                            {esNuevo ? (
+                                                <span className="bg-amber-100 text-amber-700 border border-amber-200 px-2 py-1 rounded-lg text-[9px] font-black uppercase animate-pulse shadow-sm flex items-center gap-1 w-fit">
+                                                    <Clock size={10} /> Pendiente
+                                                </span>
+                                            ) : (
+                                                <span className="bg-gray-100 text-gray-500 border border-gray-200 px-2 py-1 rounded-lg text-[9px] font-black uppercase flex items-center gap-1 w-fit">
+                                                    <Lock size={10} /> Procesado
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="p-4 whitespace-nowrap">
                                             {getTypeBadge(t.tipo)}
