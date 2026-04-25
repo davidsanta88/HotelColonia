@@ -445,23 +445,21 @@ exports.getDetalleIngresos = async (req, res) => {
             });
         });
 
-        // 4. Ingresos manuales
-        const gastos = await Gasto.find({
+        // 4. Gastos e Ingresos manuales
+        const movimientos = await Gasto.find({
             fecha: { $gte: startDate, $lte: endDate }
         }).populate('categoria').populate('usuario', 'nombre');
 
-        gastos.forEach(gasto => {
-            const esIngreso = gasto.categoria?.tipo === 'Ingreso';
-            if (esIngreso) {
-                ingresos.push({
-                    fecha: gasto.fecha,
-                    tipo: 'INGRESO MANUAL',
-                    descripcion: gasto.descripcion,
-                    usuario: gasto.usuario?.nombre || 'Sistema',
-                    medioPago: (gasto.medioPago || 'EFECTIVO').toUpperCase(),
-                    monto: gasto.monto
-                });
-            }
+        movimientos.forEach(mov => {
+            const esIngreso = mov.categoria?.tipo === 'Ingreso';
+            ingresos.push({
+                fecha: mov.fecha,
+                tipo: esIngreso ? 'INGRESO MANUAL' : 'GASTO',
+                descripcion: mov.descripcion,
+                usuario: mov.usuario?.nombre || 'Sistema',
+                medioPago: (mov.medioPago || 'EFECTIVO').toUpperCase(),
+                monto: esIngreso ? mov.monto : -mov.monto
+            });
         });
 
         // Ordenar por fecha desc
@@ -558,23 +556,22 @@ exports.getDetalleIngresosConsolidado = async (req, res) => {
                 });
             });
 
-            // 4. Ingresos manuales
-            const gastos = await Gasto.find({
+            // 4. Gastos e Ingresos manuales
+            const movimientos = await Gasto.find({
                 fecha: { $gte: startDate, $lte: endDate }
             }).populate('categoria').populate('usuario', 'nombre');
 
-            gastos.forEach(gasto => {
-                if (gasto.categoria?.tipo === 'Ingreso') {
-                    localIngresos.push({
-                        fecha: gasto.fecha,
-                        tipo: 'INGRESO MANUAL',
-                        descripcion: gasto.descripcion,
-                        usuario: gasto.usuario?.nombre || 'Sistema',
-                        medioPago: (gasto.medioPago || 'EFECTIVO').toUpperCase(),
-                        monto: gasto.monto,
-                        hotel: hotelLabel
-                    });
-                }
+            movimientos.forEach(mov => {
+                const esIngreso = mov.categoria?.tipo === 'Ingreso';
+                localIngresos.push({
+                    fecha: mov.fecha,
+                    tipo: esIngreso ? 'INGRESO MANUAL' : 'GASTO',
+                    descripcion: mov.descripcion,
+                    usuario: mov.usuario?.nombre || 'Sistema',
+                    medioPago: (mov.medioPago || 'EFECTIVO').toUpperCase(),
+                    monto: esIngreso ? mov.monto : -mov.monto,
+                    hotel: hotelLabel
+                });
             });
 
             return localIngresos;

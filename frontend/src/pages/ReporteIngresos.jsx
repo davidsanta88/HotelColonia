@@ -12,7 +12,9 @@ import {
     Clock,
     ChevronLeft,
     ChevronRight,
-    FileText
+    FileText,
+    TrendingDown,
+    Activity
 } from 'lucide-react';
 import { format, startOfMonth } from 'date-fns';
 import Swal from 'sweetalert2';
@@ -20,7 +22,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
 const ReporteIngresos = () => {
-    const [ingresos, setIngresos] = useState([]);
+    const [movimientos, setMovimientos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filtros, setFiltros] = useState({
         inicio: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
@@ -29,20 +31,20 @@ const ReporteIngresos = () => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(15);
+    const [itemsPerPage] = useState(20);
 
     useEffect(() => {
-        fetchIngresos();
+        fetchMovimientos();
     }, []);
 
-    const fetchIngresos = async () => {
+    const fetchMovimientos = async () => {
         try {
             setLoading(true);
             const res = await api.get(`/reportes/detalle-ingresos?inicio=${filtros.inicio}&fin=${filtros.fin}`);
-            setIngresos(res.data);
+            setMovimientos(res.data);
             setCurrentPage(1);
         } catch (error) {
-            Swal.fire('Error', 'No se pudieron cargar los ingresos', 'error');
+            Swal.fire('Error', 'No se pudieron cargar los movimientos', 'error');
         } finally {
             setLoading(false);
         }
@@ -50,11 +52,11 @@ const ReporteIngresos = () => {
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
-        fetchIngresos();
+        fetchMovimientos();
     };
 
-    const filteredIngresos = useMemo(() => {
-        return ingresos.filter(i => {
+    const filteredMovimientos = useMemo(() => {
+        return movimientos.filter(i => {
             const searchLower = searchTerm.toLowerCase();
             return (
                 i.descripcion.toLowerCase().includes(searchLower) ||
@@ -63,16 +65,19 @@ const ReporteIngresos = () => {
                 i.medioPago.toLowerCase().includes(searchLower)
             );
         });
-    }, [ingresos, searchTerm]);
+    }, [movimientos, searchTerm]);
 
-    const paginatedIngresos = useMemo(() => {
+    const paginatedMovimientos = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
-        return filteredIngresos.slice(startIndex, startIndex + itemsPerPage);
-    }, [filteredIngresos, currentPage, itemsPerPage]);
+        return filteredMovimientos.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredMovimientos, currentPage, itemsPerPage]);
 
-    const totalIngresos = useMemo(() => {
-        return filteredIngresos.reduce((sum, i) => sum + i.monto, 0);
-    }, [filteredIngresos]);
+    const stats = useMemo(() => {
+        const ingresos = filteredMovimientos.filter(m => m.monto > 0).reduce((sum, m) => sum + m.monto, 0);
+        const egresos = Math.abs(filteredMovimientos.filter(m => m.monto < 0).reduce((sum, m) => sum + m.monto, 0));
+        const balance = ingresos - egresos;
+        return { ingresos, egresos, balance };
+    }, [filteredMovimientos]);
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('es-CO', {
@@ -83,7 +88,7 @@ const ReporteIngresos = () => {
     };
 
     const handleExportExcel = () => {
-        const dataToExport = filteredIngresos.map(i => ({
+        const dataToExport = filteredMovimientos.map(i => ({
             'Fecha y Hora': format(new Date(i.fecha), 'dd/MM/yyyy HH:mm'),
             'Tipo': i.tipo,
             'Descripción': i.descripcion,
@@ -94,13 +99,13 @@ const ReporteIngresos = () => {
 
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Ingresos');
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Movimientos');
         const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
         const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
-        saveAs(data, `Reporte_Ingresos_${filtros.inicio}_a_${filtros.fin}.xlsx`);
+        saveAs(data, `Reporte_Movimientos_${filtros.inicio}_a_${filtros.fin}.xlsx`);
     };
 
-    const totalPages = Math.ceil(filteredIngresos.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredMovimientos.length / itemsPerPage);
 
     return (
         <div className="space-y-6 animate-fade-in pb-10">
@@ -108,12 +113,12 @@ const ReporteIngresos = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <div>
                     <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-                        <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-                            <TrendingUp size={24} />
+                        <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                            <Activity size={24} />
                         </div>
-                        Reporte Detallado de Ingresos
+                        Reporte Detallado de Caja
                     </h1>
-                    <p className="text-gray-500 text-sm font-medium mt-1">Registro cronológico de todo el dinero recibido en el hotel</p>
+                    <p className="text-gray-500 text-sm font-medium mt-1 uppercase tracking-wider">Ingresos y Egresos por Periodo</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <button 
@@ -125,48 +130,68 @@ const ReporteIngresos = () => {
                 </div>
             </div>
 
-            {/* Filters & Summary Card */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <div className="lg:col-span-3 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                    <form onSubmit={handleFilterSubmit} className="flex flex-wrap items-end gap-4">
-                        <div className="flex-1 min-w-[200px]">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fecha Inicio</label>
-                            <div className="relative">
-                                <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18} />
-                                <input 
-                                    type="date" 
-                                    className="input-field pl-10 py-2 h-11 w-full" 
-                                    value={filtros.inicio}
-                                    onChange={e => setFiltros({...filtros, inicio: e.target.value})}
-                                />
-                            </div>
-                        </div>
-                        <div className="flex-1 min-w-[200px]">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fecha Fin</label>
-                            <div className="relative">
-                                <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18} />
-                                <input 
-                                    type="date" 
-                                    className="input-field pl-10 py-2 h-11 w-full" 
-                                    value={filtros.fin}
-                                    onChange={e => setFiltros({...filtros, fin: e.target.value})}
-                                />
-                            </div>
-                        </div>
-                        <button type="submit" className="btn-primary flex items-center gap-2 h-11 px-8 font-bold shadow-lg shadow-primary-500/20">
-                            <Filter size={18} /> Filtrar
-                        </button>
-                    </form>
-                </div>
-
-                <div className="bg-emerald-600 p-6 rounded-2xl shadow-lg shadow-emerald-200 text-white flex flex-col justify-center relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                        <DollarSign size={80} />
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 group">
+                    <div className="p-4 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                        <TrendingUp size={24} />
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-80 relative z-10">Total Recaudado</p>
-                    <p className="text-3xl font-black relative z-10">{formatCurrency(totalIngresos)}</p>
-                    <p className="text-[10px] font-bold mt-1 opacity-70 relative z-10">{filteredIngresos.length} movimientos encontrados</p>
+                    <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Ingresos</p>
+                        <p className="text-xl font-black text-emerald-700">{formatCurrency(stats.ingresos)}</p>
+                    </div>
                 </div>
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 group">
+                    <div className="p-4 bg-rose-50 text-rose-600 rounded-xl group-hover:bg-rose-600 group-hover:text-white transition-all">
+                        <TrendingDown size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Egresos</p>
+                        <p className="text-xl font-black text-rose-700">{formatCurrency(stats.egresos)}</p>
+                    </div>
+                </div>
+                <div className="bg-slate-900 p-6 rounded-2xl shadow-lg text-white flex items-center gap-4 group">
+                    <div className="p-4 bg-white/10 rounded-xl">
+                        <DollarSign size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Balance Neto</p>
+                        <p className="text-xl font-black text-white">{formatCurrency(stats.balance)}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Filters */}
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <form onSubmit={handleFilterSubmit} className="flex flex-wrap items-end gap-4">
+                    <div className="flex-1 min-w-[200px]">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fecha Inicio</label>
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                            <input 
+                                type="date" 
+                                className="input-field pl-10 py-2 h-11 w-full" 
+                                value={filtros.inicio}
+                                onChange={e => setFiltros({...filtros, inicio: e.target.value})}
+                            />
+                        </div>
+                    </div>
+                    <div className="flex-1 min-w-[200px]">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fecha Fin</label>
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                            <input 
+                                type="date" 
+                                className="input-field pl-10 py-2 h-11 w-full" 
+                                value={filtros.fin}
+                                onChange={e => setFiltros({...filtros, fin: e.target.value})}
+                            />
+                        </div>
+                    </div>
+                    <button type="submit" className="btn-primary flex items-center gap-2 h-11 px-8 font-bold shadow-lg shadow-primary-500/20">
+                        <Filter size={18} /> Filtrar
+                    </button>
+                </form>
             </div>
 
             {/* Search and Table */}
@@ -177,7 +202,7 @@ const ReporteIngresos = () => {
                         <input 
                             type="text" 
                             placeholder="Buscar por descripción, tipo o usuario..."
-                            className="input-field pl-10 py-2 w-full text-sm"
+                            className="input-field pl-10 py-2 w-full text-sm font-medium"
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                         />
@@ -209,10 +234,10 @@ const ReporteIngresos = () => {
                         <thead>
                             <tr className="bg-slate-50/50 border-b border-gray-100">
                                 <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Fecha y Hora</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipo de Movimiento</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipo</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Descripción / Detalle</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Usuario</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Medio de Pago</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Medio</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Valor</th>
                             </tr>
                         </thead>
@@ -225,44 +250,44 @@ const ReporteIngresos = () => {
                                         </td>
                                     </tr>
                                 ))
-                            ) : paginatedIngresos.length > 0 ? (
-                                paginatedIngresos.map((ingreso, index) => (
+                            ) : paginatedMovimientos.length > 0 ? (
+                                paginatedMovimientos.map((mov, index) => (
                                     <tr key={index} className="hover:bg-slate-50/50 transition-colors group">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-gray-700">{format(new Date(ingreso.fecha), 'dd/MM/yyyy')}</span>
+                                                <span className="text-sm font-bold text-gray-700">{format(new Date(mov.fecha), 'dd/MM/yyyy')}</span>
                                                 <span className="text-[10px] font-bold text-gray-400 flex items-center gap-1">
-                                                    <Clock size={10} /> {format(new Date(ingreso.fecha), 'HH:mm')}
+                                                    <Clock size={10} /> {format(new Date(mov.fecha), 'HH:mm')}
                                                 </span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${
-                                                ingreso.tipo === 'HOSPEDAJE' ? 'bg-blue-50 text-blue-600' :
-                                                ingreso.tipo === 'VENTA' ? 'bg-purple-50 text-purple-600' :
-                                                ingreso.tipo === 'RESERVA' ? 'bg-amber-50 text-amber-600' :
+                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
+                                                mov.tipo === 'GASTO' ? 'bg-rose-50 text-rose-600' :
+                                                mov.tipo === 'HOSPEDAJE' ? 'bg-blue-50 text-blue-600' :
+                                                mov.tipo === 'VENTA' ? 'bg-purple-50 text-purple-600' :
                                                 'bg-emerald-50 text-emerald-600'
                                             }`}>
-                                                {ingreso.tipo}
+                                                {mov.tipo}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="text-sm font-medium text-gray-600 line-clamp-1">{ingreso.descripcion}</p>
+                                            <p className="text-sm font-medium text-gray-600 line-clamp-1">{mov.descripcion}</p>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
-                                                    <User size={12} />
+                                                <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                                                    <User size={10} />
                                                 </div>
-                                                <span className="text-xs font-bold text-gray-600">{ingreso.usuario}</span>
+                                                <span className="text-xs font-bold text-gray-600">{mov.usuario}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">{ingreso.medioPago}</span>
+                                            <span className="text-[10px] font-black text-gray-400 uppercase">{mov.medioPago}</span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right">
-                                            <span className="text-sm font-black text-emerald-600">
-                                                +{formatCurrency(ingreso.monto)}
+                                            <span className={`text-sm font-black ${mov.monto > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                {mov.monto > 0 ? '+' : ''}{formatCurrency(mov.monto)}
                                             </span>
                                         </td>
                                     </tr>
@@ -272,7 +297,7 @@ const ReporteIngresos = () => {
                                     <td colSpan="6" className="px-6 py-20 text-center">
                                         <div className="flex flex-col items-center gap-3 opacity-20">
                                             <Search size={48} />
-                                            <p className="text-lg font-black uppercase tracking-widest">No se encontraron ingresos</p>
+                                            <p className="text-lg font-black uppercase tracking-widest">No se encontraron movimientos</p>
                                         </div>
                                     </td>
                                 </tr>
