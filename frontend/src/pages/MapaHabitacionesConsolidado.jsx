@@ -264,69 +264,73 @@ const MapaHabitacionesConsolidado = () => {
             </div>
 
             {/* Grid */}
-            <div className="space-y-12">
-                {['Hotel Plaza', 'Hotel Colonial'].filter(hotel => hotelFilter === 'todos' || hotel === hotelFilter).map(hotel => (
-                    <div key={hotel} className="space-y-4">
-                        <div className="flex items-center gap-3 px-2">
-                            <div className={`w-1 h-6 rounded-full ${hotel === 'Hotel Plaza' ? 'bg-indigo-500' : 'bg-slate-500'}`} />
-                            <h2 className="text-lg font-black uppercase tracking-tighter text-gray-800">{hotel}</h2>
-                            <span className="bg-slate-100 px-2 py-0.5 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                                {filteredHabitaciones.filter(h => h.hotel === hotel).length} habitaciones
-                            </span>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-2">
-                            {filteredHabitaciones.filter(h => h.hotel === hotel).map(hab => {
-                                const styles = getStatusStyles(hab.estado, hab.estadoLimpieza);
-                                return (
-                                    <div 
-                                        key={hab.id}
-                                        onClick={() => handleRoomClick(hab)}
-                                        className={`group relative bg-white rounded-xl shadow-sm border ${styles.border} overflow-hidden flex flex-col transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer`}
-                                    >
-                                        <div className={`px-2 py-1.5 ${styles.bg} border-b ${styles.border} flex justify-between items-center`}>
-                                            <span className="text-[11px] font-black text-gray-900 leading-none">{hab.numero}</span>
-                                            <span className={`px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase tracking-tighter ${styles.badge}`}>
-                                                {styles.label === 'Por Asear' ? 'ASEO' : styles.label.substring(0, 4)}
-                                            </span>
-                                        </div>
-                                        
-                                        <div className="p-1.5 flex-1 flex flex-col justify-between min-h-[50px]">
-                                            <div className="text-[7px] font-black text-gray-400 uppercase tracking-tighter truncate">
-                                                {hab.tipo}
+            <div className="space-y-4">
+                {['Hotel Plaza', 'Hotel Colonial'].filter(hotel => hotelFilter === 'todos' || hotel === hotelFilter).map(hotel => {
+                    const hotelHabs = filteredHabitaciones.filter(h => h.hotel === hotel);
+                    if (hotelHabs.length === 0) return null;
+                    
+                    return (
+                        <div key={hotel} className="bg-white/50 backdrop-blur-sm rounded-3xl p-4 border border-gray-100 shadow-sm">
+                            <div className="flex items-center justify-between mb-3 px-2">
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-1.5 h-6 rounded-full ${hotel === 'Hotel Plaza' ? 'bg-indigo-500' : 'bg-slate-500'}`} />
+                                    <h2 className="text-sm font-black text-gray-800 uppercase tracking-tight">{hotel}</h2>
+                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold">{hotelHabs.length} HABITACIONES</span>
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 2xl:grid-cols-12 gap-2">
+                                {hotelHabs.map(hab => {
+                                    const styles = getStatusStyles(hab.estado, hab.estadoLimpieza);
+                                    return (
+                                        <div 
+                                            key={hab.id}
+                                            onClick={() => handleRoomClick(hab)}
+                                            className={`group relative rounded-xl border ${styles.bg} ${styles.border} p-1.5 transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer`}
+                                        >
+                                            <div className="flex justify-between items-start mb-1">
+                                                <span className="text-xs font-black text-gray-900 group-hover:scale-110 transition-transform">{hab.numero}</span>
+                                                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md ${styles.text} bg-white/80 border ${styles.border} shadow-sm uppercase tracking-tighter`}>
+                                                    {styles.label === 'Por Asear' ? 'ASEO' : styles.label.substring(0, 4)}
+                                                </span>
                                             </div>
-
-                                            {hab.registroActual ? (
-                                                <div className="space-y-1">
-                                                    <div className="text-[9px] font-black text-slate-700 leading-tight line-clamp-1 break-all">
-                                                        {hab.registroActual.huesped}
+                                            
+                                            <div className="space-y-0.5">
+                                                <p className="text-[9px] font-bold text-gray-500 truncate leading-none mb-1">{hab.tipo}</p>
+                                                
+                                                {hab.registroActual ? (
+                                                    <div className="animate-in fade-in slide-in-from-bottom-1 duration-300">
+                                                        <p className={`text-[10px] font-black ${styles.text} leading-tight truncate`}>
+                                                            {hab.registroActual.huesped}
+                                                        </p>
+                                                        <div className="flex items-center gap-1 mt-0.5 opacity-60">
+                                                            <span className="text-[8px] font-bold">{moment(hab.registroActual.fecha_ingreso).format('DD/MM')}</span>
+                                                            <span className="text-[8px]">→</span>
+                                                            <span className="text-[8px] font-bold">{moment(hab.registroActual.fecha_salida).format('DD/MM')}</span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex justify-between text-[7px] font-bold text-slate-400">
-                                                        <span>{moment(hab.registroActual.fecha_ingreso).format('DD/MM')}</span>
-                                                        <span>→</span>
-                                                        <span>{moment(hab.registroActual.fecha_salida).format('DD/MM')}</span>
+                                                ) : (
+                                                    <div className="flex flex-col gap-0.5">
+                                                        {hab.reservasProximas.length > 0 ? (
+                                                            hab.reservasProximas.slice(0, 1).map(res => (
+                                                                <div key={res.id} className="text-[7px] font-black text-yellow-600 uppercase truncate">
+                                                                    R: {res.cliente}
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div className="text-[8px] text-slate-300 italic">Libre</div>
+                                                        )}
                                                     </div>
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col gap-0.5">
-                                                    {hab.reservasProximas.length > 0 ? (
-                                                        hab.reservasProximas.slice(0, 1).map(res => (
-                                                            <div key={res.id} className="text-[7px] font-black text-yellow-600 uppercase truncate">
-                                                                R: {res.cliente}
-                                                            </div>
-                                                        ))
-                                                    ) : (
-                                                        <div className="text-[7px] text-slate-300 italic">Libre</div>
-                                                    )}
-                                                </div>
-                                            )}
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    );
+                })}
+            </div>  </div>
 
             {filteredHabitaciones.length === 0 && (
                 <div className="bg-white rounded-[3rem] p-20 text-center border border-gray-100">
