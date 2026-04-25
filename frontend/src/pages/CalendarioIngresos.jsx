@@ -8,7 +8,6 @@ import {
     TrendingDown, 
     DollarSign,
     Activity,
-    Building2,
     RefreshCw
 } from 'lucide-react';
 import { 
@@ -21,8 +20,7 @@ import {
     isSameMonth, 
     isSameDay, 
     addMonths, 
-    subMonths,
-    getDay
+    subMonths
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { formatCurrency } from '../utils/format';
@@ -31,7 +29,7 @@ const CalendarioIngresos = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [loading, setLoading] = useState(true);
     const [dailyData, setDailyData] = useState({});
-    const [viewMode, setViewMode] = useState('individual'); // 'individual' or 'consolidated'
+    const [viewMode, setViewMode] = useState('individual');
 
     useEffect(() => {
         fetchData();
@@ -64,19 +62,22 @@ const CalendarioIngresos = () => {
     const calendarStart = startOfWeek(monthStart);
     const calendarEnd = endOfWeek(monthEnd);
 
-    const days = eachDayOfInterval({
-        start: calendarStart,
-        end: calendarEnd
-    });
+    const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
     const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
     const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
 
     const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
-    // Stats calculation for the summary cards
+    // Use the correct field per viewMode to avoid always showing pérdida in consolidated
+    const getDayValue = (d) => {
+        if (!d) return null;
+        return viewMode === 'individual' ? (d.balance ?? 0) : (d.total ?? 0);
+    };
+
+    // Stats use the same logic
     const stats = Object.values(dailyData).reduce((acc, curr) => {
-        const val = curr.balance || curr.total || 0;
+        const val = getDayValue(curr);
         acc.totalMes += val;
         if (val > acc.mejorDia) acc.mejorDia = val;
         if (curr.egresos && curr.egresos > acc.mayorGasto) acc.mayorGasto = curr.egresos;
@@ -136,7 +137,7 @@ const CalendarioIngresos = () => {
                 </div>
             </div>
 
-            {/* Summary Cards (Moved to Top) */}
+            {/* Summary Cards */}
             <div className="bg-slate-900 p-6 rounded-2xl shadow-xl text-white">
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-center">
                     <div className="flex items-center gap-3">
@@ -163,11 +164,13 @@ const CalendarioIngresos = () => {
                         </div>
                         <div>
                             <p className="text-[10px] font-black uppercase opacity-60">Total Mes</p>
-                            <p className={`text-lg font-black ${stats.totalMes >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{formatCurrency(stats.totalMes)}</p>
+                            <p className={`text-lg font-black ${stats.totalMes >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                {formatCurrency(stats.totalMes)}
+                            </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-emerald-500/20 rounded-xl">
+                        <div className="p-3 bg-emerald-500/20 rounded-xl min-w-[48px] flex justify-center">
                             <span className="text-emerald-400 text-lg font-black">{stats.diasGanancia}</span>
                         </div>
                         <div>
@@ -176,7 +179,7 @@ const CalendarioIngresos = () => {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-rose-500/20 rounded-xl">
+                        <div className="p-3 bg-rose-500/20 rounded-xl min-w-[48px] flex justify-center">
                             <span className="text-rose-400 text-lg font-black">{stats.diasPerdida}</span>
                         </div>
                         <div>
@@ -190,7 +193,7 @@ const CalendarioIngresos = () => {
             </div>
 
             {/* Calendar Grid */}
-            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                 {/* Day Names */}
                 <div className="grid grid-cols-7 bg-slate-50 border-b border-gray-100">
                     {dayNames.map(day => (
@@ -208,21 +211,38 @@ const CalendarioIngresos = () => {
                         const isCurrentMonth = isSameMonth(day, monthStart);
                         const isToday = isSameDay(day, new Date());
 
+                        const dayValue = getDayValue(data);
+                        const isPositive = dayValue !== null && dayValue > 0;
+                        const isNegative = dayValue !== null && dayValue < 0;
+
                         return (
                             <div 
                                 key={idx} 
-                                className={`min-h-[120px] p-2 border-r border-b border-gray-50 flex flex-col transition-all hover:bg-slate-50/50 group ${!isCurrentMonth ? 'bg-gray-50/30' : ''}`}
+                                className={`min-h-[120px] p-2 border-r border-b flex flex-col transition-all group ${
+                                    !isCurrentMonth
+                                        ? 'bg-gray-50/40 border-gray-100'
+                                        : isPositive
+                                            ? 'bg-emerald-50 border-emerald-100 hover:bg-emerald-100/60'
+                                            : isNegative
+                                                ? 'bg-rose-50 border-rose-100 hover:bg-rose-100/60'
+                                                : 'bg-white border-gray-50 hover:bg-slate-50/50'
+                                }`}
                             >
                                 <div className="flex justify-between items-start mb-2">
                                     <span className={`text-xs font-black w-7 h-7 flex items-center justify-center rounded-lg ${
-                                        isToday ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 
-                                        isCurrentMonth ? 'text-gray-900' : 'text-gray-300'
+                                        isToday
+                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                                            : isCurrentMonth ? 'text-gray-900' : 'text-gray-300'
                                     }`}>
                                         {format(day, 'd')}
                                     </span>
-                                    {data && (
-                                        <div className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${data.balance >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                                            {data.balance >= 0 ? '↑ Ganancia' : '↓ Pérdida'}
+                                    {data && dayValue !== null && (
+                                        <div className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${
+                                            isPositive
+                                                ? 'bg-emerald-200 text-emerald-800'
+                                                : 'bg-rose-200 text-rose-800'
+                                        }`}>
+                                            {isPositive ? '↑ Ganancia' : '↓ Pérdida'}
                                         </div>
                                     )}
                                 </div>
@@ -238,16 +258,16 @@ const CalendarioIngresos = () => {
                                             {viewMode === 'individual' ? (
                                                 <>
                                                     <div className="flex items-center justify-between group-hover:translate-x-1 transition-transform">
-                                                        <span className="text-[9px] font-bold text-gray-400 uppercase">Ing</span>
-                                                        <span className="text-[10px] font-black text-emerald-600">+{formatCurrency(data.ingresos)}</span>
+                                                        <span className="text-[9px] font-bold text-gray-500 uppercase">Ing</span>
+                                                        <span className="text-[10px] font-black text-emerald-700">+{formatCurrency(data.ingresos)}</span>
                                                     </div>
                                                     <div className="flex items-center justify-between group-hover:translate-x-1 transition-transform">
-                                                        <span className="text-[9px] font-bold text-gray-400 uppercase">Egr</span>
-                                                        <span className="text-[10px] font-black text-rose-500">-{formatCurrency(data.egresos)}</span>
+                                                        <span className="text-[9px] font-bold text-gray-500 uppercase">Egr</span>
+                                                        <span className="text-[10px] font-black text-rose-600">-{formatCurrency(data.egresos)}</span>
                                                     </div>
-                                                    <div className="mt-1 pt-1 border-t border-gray-100 flex items-center justify-between">
-                                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Neto</span>
-                                                        <span className={`text-xs font-black ${data.balance >= 0 ? 'text-slate-900' : 'text-rose-700'}`}>
+                                                    <div className="mt-1 pt-1 border-t border-black/10 flex items-center justify-between">
+                                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-tighter">Neto</span>
+                                                        <span className={`text-xs font-black ${isPositive ? 'text-emerald-800' : 'text-rose-800'}`}>
                                                             {formatCurrency(data.balance)}
                                                         </span>
                                                     </div>
@@ -255,16 +275,22 @@ const CalendarioIngresos = () => {
                                             ) : (
                                                 <>
                                                     <div className="flex items-center justify-between group-hover:translate-x-1 transition-transform">
-                                                        <span className="text-[9px] font-bold text-gray-400 uppercase">Plaza</span>
-                                                        <span className="text-[10px] font-black text-indigo-600">{formatCurrency(data.plaza)}</span>
+                                                        <span className="text-[9px] font-bold text-gray-500 uppercase">Plaza</span>
+                                                        <span className={`text-[10px] font-black ${(data.plaza ?? 0) >= 0 ? 'text-indigo-700' : 'text-rose-700'}`}>
+                                                            {formatCurrency(data.plaza)}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center justify-between group-hover:translate-x-1 transition-transform">
-                                                        <span className="text-[9px] font-bold text-gray-400 uppercase">Colonial</span>
-                                                        <span className="text-[10px] font-black text-orange-500">{formatCurrency(data.colonial)}</span>
+                                                        <span className="text-[9px] font-bold text-gray-500 uppercase">Colonial</span>
+                                                        <span className={`text-[10px] font-black ${(data.colonial ?? 0) >= 0 ? 'text-orange-600' : 'text-rose-700'}`}>
+                                                            {formatCurrency(data.colonial)}
+                                                        </span>
                                                     </div>
-                                                    <div className="mt-1 pt-1 border-t border-gray-100 flex items-center justify-between">
-                                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Total</span>
-                                                        <span className="text-xs font-black text-slate-900">{formatCurrency(data.total)}</span>
+                                                    <div className="mt-1 pt-1 border-t border-black/10 flex items-center justify-between">
+                                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-tighter">Total</span>
+                                                        <span className={`text-xs font-black ${isPositive ? 'text-emerald-800' : 'text-rose-800'}`}>
+                                                            {formatCurrency(data.total)}
+                                                        </span>
                                                     </div>
                                                 </>
                                             )}
