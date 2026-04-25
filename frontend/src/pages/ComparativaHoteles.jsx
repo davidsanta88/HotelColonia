@@ -18,7 +18,8 @@ import {
     Users,
     Zap,
     Brush,
-    Activity
+    Activity,
+    Lock
 } from 'lucide-react';
 import { format, subDays, startOfMonth, differenceInDays, parseISO } from 'date-fns';
 
