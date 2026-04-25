@@ -33,7 +33,10 @@ const getColonialModels = async () => {
         Habitacion: conn.models.Habitacion || conn.model('Habitacion', Habitacion.schema),
         Usuario: conn.models.Usuario || conn.model('Usuario', Usuario.schema),
         CategoriaGasto: conn.models.CategoriaGasto || conn.model('CategoriaGasto', CategoriaGasto.schema),
-        Producto: conn.models.Producto || conn.model('Producto', Producto.schema)
+        Producto: conn.models.Producto || conn.model('Producto', Producto.schema),
+        TipoHabitacion: conn.models.TipoHabitacion || conn.model('TipoHabitacion', require('../models/TipoHabitacion').schema),
+        EstadoHabitacion: conn.models.EstadoHabitacion || conn.model('EstadoHabitacion', require('../models/EstadoHabitacion').schema),
+        TipoRegistro: conn.models.TipoRegistro || conn.model('TipoRegistro', require('../models/TipoRegistro').schema)
     };
 };
 
