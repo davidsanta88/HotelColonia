@@ -413,6 +413,10 @@ const ReporteIngresosConsolidado = () => {
                                     <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Usuario</span>
                                     <input type="text" className="w-full text-[9px] p-1 border border-slate-200 rounded font-bold" placeholder="..." value={columnFilters.usuario} onChange={e => toggleColumnFilter('usuario', e.target.value)} />
                                 </th>
+                                <th className="px-4 py-4">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Medio</span>
+                                    <input type="text" className="w-full text-[9px] p-1 border border-slate-200 rounded font-bold" placeholder="..." value={columnFilters.medio} onChange={e => toggleColumnFilter('medio', e.target.value)} />
+                                </th>
                                 <th className="px-4 py-4 text-right">
                                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Valor</span>
                                     <input type="text" className="w-full text-[9px] p-1 border border-slate-200 rounded text-right font-bold" placeholder="..." value={columnFilters.valor} onChange={e => toggleColumnFilter('valor', e.target.value)} />
@@ -426,7 +430,7 @@ const ReporteIngresosConsolidado = () => {
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td colSpan="8" className="px-6 py-4">
+                                        <td colSpan="9" className="px-6 py-4">
                                             <div className="h-4 bg-gray-100 rounded w-full"></div>
                                         </td>
                                     </tr>
@@ -466,6 +470,11 @@ const ReporteIngresosConsolidado = () => {
                                         <td className="px-4 py-4 whitespace-nowrap">
                                             <span className="text-gray-600 font-bold">{mov.usuario}</span>
                                         </td>
+                                        <td className="px-4 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[9px] font-black uppercase tracking-tighter border border-slate-200">
+                                                {mov.medioPago}
+                                            </span>
+                                        </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-right">
                                             <span className={`text-sm font-black ${mov.monto > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                                                 {mov.monto > 0 ? '+' : ''}{formatCurrency(mov.monto)}
@@ -484,7 +493,7 @@ const ReporteIngresosConsolidado = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="8" className="px-6 py-20 text-center opacity-20">
+                                    <td colSpan="9" className="px-6 py-20 text-center opacity-20">
                                         <Search size={48} className="mx-auto mb-2" />
                                         <p className="text-lg font-black uppercase tracking-widest">Sin resultados</p>
                                     </td>
