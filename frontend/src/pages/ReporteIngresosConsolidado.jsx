@@ -17,9 +17,13 @@ import {
     Activity,
     TrendingDown,
     Printer,
-    RefreshCw
+    RefreshCw,
+    Eye
 } from 'lucide-react';
 import { format, startOfMonth, subDays } from 'date-fns';
+import { formatCurrency } from '../utils/format';
+import DetallesRegistroModal from '../components/modals/DetallesRegistroModal';
+import DetalleMovimientoModal from '../components/modals/DetalleMovimientoModal';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -48,7 +52,13 @@ const ReporteIngresosConsolidado = () => {
     });
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(20);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+
+    // Detail Modal States
+    const [selectedTransaccion, setSelectedTransaccion] = useState(null);
+    const [showDetalleModal, setShowDetalleModal] = useState(false);
+    const [selectedRegistroId, setSelectedRegistroId] = useState(null);
+    const [showRegistroModal, setShowRegistroModal] = useState(false);
 
     useEffect(() => {
         fetchMovimientos();
@@ -154,14 +164,6 @@ const ReporteIngresosConsolidado = () => {
         return { consolidado, plaza, colonial };
     }, [filteredMovimientos]);
 
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('es-CO', {
-            style: 'currency',
-            currency: 'COP',
-            minimumFractionDigits: 0
-        }).format(amount);
-    };
-
     const handleExportExcel = () => {
         const dataToExport = filteredMovimientos.map(i => ({
             'Hotel': i.hotel,
@@ -224,6 +226,16 @@ const ReporteIngresosConsolidado = () => {
     const toggleColumnFilter = (column, value) => {
         setColumnFilters(prev => ({ ...prev, [column]: value }));
         setCurrentPage(1);
+    };
+
+    const handleVerDetalle = (t) => {
+        if (t.tipo === 'HOSPEDAJE') {
+            setSelectedRegistroId(t.id_ref);
+            setShowRegistroModal(true);
+        } else {
+            setSelectedTransaccion(t);
+            setShowDetalleModal(true);
+        }
     };
 
     return (
@@ -402,8 +414,11 @@ const ReporteIngresosConsolidado = () => {
                                     <input type="text" className="w-full text-[9px] p-1 border border-slate-200 rounded font-bold" placeholder="..." value={columnFilters.usuario} onChange={e => toggleColumnFilter('usuario', e.target.value)} />
                                 </th>
                                 <th className="px-4 py-4 text-right">
-                                    <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Valor</span>
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Valor</span>
                                     <input type="text" className="w-full text-[9px] p-1 border border-slate-200 rounded text-right font-bold" placeholder="..." value={columnFilters.valor} onChange={e => toggleColumnFilter('valor', e.target.value)} />
+                                </th>
+                                <th className="px-4 py-4 text-center">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Ver</span>
                                 </th>
                             </tr>
                         </thead>
@@ -411,7 +426,7 @@ const ReporteIngresosConsolidado = () => {
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td colSpan="7" className="px-6 py-4">
+                                        <td colSpan="8" className="px-6 py-4">
                                             <div className="h-4 bg-gray-100 rounded w-full"></div>
                                         </td>
                                     </tr>
@@ -452,15 +467,24 @@ const ReporteIngresosConsolidado = () => {
                                             <span className="text-gray-600 font-bold">{mov.usuario}</span>
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-right">
-                                            <span className={`font-black ${mov.monto > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                            <span className={`text-sm font-black ${mov.monto > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                                                 {mov.monto > 0 ? '+' : ''}{formatCurrency(mov.monto)}
                                             </span>
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <button 
+                                                onClick={() => handleVerDetalle(mov)}
+                                                className="p-2 text-primary-500 hover:bg-primary-50 rounded-xl transition-all active:scale-90"
+                                                title="Ver Detalle Completo"
+                                            >
+                                                <Eye size={18} />
+                                            </button>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="7" className="px-6 py-20 text-center opacity-20">
+                                    <td colSpan="8" className="px-6 py-20 text-center opacity-20">
                                         <Search size={48} className="mx-auto mb-2" />
                                         <p className="text-lg font-black uppercase tracking-widest">Sin resultados</p>
                                     </td>
@@ -470,6 +494,23 @@ const ReporteIngresosConsolidado = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Modals para detalle */}
+            {showRegistroModal && (
+                <DetallesRegistroModal 
+                    registroId={selectedRegistroId}
+                    isOpen={showRegistroModal}
+                    onClose={() => setShowRegistroModal(false)}
+                />
+            )}
+
+            {showDetalleModal && (
+                <DetalleMovimientoModal 
+                    movimiento={selectedTransaccion}
+                    isOpen={showDetalleModal}
+                    onClose={() => setShowDetalleModal(false)}
+                />
+            )}
         </div>
     );
 };

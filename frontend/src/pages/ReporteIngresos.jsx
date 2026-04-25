@@ -18,9 +18,13 @@ import {
     Printer,
     FileDown,
     RefreshCw,
-    Info
+    Info,
+    Eye
 } from 'lucide-react';
 import { format, startOfMonth, subDays } from 'date-fns';
+import { formatCurrency } from '../utils/format';
+import DetallesRegistroModal from '../components/modals/DetallesRegistroModal';
+import DetalleMovimientoModal from '../components/modals/DetalleMovimientoModal';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -48,7 +52,13 @@ const ReporteIngresos = () => {
     });
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(20);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+
+    // Detail Modal States
+    const [selectedTransaccion, setSelectedTransaccion] = useState(null);
+    const [showDetalleModal, setShowDetalleModal] = useState(false);
+    const [selectedRegistroId, setSelectedRegistroId] = useState(null);
+    const [showRegistroModal, setShowRegistroModal] = useState(false);
 
     useEffect(() => {
         fetchMovimientos();
@@ -212,6 +222,16 @@ const ReporteIngresos = () => {
     const toggleColumnFilter = (column, value) => {
         setColumnFilters(prev => ({ ...prev, [column]: value }));
         setCurrentPage(1);
+    };
+
+    const handleVerDetalle = (t) => {
+        if (t.tipo === 'HOSPEDAJE') {
+            setSelectedRegistroId(t.id_ref);
+            setShowRegistroModal(true);
+        } else {
+            setSelectedTransaccion(t);
+            setShowDetalleModal(true);
+        }
     };
 
     return (
@@ -393,6 +413,9 @@ const ReporteIngresos = () => {
                                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Valor</span>
                                     <input type="text" className="w-full text-[9px] p-1 border border-slate-200 rounded text-right font-bold" placeholder="..." value={columnFilters.valor} onChange={e => toggleColumnFilter('valor', e.target.value)} />
                                 </th>
+                                <th className="px-4 py-4 text-center">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Ver</span>
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -447,6 +470,15 @@ const ReporteIngresos = () => {
                                                 {mov.monto > 0 ? '+' : ''}{formatCurrency(mov.monto)}
                                             </span>
                                         </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <button 
+                                                onClick={() => handleVerDetalle(mov)}
+                                                className="p-2 text-primary-500 hover:bg-primary-50 rounded-xl transition-all active:scale-90"
+                                                title="Ver Detalle Completo"
+                                            >
+                                                <Eye size={18} />
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))
                             ) : (
@@ -461,6 +493,23 @@ const ReporteIngresos = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Modals para detalle */}
+            {showRegistroModal && (
+                <DetallesRegistroModal 
+                    registroId={selectedRegistroId}
+                    isOpen={showRegistroModal}
+                    onClose={() => setShowRegistroModal(false)}
+                />
+            )}
+
+            {showDetalleModal && (
+                <DetalleMovimientoModal 
+                    movimiento={selectedTransaccion}
+                    isOpen={showDetalleModal}
+                    onClose={() => setShowDetalleModal(false)}
+                />
+            )}
         </div>
     );
 };
