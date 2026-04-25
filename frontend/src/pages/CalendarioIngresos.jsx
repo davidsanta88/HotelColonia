@@ -75,12 +75,24 @@ const CalendarioIngresos = () => {
         return viewMode === 'individual' ? (d.balance ?? 0) : (d.total ?? 0);
     };
 
-    // Stats use the same logic
-    const stats = Object.values(dailyData).reduce((acc, curr) => {
+    // Stats: only count current-month days to avoid distortion from adjacent-month edge days
+    const stats = Object.entries(dailyData).reduce((acc, [key, curr]) => {
+        // Skip days that belong to adjacent months (shown as gray)
+        const dayDate = new Date(key + 'T12:00:00');
+        if (!isSameMonth(dayDate, currentDate)) return acc;
+
         const val = getDayValue(curr);
         acc.totalMes += val;
         if (val > acc.mejorDia) acc.mejorDia = val;
-        if (curr.egresos && curr.egresos > acc.mayorGasto) acc.mayorGasto = curr.egresos;
+
+        // Mayor Gasto: in individual mode use egresos; in consolidated use worst negative day
+        if (viewMode === 'individual') {
+            if (curr.egresos && curr.egresos > acc.mayorGasto) acc.mayorGasto = curr.egresos;
+        } else {
+            const absNeg = val < 0 ? Math.abs(val) : 0;
+            if (absNeg > acc.mayorGasto) acc.mayorGasto = absNeg;
+        }
+
         if (val > 0) acc.diasGanancia += 1;
         else if (val < 0) acc.diasPerdida += 1;
         return acc;
