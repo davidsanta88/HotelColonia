@@ -1037,6 +1037,7 @@ exports.getMapaHabitacionesConsolidado = async (req, res) => {
     try {
         const fetchHotelData = async (models, hotelLabel) => {
             const { Habitacion, Registro, Reserva, Cliente } = models;
+            console.log(`[DEBUG] Fetching data for ${hotelLabel}...`);
             
             // 1. Get all rooms
             const habitaciones = await Habitacion.find()
@@ -1120,7 +1121,11 @@ exports.getMapaHabitacionesConsolidado = async (req, res) => {
         res.json([...plazaRooms, ...colonialRooms]);
     } catch (err) {
         console.error('[MAPA CONSOLIDADO ERROR]', err);
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ 
+            message: 'Error al generar el mapa consolidado',
+            error: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
     }
 };
 
