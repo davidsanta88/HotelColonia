@@ -6,6 +6,30 @@ const Producto = require('../models/Producto');
 const Reserva = require('../models/Reserva');
 const Usuario = require('../models/Usuario');
 const Cliente = require('../models/Cliente');
+const CierreCaja = require('../models/CierreCaja');
+const mongoose = require('mongoose');
+
+// Configuración para la conexión al Hotel Colonial
+const COLONIAL_URI = 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
+
+let colonialConn = null;
+
+const getColonialConnection = async () => {
+    if (colonialConn && colonialConn.readyState === 1) return colonialConn;
+    colonialConn = await mongoose.createConnection(COLONIAL_URI).asPromise();
+    return colonialConn;
+};
+
+const getColonialModels = async () => {
+    const conn = await getColonialConnection();
+    return {
+        Venta: conn.model('Venta', Venta.schema),
+        Registro: conn.model('Registro', Registro.schema),
+        Gasto: conn.model('Gasto', Gasto.schema),
+        Reserva: conn.model('Reserva', Reserva.schema),
+        Cliente: conn.model('Cliente', Cliente.schema)
+    };
+};
 
 exports.getReporteVentas = async (req, res) => {
     try {
@@ -440,6 +464,129 @@ exports.getDetalleIngresos = async (req, res) => {
         ingresos.sort((a, b) => b.fecha - a.fecha);
 
         res.json(ingresos);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.getDetalleIngresosConsolidado = async (req, res) => {
+    try {
+        const { inicio, fin } = req.query;
+        let startDate = inicio ? (inicio.includes('T') ? new Date(inicio) : new Date(`${inicio}T00:00:00-05:00`)) : new Date();
+        if (!inicio) startDate.setHours(0,0,0,0);
+        
+        let endDate = fin ? (fin.includes('T') ? new Date(fin) : new Date(`${fin}T23:59:59-05:00`)) : new Date();
+        if (!fin) endDate.setHours(23,59,59,999);
+
+        // Helper function to fetch from a set of models
+        const fetchFromModels = async (models, hotelLabel) => {
+            const { Registro, Reserva, Venta, Gasto, Cliente } = models;
+
+            // 1. Pagos de Registros
+            const pagosRegistros = await Registro.find({
+                "pagos.fecha": { $gte: startDate, $lte: endDate }
+            }).populate('habitacion', 'numero');
+
+            // 2. Abonos de Reservas
+            const abonosReservas = await Reserva.find({
+                "abonos.fecha": { $gte: startDate, $lte: endDate }
+            });
+
+            // Clientes
+            const allClienteIds = [
+                ...pagosRegistros.map(r => r.cliente),
+                ...abonosReservas.map(r => r.cliente)
+            ].filter(id => id);
+            const uniqueClienteIds = [...new Set(allClienteIds.map(id => id.toString()))];
+            const clientes = await Cliente.find({ _id: { $in: uniqueClienteIds } });
+            const clienteMap = new Map(clientes.map(c => [c._id.toString(), c]));
+
+            let localIngresos = [];
+
+            pagosRegistros.forEach(reg => {
+                const clienteObj = reg.cliente ? clienteMap.get(reg.cliente.toString()) : null;
+                reg.pagos.forEach(pago => {
+                    if (pago.fecha >= startDate && pago.fecha <= endDate) {
+                        localIngresos.push({
+                            fecha: pago.fecha,
+                            tipo: 'HOSPEDAJE',
+                            descripcion: `Pago Hab ${reg.habitacion?.numero || 'S/N'} - ${clienteObj?.nombre || 'Huésped'}`,
+                            usuario: pago.usuario_nombre || reg.usuarioCreacion,
+                            medioPago: (pago.medio || 'EFECTIVO').toUpperCase(),
+                            monto: pago.monto,
+                            hotel: hotelLabel
+                        });
+                    }
+                });
+            });
+
+            abonosReservas.forEach(reserva => {
+                const clienteObj = reserva.cliente ? clienteMap.get(reserva.cliente.toString()) : null;
+                reserva.abonos.forEach(abono => {
+                    if (abono.fecha >= startDate && abono.fecha <= endDate) {
+                        localIngresos.push({
+                            fecha: abono.fecha,
+                            tipo: 'RESERVA',
+                            descripcion: `Abono Reserva - ${clienteObj?.nombre || 'Cliente'}`,
+                            usuario: abono.usuario_nombre || reserva.usuarioCreacion,
+                            medioPago: (abono.medio_pago || 'EFECTIVO').toUpperCase(),
+                            monto: abono.monto,
+                            hotel: hotelLabel
+                        });
+                    }
+                });
+            });
+
+            // 3. Ventas
+            const ventas = await Venta.find({
+                fecha: { $gte: startDate, $lte: endDate }
+            }).populate('empleado', 'nombre');
+
+            ventas.forEach(venta => {
+                localIngresos.push({
+                    fecha: venta.fecha,
+                    tipo: 'VENTA',
+                    descripcion: `Venta de productos`,
+                    usuario: venta.empleado?.nombre || venta.usuarioCreacion,
+                    medioPago: (venta.medioPago || 'EFECTIVO').toUpperCase(),
+                    monto: venta.total,
+                    hotel: hotelLabel
+                });
+            });
+
+            // 4. Ingresos manuales
+            const gastos = await Gasto.find({
+                fecha: { $gte: startDate, $lte: endDate }
+            }).populate('categoria').populate('usuario', 'nombre');
+
+            gastos.forEach(gasto => {
+                if (gasto.categoria?.tipo === 'Ingreso') {
+                    localIngresos.push({
+                        fecha: gasto.fecha,
+                        tipo: 'INGRESO MANUAL',
+                        descripcion: gasto.descripcion,
+                        usuario: gasto.usuario?.nombre || 'Sistema',
+                        medioPago: (gasto.medioPago || 'EFECTIVO').toUpperCase(),
+                        monto: gasto.monto,
+                        hotel: hotelLabel
+                    });
+                }
+            });
+
+            return localIngresos;
+        };
+
+        // Fetch Plaza
+        const plazaIngresos = await fetchFromModels({ Registro, Reserva, Venta, Gasto, Cliente }, 'Hotel Plaza');
+
+        // Fetch Colonial
+        const colonialModels = await getColonialModels();
+        const colonialIngresos = await fetchFromModels(colonialModels, 'Hotel Colonial');
+
+        // Combine and sort
+        const allIngresos = [...plazaIngresos, ...colonialIngresos].sort((a, b) => b.fecha - a.fecha);
+
+        res.json(allIngresos);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

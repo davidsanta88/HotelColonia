@@ -12,14 +12,16 @@ import {
     Clock,
     ChevronLeft,
     ChevronRight,
-    FileText
+    FileText,
+    Building2,
+    Activity
 } from 'lucide-react';
 import { format, startOfMonth } from 'date-fns';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
-const ReporteIngresos = () => {
+const ReporteIngresosConsolidado = () => {
     const [ingresos, setIngresos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filtros, setFiltros] = useState({
@@ -29,7 +31,7 @@ const ReporteIngresos = () => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(15);
+    const [itemsPerPage] = useState(20);
 
     useEffect(() => {
         fetchIngresos();
@@ -38,11 +40,11 @@ const ReporteIngresos = () => {
     const fetchIngresos = async () => {
         try {
             setLoading(true);
-            const res = await api.get(`/reportes/detalle-ingresos?inicio=${filtros.inicio}&fin=${filtros.fin}`);
+            const res = await api.get(`/reportes/detalle-ingresos-consolidado?inicio=${filtros.inicio}&fin=${filtros.fin}`);
             setIngresos(res.data);
             setCurrentPage(1);
         } catch (error) {
-            Swal.fire('Error', 'No se pudieron cargar los ingresos', 'error');
+            Swal.fire('Error', 'No se pudieron cargar los ingresos consolidados', 'error');
         } finally {
             setLoading(false);
         }
@@ -60,7 +62,8 @@ const ReporteIngresos = () => {
                 i.descripcion.toLowerCase().includes(searchLower) ||
                 i.tipo.toLowerCase().includes(searchLower) ||
                 i.usuario.toLowerCase().includes(searchLower) ||
-                i.medioPago.toLowerCase().includes(searchLower)
+                i.medioPago.toLowerCase().includes(searchLower) ||
+                i.hotel.toLowerCase().includes(searchLower)
             );
         });
     }, [ingresos, searchTerm]);
@@ -70,8 +73,11 @@ const ReporteIngresos = () => {
         return filteredIngresos.slice(startIndex, startIndex + itemsPerPage);
     }, [filteredIngresos, currentPage, itemsPerPage]);
 
-    const totalIngresos = useMemo(() => {
-        return filteredIngresos.reduce((sum, i) => sum + i.monto, 0);
+    const stats = useMemo(() => {
+        const total = filteredIngresos.reduce((sum, i) => sum + i.monto, 0);
+        const plaza = filteredIngresos.filter(i => i.hotel === 'Hotel Plaza').reduce((sum, i) => sum + i.monto, 0);
+        const colonial = filteredIngresos.filter(i => i.hotel === 'Hotel Colonial').reduce((sum, i) => sum + i.monto, 0);
+        return { total, plaza, colonial };
     }, [filteredIngresos]);
 
     const formatCurrency = (amount) => {
@@ -84,6 +90,7 @@ const ReporteIngresos = () => {
 
     const handleExportExcel = () => {
         const dataToExport = filteredIngresos.map(i => ({
+            'Hotel': i.hotel,
             'Fecha y Hora': format(new Date(i.fecha), 'dd/MM/yyyy HH:mm'),
             'Tipo': i.tipo,
             'Descripción': i.descripcion,
@@ -94,10 +101,10 @@ const ReporteIngresos = () => {
 
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Ingresos');
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Ingresos Consolidados');
         const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
         const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
-        saveAs(data, `Reporte_Ingresos_${filtros.inicio}_a_${filtros.fin}.xlsx`);
+        saveAs(data, `Reporte_Ingresos_Consolidado_${filtros.inicio}_a_${filtros.fin}.xlsx`);
     };
 
     const totalPages = Math.ceil(filteredIngresos.length / itemsPerPage);
@@ -108,12 +115,12 @@ const ReporteIngresos = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <div>
                     <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-                        <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-                            <TrendingUp size={24} />
+                        <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                            <Activity size={24} />
                         </div>
-                        Reporte Detallado de Ingresos
+                        Reporte de Ingresos Consolidado
                     </h1>
-                    <p className="text-gray-500 text-sm font-medium mt-1">Registro cronológico de todo el dinero recibido en el hotel</p>
+                    <p className="text-gray-500 text-sm font-medium mt-1 uppercase tracking-wider">Unión de Plaza y Colonial</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <button 
@@ -125,48 +132,71 @@ const ReporteIngresos = () => {
                 </div>
             </div>
 
-            {/* Filters & Summary Card */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <div className="lg:col-span-3 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                    <form onSubmit={handleFilterSubmit} className="flex flex-wrap items-end gap-4">
-                        <div className="flex-1 min-w-[200px]">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fecha Inicio</label>
-                            <div className="relative">
-                                <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18} />
-                                <input 
-                                    type="date" 
-                                    className="input-field pl-10 py-2 h-11 w-full" 
-                                    value={filtros.inicio}
-                                    onChange={e => setFiltros({...filtros, inicio: e.target.value})}
-                                />
-                            </div>
-                        </div>
-                        <div className="flex-1 min-w-[200px]">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fecha Fin</label>
-                            <div className="relative">
-                                <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18} />
-                                <input 
-                                    type="date" 
-                                    className="input-field pl-10 py-2 h-11 w-full" 
-                                    value={filtros.fin}
-                                    onChange={e => setFiltros({...filtros, fin: e.target.value})}
-                                />
-                            </div>
-                        </div>
-                        <button type="submit" className="btn-primary flex items-center gap-2 h-11 px-8 font-bold shadow-lg shadow-primary-500/20">
-                            <Filter size={18} /> Filtrar
-                        </button>
-                    </form>
+            {/* Summary Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 group">
+                    <div className="p-4 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <Building2 size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Hotel Plaza</p>
+                        <p className="text-xl font-black text-blue-700">{formatCurrency(stats.plaza)}</p>
+                    </div>
                 </div>
-
-                <div className="bg-emerald-600 p-6 rounded-2xl shadow-lg shadow-emerald-200 text-white flex flex-col justify-center relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 group">
+                    <div className="p-4 bg-slate-50 text-slate-600 rounded-xl group-hover:bg-slate-700 group-hover:text-white transition-all">
+                        <Building2 size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Hotel Colonial</p>
+                        <p className="text-xl font-black text-slate-700">{formatCurrency(stats.colonial)}</p>
+                    </div>
+                </div>
+                <div className="bg-emerald-600 p-6 rounded-2xl shadow-lg shadow-emerald-100 text-white flex items-center gap-4 relative overflow-hidden group">
+                    <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform">
                         <DollarSign size={80} />
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-80 relative z-10">Total Recaudado</p>
-                    <p className="text-3xl font-black relative z-10">{formatCurrency(totalIngresos)}</p>
-                    <p className="text-[10px] font-bold mt-1 opacity-70 relative z-10">{filteredIngresos.length} movimientos encontrados</p>
+                    <div className="p-4 bg-white/20 rounded-xl relative z-10">
+                        <TrendingUp size={24} />
+                    </div>
+                    <div className="relative z-10">
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Total Consolidado</p>
+                        <p className="text-2xl font-black">{formatCurrency(stats.total)}</p>
+                    </div>
                 </div>
+            </div>
+
+            {/* Filters */}
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <form onSubmit={handleFilterSubmit} className="flex flex-wrap items-end gap-4">
+                    <div className="flex-1 min-w-[200px]">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fecha Inicio</label>
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                            <input 
+                                type="date" 
+                                className="input-field pl-10 py-2 h-11 w-full" 
+                                value={filtros.inicio}
+                                onChange={e => setFiltros({...filtros, inicio: e.target.value})}
+                            />
+                        </div>
+                    </div>
+                    <div className="flex-1 min-w-[200px]">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fecha Fin</label>
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                            <input 
+                                type="date" 
+                                className="input-field pl-10 py-2 h-11 w-full" 
+                                value={filtros.fin}
+                                onChange={e => setFiltros({...filtros, fin: e.target.value})}
+                            />
+                        </div>
+                    </div>
+                    <button type="submit" className="btn-primary flex items-center gap-2 h-11 px-8 font-bold shadow-lg shadow-primary-500/20">
+                        <Filter size={18} /> Filtrar
+                    </button>
+                </form>
             </div>
 
             {/* Search and Table */}
@@ -176,8 +206,8 @@ const ReporteIngresos = () => {
                         <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
                         <input 
                             type="text" 
-                            placeholder="Buscar por descripción, tipo o usuario..."
-                            className="input-field pl-10 py-2 w-full text-sm"
+                            placeholder="Buscar por descripción, hotel, tipo o usuario..."
+                            className="input-field pl-10 py-2 w-full text-sm font-medium"
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                         />
@@ -208,11 +238,12 @@ const ReporteIngresos = () => {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-slate-50/50 border-b border-gray-100">
+                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Hotel</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Fecha y Hora</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipo de Movimiento</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Descripción / Detalle</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipo</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Descripción</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Usuario</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Medio de Pago</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Medio</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Valor</th>
                             </tr>
                         </thead>
@@ -220,7 +251,7 @@ const ReporteIngresos = () => {
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td colSpan="6" className="px-6 py-4">
+                                        <td colSpan="7" className="px-6 py-4">
                                             <div className="h-4 bg-gray-100 rounded w-full"></div>
                                         </td>
                                     </tr>
@@ -228,6 +259,13 @@ const ReporteIngresos = () => {
                             ) : paginatedIngresos.length > 0 ? (
                                 paginatedIngresos.map((ingreso, index) => (
                                     <tr key={index} className="hover:bg-slate-50/50 transition-colors group">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+                                                ingreso.hotel === 'Hotel Plaza' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-600'
+                                            }`}>
+                                                {ingreso.hotel}
+                                            </span>
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-bold text-gray-700">{format(new Date(ingreso.fecha), 'dd/MM/yyyy')}</span>
@@ -237,7 +275,7 @@ const ReporteIngresos = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${
+                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${
                                                 ingreso.tipo === 'HOSPEDAJE' ? 'bg-blue-50 text-blue-600' :
                                                 ingreso.tipo === 'VENTA' ? 'bg-purple-50 text-purple-600' :
                                                 ingreso.tipo === 'RESERVA' ? 'bg-amber-50 text-amber-600' :
@@ -251,14 +289,14 @@ const ReporteIngresos = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
-                                                    <User size={12} />
+                                                <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                                                    <User size={10} />
                                                 </div>
                                                 <span className="text-xs font-bold text-gray-600">{ingreso.usuario}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">{ingreso.medioPago}</span>
+                                            <span className="text-[10px] font-black text-gray-400 uppercase">{ingreso.medioPago}</span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right">
                                             <span className="text-sm font-black text-emerald-600">
@@ -269,7 +307,7 @@ const ReporteIngresos = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-20 text-center">
+                                    <td colSpan="7" className="px-6 py-20 text-center">
                                         <div className="flex flex-col items-center gap-3 opacity-20">
                                             <Search size={48} />
                                             <p className="text-lg font-black uppercase tracking-widest">No se encontraron ingresos</p>
@@ -285,4 +323,4 @@ const ReporteIngresos = () => {
     );
 };
 
-export default ReporteIngresos;
+export default ReporteIngresosConsolidado;

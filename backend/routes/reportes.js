@@ -13,6 +13,7 @@ router.get('/ventas-mensuales', verifyToken, isAdmin, reportesController.getVent
 router.get('/ingresos-hospedaje', verifyToken, isAdmin, reportesController.getIngresosHospedaje);
 router.get('/cuadre-caja', verifyToken, isAdmin, reportesController.getCuadreCaja);
 router.get('/detalle-ingresos', verifyToken, isAdmin, reportesController.getDetalleIngresos);
+router.get('/detalle-ingresos-consolidado', verifyToken, isAdmin, reportesController.getDetalleIngresosConsolidado);
 router.get('/huespedes', verifyToken, isAdmin, reportesController.getReporteHuespedes);
 
 module.exports = router;
