@@ -100,13 +100,13 @@ const AppRoutes = () => {
                 <Route path="notas" element={<PrivateRoute code="notas"><Notas /></PrivateRoute>} />
                 <Route path="solicitudes" element={<Solicitudes />} />
                 <Route path="notificaciones" element={<PrivateRoute><ConfigNotificaciones /></PrivateRoute>} />
-                <Route path="mantenimiento" element={<PrivateRoute><Mantenimiento /></PrivateRoute>} />
-                <Route path="aseo" element={<PrivateRoute><Housekeeping /></PrivateRoute>} />
-                <Route path="auditoria-limpieza" element={<PrivateRoute><AuditoriaLimpieza /></PrivateRoute>} />
-                <Route path="checkin-digital" element={<PrivateRoute><CheckinAdmin /></PrivateRoute>} />
-                <Route path="estadisticas" element={<PrivateRoute><Estadisticas /></PrivateRoute>} />
-                <Route path="comparativa" element={<PrivateRoute><ComparativaHoteles /></PrivateRoute>} />
-                <Route path="reservas-consolidadas" element={<PrivateRoute><ReservasConsolidadas /></PrivateRoute>} />
+                <Route path="mantenimiento" element={<PrivateRoute code="mantenimiento"><Mantenimiento /></PrivateRoute>} />
+                <Route path="aseo" element={<PrivateRoute code="aseo"><Housekeeping /></PrivateRoute>} />
+                <Route path="auditoria-limpieza" element={<PrivateRoute code="aseo"><AuditoriaLimpieza /></PrivateRoute>} />
+                <Route path="checkin-digital" element={<PrivateRoute code="checkin_digital"><CheckinAdmin /></PrivateRoute>} />
+                <Route path="estadisticas" element={<PrivateRoute code="estadisticas"><Estadisticas /></PrivateRoute>} />
+                <Route path="comparativa" element={<PrivateRoute code="estadisticas"><ComparativaHoteles /></PrivateRoute>} />
+                <Route path="reservas-consolidadas" element={<PrivateRoute code="estadisticas"><ReservasConsolidadas /></PrivateRoute>} />
                 <Route path="cotizaciones" element={<PrivateRoute code="reportes"><Cotizaciones /></PrivateRoute>} />
                 <Route path="invitacion-religiosa" element={<PrivateRoute code="reportes"><InvitacionReligiosa /></PrivateRoute>} />
                 <Route path="reporte-ingresos" element={<PrivateRoute code="reportes"><ReporteIngresos /></PrivateRoute>} />

@@ -40,7 +40,10 @@ const MENU_HIERARCHY = [
     {
         title: 'Gestión Multi-Hotel',
         permissions: [
-            { id: 'estadisticas', nombre: 'Estadísticas y Comparativa' }
+            { id: 'reportes', nombre: 'Caja Consolidada' },
+            { id: 'estadisticas', nombre: 'Consolidado Reservas' },
+            { id: 'estadisticas', nombre: 'Comparativa de Hoteles' },
+            { id: 'estadisticas', nombre: 'Estadísticas Avanzadas' }
         ]
     },
     {
