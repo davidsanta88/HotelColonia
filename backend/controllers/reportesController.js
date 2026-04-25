@@ -404,7 +404,8 @@ exports.getDetalleIngresos = async (req, res) => {
                     ingresos.push({
                         fecha: pago.fecha,
                         tipo: 'HOSPEDAJE',
-                        descripcion: `Pago Hab ${reg.habitacion?.numero || 'S/N'} - ${clienteObj?.nombre || 'Huésped'}`,
+                        descripcion: `Pago Hab ${reg.habitacion?.numero || '-'} - ${clienteObj?.nombre || 'PARTICULAR'}`,
+                        detalle: `Folio: ${reg.folio || '-'} | Hab: ${reg.habitacion?.numero || '-'}`,
                         usuario: pago.usuario_nombre || reg.usuarioCreacion,
                         medioPago: (pago.medio || 'EFECTIVO').toUpperCase(),
                         monto: pago.monto
@@ -421,6 +422,7 @@ exports.getDetalleIngresos = async (req, res) => {
                         fecha: abono.fecha,
                         tipo: 'RESERVA',
                         descripcion: `Abono Reserva - ${clienteObj?.nombre || 'Cliente'}`,
+                        detalle: `Referencia: ${reserva.codigoReserva || '-'}`,
                         usuario: abono.usuario_nombre || reserva.usuarioCreacion,
                         medioPago: (abono.medio_pago || 'EFECTIVO').toUpperCase(),
                         monto: abono.monto
@@ -432,7 +434,7 @@ exports.getDetalleIngresos = async (req, res) => {
         // 3. Ventas de Productos
         const ventas = await Venta.find({
             fecha: { $gte: startDate, $lte: endDate }
-        }).populate('empleado', 'nombre');
+        }).populate('items.producto', 'nombre').populate('empleado', 'nombre');
 
         ventas.forEach(venta => {
             ingresos.push({
@@ -665,7 +667,7 @@ exports.getCuadreCaja = async (req, res) => {
         // 3. Ventas de Productos
         const ventas = await Venta.find({
             fecha: { $gte: startDate, $lte: endDate }
-        }).populate('empleado', 'nombre');
+        }).populate('items.producto', 'nombre').populate('empleado', 'nombre');
 
         ventas.forEach(venta => {
             transacciones.push({
