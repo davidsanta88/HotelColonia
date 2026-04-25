@@ -847,6 +847,7 @@ const CuadreCaja = () => {
                                 ))
                             )}
                         </tbody>
+                    </table>
                 </div>
                 <Pagination 
                     currentPage={currentPageCierres}
