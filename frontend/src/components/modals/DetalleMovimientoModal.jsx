@@ -147,6 +147,15 @@ const DetalleMovimientoModal = ({ isOpen, onClose, transaccion }) => {
     };
 
     const renderGastoDetail = () => {
+        if (error) {
+            return (
+                <div className="p-8 text-center bg-red-50 rounded-2xl border border-red-100 mb-4">
+                    <p className="text-red-500 font-bold text-xs uppercase tracking-widest">{error}</p>
+                    <p className="text-[10px] text-red-400 mt-1">Intente nuevamente más tarde.</p>
+                </div>
+            );
+        }
+
         if (!detalle) return <div className="p-8 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">No se encontraron datos del gasto/ingreso.</div>;
 
         return (
@@ -214,6 +223,15 @@ const DetalleMovimientoModal = ({ isOpen, onClose, transaccion }) => {
     };
 
     const renderReservaDetail = () => {
+        if (error) {
+            return (
+                <div className="p-8 text-center bg-red-50 rounded-2xl border border-red-100 mb-4">
+                    <p className="text-red-500 font-bold text-xs uppercase tracking-widest">{error}</p>
+                    <p className="text-[10px] text-red-400 mt-1">Intente nuevamente más tarde.</p>
+                </div>
+            );
+        }
+
         if (!detalle) return <div className="p-8 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">No se encontraron datos de la reserva.</div>;
         
         return (

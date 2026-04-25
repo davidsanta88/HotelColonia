@@ -1,4 +1,5 @@
 const Gasto = require('../models/Gasto');
+const mongoose = require('mongoose');
 const cloudinary = require('../config/cloudinary');
 
 // Helper para subir buffer a Cloudinary
