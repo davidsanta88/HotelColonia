@@ -104,7 +104,8 @@ exports.getRegistroById = async (req, res) => {
         const { id } = req.params;
         const registro = await Registro.findById(id)
             .populate('habitacion')
-            .populate('huespedes');
+            .populate('huespedes')
+            .populate('tipo_registro');
         
         if (!registro) return res.status(404).json({ message: 'Registro no encontrado' });
 

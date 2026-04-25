@@ -19,5 +19,6 @@ router.get('/ingresos-calendario', verifyToken, isAdmin, reportesController.getI
 router.get('/ingresos-calendario-consolidado', verifyToken, isAdmin, reportesController.getIngresosCalendarioConsolidado);
 router.get('/rentabilidad-habitaciones', verifyToken, isAdmin, reportesController.getRentabilidadHabitaciones);
 router.get('/rentabilidad-habitaciones-consolidado', verifyToken, isAdmin, reportesController.getRentabilidadConsolidada);
+router.get('/mapa-habitaciones-consolidado', verifyToken, isAdmin, reportesController.getMapaHabitacionesConsolidado);
 
 module.exports = router;

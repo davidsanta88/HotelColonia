@@ -1029,3 +1029,95 @@ exports.getRentabilidadConsolidada = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+exports.getMapaHabitacionesConsolidado = async (req, res) => {
+    try {
+        const fetchHotelData = async (models, hotelLabel) => {
+            const { Habitacion, Registro, Reserva, Cliente } = models;
+            
+            // 1. Get all rooms
+            const habitaciones = await Habitacion.find()
+                .populate('tipo', 'nombre')
+                .populate('estado', 'nombre color')
+                .sort({ numero: 1 });
+
+            // 2. Get active registrations
+            const registrosActivos = await Registro.find({ estado: 'activo' })
+                .populate('habitacion')
+                .populate('tipo_registro', 'nombre');
+
+            // Get client names for registrations
+            const clientIds = registrosActivos.map(r => r.cliente).filter(id => id);
+            const clientes = await Cliente.find({ _id: { $in: clientIds } });
+            const clientMap = new Map(clientes.map(c => [c._id.toString(), c]));
+
+            // 3. Get upcoming reservations
+            const reservasProximas = await Reserva.find({ 
+                estado: 'Pendiente',
+                fecha_entrada: { $gte: moment().startOf('day').toDate() }
+            }).sort({ fecha_entrada: 1 });
+
+            // 4. Map everything together
+            return habitaciones.map(hab => {
+                const habId = hab._id.toString();
+                
+                // Active registration
+                const reg = registrosActivos.find(r => r.habitacion?._id.toString() === habId);
+                let registroInfo = null;
+                if (reg) {
+                    const titular = reg.cliente ? clientMap.get(reg.cliente.toString()) : null;
+                    registroInfo = {
+                        id: reg._id,
+                        huesped: titular?.nombre || 'Huésped',
+                        fecha_ingreso: reg.fecha_ingreso || reg.fechaEntrada,
+                        fecha_salida: reg.fecha_salida || reg.fechaSalida,
+                        total: reg.total,
+                        pagos: reg.pagos || [],
+                        tipo_registro: reg.tipo_registro?.nombre || 'Particular'
+                    };
+                }
+
+                // Upcoming reservations
+                const proximas = reservasProximas
+                    .filter(res => {
+                        if (res.habitaciones && res.habitaciones.length > 0) {
+                            return res.habitaciones.some(rh => (rh.habitacion?._id || rh.habitacion).toString() === habId);
+                        }
+                        return res.habitacion?.toString() === habId;
+                    })
+                    .slice(0, 2)
+                    .map(res => ({
+                        id: res._id,
+                        cliente: res.nombre_cliente || 'Reserva',
+                        fecha_entrada: res.fecha_entrada,
+                        fecha_salida: res.fecha_salida
+                    }));
+
+                return {
+                    id: hab._id,
+                    numero: hab.numero,
+                    tipo: hab.tipo?.nombre || 'Estándar',
+                    estado: hab.estado?.nombre || 'Disponible',
+                    color: hab.estado?.color || '#10b981',
+                    estadoLimpieza: hab.estadoLimpieza || 'Limpia',
+                    hotel: hotelLabel,
+                    registroActual: registroInfo,
+                    reservasProximas: proximas
+                };
+            });
+        };
+
+        // Fetch Plaza
+        const plazaRooms = await fetchHotelData({ Habitacion, Registro, Reserva, Cliente }, 'Hotel Plaza');
+
+        // Fetch Colonial
+        const colonialModels = await getColonialModels();
+        const colonialRooms = await fetchHotelData(colonialModels, 'Hotel Colonial');
+
+        res.json([...plazaRooms, ...colonialRooms]);
+    } catch (err) {
+        console.error('[MAPA CONSOLIDADO ERROR]', err);
+        res.status(500).json({ message: err.message });
+    }
+};
+

@@ -20,7 +20,8 @@ import {
     Printer,
     LogOut,
     Clock,
-    Search
+    Search,
+    Tag
 } from 'lucide-react';
 import Select from 'react-select';
 import { formatCurrency, cleanNumericValue } from '../../utils/format';
@@ -35,11 +36,13 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
     const [productos, setProductos] = useState([]);
     const [mediosPago, setMediosPago] = useState([]);
     const [habitaciones, setHabitaciones] = useState([]);
+    const [tiposRegistro, setTiposRegistro] = useState([]);
     
     const [editData, setEditData] = useState({
         fecha_salida: '',
         total: '',
         notas: '',
+        tipo_registro: '',
         huespedes: []
     });
 
@@ -69,14 +72,15 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [resDet, resCons, resAbonos, resProd, resMedios, resHab, resClientes] = await Promise.all([
+            const [resDet, resCons, resAbonos, resProd, resMedios, resHab, resClientes, resTipos] = await Promise.all([
                 api.get(`/registros/${registroId}`),
                 api.get(`/ventas/consumo/${registroId}`),
                 api.get(`/registros/${registroId}/pagos`),
                 api.get('/productos'),
                 api.get('/medios-pago'),
                 api.get('/habitaciones'),
-                api.get('/clientes')
+                api.get('/clientes'),
+                api.get('/tipos-registro')
             ]);
             
             const det = resDet.data;
@@ -87,11 +91,13 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
             setMediosPago(resMedios.data);
             setHabitaciones(resHab.data);
             setClientes(resClientes.data);
+            setTiposRegistro(resTipos.data || []);
             
             setEditData({
                 fecha_salida: det.fecha_salida ? det.fecha_salida.split('T')[0] : '',
                 total: det.total || 0,
                 notas: det.notas || '',
+                tipo_registro: det.tipo_registro?._id || det.tipo_registro || '',
                 huespedes: det.huespedes || []
             });
         } catch (error) {
@@ -194,6 +200,7 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                 total: editData.total,
                 notas: editData.notas,
                 observaciones: editData.notas, // For compatibility
+                tipo_registro: editData.tipo_registro,
                 huespedes: editData.huespedes.map(h => h.id || h._id),
                 cliente: editData.huespedes[0]?.id || editData.huespedes[0]?._id
             };
@@ -629,6 +636,28 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                                                         <Calendar size={14} className="text-gray-300 group-hover/field:text-blue-400" />
                                                         {details?.fecha_salida ? format(new Date(details.fecha_salida), 'dd/MM/yyyy') : '-'}
                                                         <Edit3 size={10} className="opacity-0 group-hover/field:opacity-100 text-blue-400 ml-1 transition-opacity" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex flex-col sm:col-span-2">
+                                                <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Tipo de Registro</label>
+                                                {isEditing ? (
+                                                    <select 
+                                                        name="tipo_registro"
+                                                        className="w-full bg-blue-50 border-blue-100 border rounded-xl py-2 px-3 font-bold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                                        value={editData.tipo_registro}
+                                                        onChange={handleEditChange}
+                                                    >
+                                                        <option value="">Seleccione...</option>
+                                                        {tiposRegistro.map(tr => (
+                                                            <option key={tr._id} value={tr._id}>{tr.nombre}</option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    <div className="flex items-center gap-1.5 font-bold text-gray-800 text-xs">
+                                                        <Tag size={14} className="text-gray-300" />
+                                                        {details?.tipo_registro?.nombre || details?.tipo_registro_nombre || 'Particular'}
                                                     </div>
                                                 )}
                                             </div>

@@ -16,6 +16,7 @@ const registroSchema = new mongoose.Schema({
     }],
     huespedes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Cliente' }],
     vendedores: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' }],
+    tipo_registro: { type: mongoose.Schema.Types.ObjectId, ref: 'TipoRegistro' },
     observaciones: String,
     notasSalida: String,
     usuarioCreacion: String,

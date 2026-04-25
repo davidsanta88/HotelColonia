@@ -46,6 +46,7 @@ const MENU_HIERARCHY = [
         title: 'Gestión Multi-Hotel',
         permissions: [
             { id: 'reporte_ingresos_consolidado', nombre: 'Caja Consolidada' },
+            { id: 'mapa_habitaciones_consolidado', nombre: 'Mapa Consolidado' },
             { id: 'reservas_consolidadas', nombre: 'Consolidado Reservas' },
             { id: 'comparativa', nombre: 'Comparativa de Hoteles' },
             { id: 'estadisticas', nombre: 'Estadísticas Avanzadas' }
