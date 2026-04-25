@@ -57,12 +57,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { name: 'Productos Tienda', path: '/inventario', icon: <Package size={20} />, code: 'inventario' },
                 { name: 'Reservas a Futuro', path: '/reservas', icon: <CalendarCheck size={20} />, code: 'reservas' },
                 { name: 'Clientes', path: '/clientes', icon: <Users size={20} />, code: 'clientes' },
-                { name: 'Empresas', path: '/empresas', icon: <Building2 size={20} />, code: 'configuracion' },
+                { name: 'Empresas', path: '/empresas', icon: <Building2 size={20} />, code: 'empresas' },
                 { name: 'Gastos e Ingresos', path: '/gastos', icon: <TrendingDown size={20} />, code: 'gastos' },
                 { name: 'Solicitudes Reserva', path: '/solicitudes', icon: <Bell size={20} />, code: 'solicitudes' },
                 { name: 'Mantenimiento', path: '/mantenimiento', icon: <Wrench size={20} />, code: 'mantenimiento' },
                 { name: 'Aseo Diario', path: '/aseo', icon: <Brush size={20} />, code: 'aseo' },
-                { name: 'Auditoría Limpieza', path: '/auditoria-limpieza', icon: <ShieldCheck size={20} />, code: 'aseo' }
+                { name: 'Auditoría Limpieza', path: '/auditoria-limpieza', icon: <ShieldCheck size={20} />, code: 'auditoria_limpieza' }
             ]
         },
         {
@@ -77,9 +77,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { name: 'Notas y Alertas', path: '/notas', icon: <StickyNote size={20} />, code: 'notas' },
                 { name: 'Reportes', path: '/reportes', icon: <PieChart size={20} />, code: 'reportes' },
                 { name: 'Cuadre de Caja', path: '/cuadre-caja', icon: <Wallet size={20} />, code: 'cuadre_caja' },
-                { name: 'Reporte de Caja', path: '/reporte-ingresos', icon: <TrendingUp size={20} />, code: 'reportes' },
-                { name: 'Calendario Flujo Caja', path: '/calendario-ingresos', icon: <Calendar size={20} />, code: 'reportes' },
-                { name: 'Rentabilidad Habitaciones', path: '/rentabilidad-habitaciones', icon: <Award size={20} />, code: 'reportes' },
+                { name: 'Reporte de Caja', path: '/reporte-ingresos', icon: <TrendingUp size={20} />, code: 'reporte_ingresos' },
+                { name: 'Calendario Flujo Caja', path: '/calendario-ingresos', icon: <Calendar size={20} />, code: 'calendario_ingresos' },
+                { name: 'Rentabilidad Habitaciones', path: '/rentabilidad-habitaciones', icon: <Award size={20} />, code: 'rentabilidad' },
                 { name: 'Cotizaciones', path: '/cotizaciones', icon: <FileText size={20} />, code: 'cotizaciones' },
                 { name: 'Invitación Religiosa', path: '/invitacion-religiosa', icon: <Mail size={20} />, code: 'invitacion' },
                 { name: 'Medios de Pago', path: '/medios-pago', icon: <CreditCard size={20} />, code: 'medios_pago' },
@@ -88,9 +88,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         {
             title: 'Gestión Multi-Hotel',
             items: [
-                { name: 'Caja Consolidada', path: '/reporte-ingresos-consolidado', icon: <Building2 size={20} />, code: 'reportes' },
-                { name: 'Consolidado Reservas', path: '/reservas-consolidadas', icon: <Building2 size={20} />, code: 'estadisticas' },
-                { name: 'Comparativa Hoteles', path: '/comparativa', icon: <LayoutDashboard size={20} />, code: 'estadisticas' },
+                { name: 'Caja Consolidada', path: '/reporte-ingresos-consolidado', icon: <Building2 size={20} />, code: 'reporte_ingresos_consolidado' },
+                { name: 'Consolidado Reservas', path: '/reservas-consolidadas', icon: <Building2 size={20} />, code: 'reservas_consolidadas' },
+                { name: 'Comparativa Hoteles', path: '/comparativa', icon: <LayoutDashboard size={20} />, code: 'comparativa' },
                 { name: 'Estadísticas Avanzadas', path: '/estadisticas', icon: <TrendingUp size={20} />, code: 'estadisticas' },
             ]
         },

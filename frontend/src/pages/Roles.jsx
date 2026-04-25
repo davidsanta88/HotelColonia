@@ -14,12 +14,12 @@ const MENU_HIERARCHY = [
             { id: 'inventario', nombre: 'Productos Tienda' },
             { id: 'reservas', nombre: 'Reservas a Futuro' },
             { id: 'clientes', nombre: 'Gestión de Clientes' },
-            { id: 'configuracion', nombre: 'Empresas Convenio' },
+            { id: 'empresas', nombre: 'Empresas Convenio' },
             { id: 'gastos', nombre: 'Gastos e Ingresos' },
             { id: 'solicitudes', nombre: 'Solicitudes de Reserva' },
             { id: 'mantenimiento', nombre: 'Mantenimiento y Reparaciones' },
             { id: 'aseo', nombre: 'Aseo Diario' },
-            { id: 'aseo', nombre: 'Auditoría de Limpieza' }
+            { id: 'auditoria_limpieza', nombre: 'Auditoría de Limpieza' }
         ]
     },
     {
@@ -34,9 +34,9 @@ const MENU_HIERARCHY = [
             { id: 'notas', nombre: 'Notas y Alertas' },
             { id: 'reportes', nombre: 'Reportes Generales' },
             { id: 'cuadre_caja', nombre: 'Cuadre de Caja' },
-            { id: 'reportes', nombre: 'Reporte de Caja' },
-            { id: 'reportes', nombre: 'Calendario Flujo de Caja' },
-            { id: 'reportes', nombre: 'Rentabilidad de Habitaciones' },
+            { id: 'reporte_ingresos', nombre: 'Reporte de Caja' },
+            { id: 'calendario_ingresos', nombre: 'Calendario Flujo de Caja' },
+            { id: 'rentabilidad', nombre: 'Rentabilidad de Habitaciones' },
             { id: 'cotizaciones', nombre: 'Cotizaciones Profesionales' },
             { id: 'invitacion', nombre: 'Invitación Religiosa' },
             { id: 'medios_pago', nombre: 'Medios de Pago' }
@@ -45,9 +45,9 @@ const MENU_HIERARCHY = [
     {
         title: 'Gestión Multi-Hotel',
         permissions: [
-            { id: 'reportes', nombre: 'Caja Consolidada' },
-            { id: 'estadisticas', nombre: 'Consolidado Reservas' },
-            { id: 'estadisticas', nombre: 'Comparativa de Hoteles' },
+            { id: 'reporte_ingresos_consolidado', nombre: 'Caja Consolidada' },
+            { id: 'reservas_consolidadas', nombre: 'Consolidado Reservas' },
+            { id: 'comparativa', nombre: 'Comparativa de Hoteles' },
             { id: 'estadisticas', nombre: 'Estadísticas Avanzadas' }
         ]
     },

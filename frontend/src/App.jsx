@@ -81,7 +81,7 @@ const AppRoutes = () => {
                 <Route path="habitaciones" element={<PrivateRoute code="habitaciones"><Rooms /></PrivateRoute>} />
                 <Route path="registros" element={<PrivateRoute code="registros"><Registros /></PrivateRoute>} />
                 <Route path="clientes" element={<PrivateRoute code="clientes"><Clientes /></PrivateRoute>} />
-                <Route path="empresas" element={<PrivateRoute code="configuracion"><Empresas /></PrivateRoute>} />
+                <Route path="empresas" element={<PrivateRoute code="empresas"><Empresas /></PrivateRoute>} />
                 <Route path="municipios" element={<PrivateRoute code="municipios"><Municipios /></PrivateRoute>} />
                 <Route path="tipos-habitaciones" element={<PrivateRoute code="tipos_habitaciones"><TiposHabitacion /></PrivateRoute>} />
                 <Route path="estados-habitaciones" element={<PrivateRoute code="estados_habitaciones"><EstadosHabitacion /></PrivateRoute>} />
@@ -91,7 +91,7 @@ const AppRoutes = () => {
                 <Route path="gastos" element={<PrivateRoute code="gastos"><Gastos /></PrivateRoute>} />
                 <Route path="reservas" element={<PrivateRoute code="reservas"><Reservas /></PrivateRoute>} />
                 <Route path="reportes" element={<PrivateRoute code="reportes"><Reports /></PrivateRoute>} />
-                <Route path="cuadre-caja" element={<PrivateRoute code="reportes"><CuadreCaja /></PrivateRoute>} />
+                <Route path="cuadre-caja" element={<PrivateRoute code="cuadre_caja"><CuadreCaja /></PrivateRoute>} />
                 <Route path="tienda" element={<PrivateRoute code="tienda"><Store /></PrivateRoute>} />
                 <Route path="inventario" element={<PrivateRoute code="inventario"><Inventory /></PrivateRoute>} />
                 <Route path="usuarios" element={<PrivateRoute code="usuarios"><Usuarios /></PrivateRoute>} />
@@ -102,17 +102,17 @@ const AppRoutes = () => {
                 <Route path="notificaciones" element={<PrivateRoute><ConfigNotificaciones /></PrivateRoute>} />
                 <Route path="mantenimiento" element={<PrivateRoute code="mantenimiento"><Mantenimiento /></PrivateRoute>} />
                 <Route path="aseo" element={<PrivateRoute code="aseo"><Housekeeping /></PrivateRoute>} />
-                <Route path="auditoria-limpieza" element={<PrivateRoute code="aseo"><AuditoriaLimpieza /></PrivateRoute>} />
+                <Route path="auditoria-limpieza" element={<PrivateRoute code="auditoria_limpieza"><AuditoriaLimpieza /></PrivateRoute>} />
                 <Route path="checkin-digital" element={<PrivateRoute code="checkin_digital"><CheckinAdmin /></PrivateRoute>} />
                 <Route path="estadisticas" element={<PrivateRoute code="estadisticas"><Estadisticas /></PrivateRoute>} />
-                <Route path="comparativa" element={<PrivateRoute code="estadisticas"><ComparativaHoteles /></PrivateRoute>} />
-                <Route path="reservas-consolidadas" element={<PrivateRoute code="estadisticas"><ReservasConsolidadas /></PrivateRoute>} />
-                <Route path="cotizaciones" element={<PrivateRoute code="reportes"><Cotizaciones /></PrivateRoute>} />
-                <Route path="invitacion-religiosa" element={<PrivateRoute code="reportes"><InvitacionReligiosa /></PrivateRoute>} />
-                <Route path="reporte-ingresos" element={<PrivateRoute code="reportes"><ReporteIngresos /></PrivateRoute>} />
-                <Route path="reporte-ingresos-consolidado" element={<PrivateRoute code="reportes"><ReporteIngresosConsolidado /></PrivateRoute>} />
-                <Route path="calendario-ingresos" element={<PrivateRoute code="reportes"><CalendarioIngresos /></PrivateRoute>} />
-                <Route path="rentabilidad-habitaciones" element={<PrivateRoute code="reportes"><RentabilidadHabitaciones /></PrivateRoute>} />
+                <Route path="comparativa" element={<PrivateRoute code="comparativa"><ComparativaHoteles /></PrivateRoute>} />
+                <Route path="reservas-consolidadas" element={<PrivateRoute code="reservas_consolidadas"><ReservasConsolidadas /></PrivateRoute>} />
+                <Route path="cotizaciones" element={<PrivateRoute code="cotizaciones"><Cotizaciones /></PrivateRoute>} />
+                <Route path="invitacion-religiosa" element={<PrivateRoute code="invitacion"><InvitacionReligiosa /></PrivateRoute>} />
+                <Route path="reporte-ingresos" element={<PrivateRoute code="reporte_ingresos"><ReporteIngresos /></PrivateRoute>} />
+                <Route path="reporte-ingresos-consolidado" element={<PrivateRoute code="reporte_ingresos_consolidado"><ReporteIngresosConsolidado /></PrivateRoute>} />
+                <Route path="calendario-ingresos" element={<PrivateRoute code="calendario_ingresos"><CalendarioIngresos /></PrivateRoute>} />
+                <Route path="rentabilidad-habitaciones" element={<PrivateRoute code="rentabilidad"><RentabilidadHabitaciones /></PrivateRoute>} />
                 <Route path="config" element={<PrivateRoute code="configuracion"><HotelConfig /></PrivateRoute>} />
             </Route>
             <Route path="/checkin" element={<CheckinPublico />} />
