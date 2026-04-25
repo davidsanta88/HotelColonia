@@ -18,7 +18,7 @@ let colonialConn = null;
 
 const getColonialConnection = async () => {
     if (colonialConn && colonialConn.readyState === 1) return colonialConn;
-    colonialConn = await mongoose.createConnection(COLONIAL_URI).asPromise();
+    colonialConn = await mongoose.createConnection(COLONIAL_URI);
     return colonialConn;
 };
 

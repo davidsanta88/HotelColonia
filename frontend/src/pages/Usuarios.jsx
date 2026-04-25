@@ -106,7 +106,7 @@ const Usuarios = () => {
         }
     };
 
-    const isSuperAdmin = user?.rol_id === 1 || user?.rol_nombre?.toLowerCase()?.includes('admin') || user?.nombre === 'Administrador';
+    const isSuperAdmin = user?.rol_id === 1 || user?.rol_nombre?.toLowerCase()?.includes('admin') || user?.nombre === 'Administrador' || user?.email === 'admin@hotel.com';
     if (!canView && !isSuperAdmin) {
         return <div className="p-8 text-center text-red-500 font-bold">Acceso Denegado. Área exclusiva para Administradores autorizados.</div>;
     }

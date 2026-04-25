@@ -26,13 +26,16 @@ const verifyToken = (req, res, next) => {
 
 const isAdmin = async (req, res, next) => {
     try {
-        // 1. Intentar por el nombre guardado en el token
+        // 1. Bypass por nombre de usuario 'Administrador' (SuperAdmin total)
+        if (req.userName === 'Administrador') return next();
+
+        // 2. Intentar por el nombre guardado en el token
         const roleName = req.userRoleName ? req.userRoleName.toLowerCase() : '';
         if (roleName.includes('admin') || roleName.includes('administrador')) {
             return next();
         }
 
-        // 2. Fallback: buscar el rol en la DB por ID (más robusto si el token es antiguo)
+        // 3. Fallback: buscar el rol en la DB por ID
         if (req.userRole) {
             const Rol = require('../models/Rol');
             const rol = await Rol.findById(req.userRole);
@@ -63,8 +66,9 @@ const checkPermission = (pantalla, accion) => {
     const Rol = require('../models/Rol');
     return async (req, res, next) => {
         try {
-            // Bypass para SuperAdmin (asumiendo que tiene un nombre específico o ID)
-            // Aquí usamos el nombre del rol o podemos buscar por ID
+            // Bypass para SuperAdmin por nombre de usuario
+            if (req.userName === 'Administrador') return next();
+
             const rol = await Rol.findById(req.userRole);
             
             if (!rol) return res.status(403).json({ message: 'Rol no encontrado' });

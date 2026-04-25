@@ -9,8 +9,9 @@ import { AuthContext } from '../context/AuthContext';
 export const usePermissions = (screenCode) => {
     const { user } = useContext(AuthContext);
 
-    // Bypass total para Administradores: por Rol 1, Nombre de Rol 'Admin' o Nombre de Usuario 'Administrador'
-    if (user?.rol_id === 1 || user?.rol_nombre === 'Admin' || user?.nombre === 'Administrador') {
+    // Bypass total para Administradores: por Rol 1, Nombre de Rol 'Admin', Nombre de Usuario 'Administrador' o Email específico
+    const isSuperAdmin = user?.rol_id === 1 || user?.rol_nombre?.toLowerCase()?.includes('admin') || user?.nombre === 'Administrador' || user?.email === 'admin@hotel.com';
+    if (isSuperAdmin) {
         return { canView: true, canEdit: true, canDelete: true };
     }
 
