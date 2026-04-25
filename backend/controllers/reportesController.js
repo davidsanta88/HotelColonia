@@ -1050,9 +1050,9 @@ exports.getMapaHabitacionesConsolidado = async (req, res) => {
                 .populate('habitacion')
                 .populate('tipo_registro', 'nombre');
 
-            // Get client names for registrations
+            // Get client names for registrations (Shared across hotels)
             const clientIds = registrosActivos.map(r => r.cliente).filter(id => id);
-            const clientes = await Cliente.find({ _id: { $in: clientIds } });
+            const clientes = await mongoose.model('Cliente').find({ _id: { $in: clientIds } });
             const clientMap = new Map(clientes.map(c => [c._id.toString(), c]));
 
             // 3. Get upcoming reservations

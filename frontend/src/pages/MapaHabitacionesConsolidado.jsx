@@ -237,21 +237,21 @@ const MapaHabitacionesConsolidado = () => {
                     <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl"><CheckCircle size={20}/></div>
                     <div>
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Disponibles</p>
-                        <p className="text-xl font-black text-gray-900">{habitaciones.filter(h => h.estado === 'Disponible').length}</p>
+                        <p className="text-xl font-black text-gray-900">{habitaciones.filter(h => h.estado.toLowerCase() === 'disponible' && h.estadoLimpieza !== 'SUCIA').length}</p>
                     </div>
                 </div>
                 <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4 border-red-50">
                     <div className="p-3 bg-red-50 text-red-600 rounded-2xl"><User size={20}/></div>
                     <div>
                         <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Ocupadas</p>
-                        <p className="text-xl font-black text-red-900">{habitaciones.filter(h => h.estado === 'Ocupada').length}</p>
+                        <p className="text-xl font-black text-red-900">{habitaciones.filter(h => h.estado.toLowerCase() === 'ocupada').length}</p>
                     </div>
                 </div>
                 <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4 border-yellow-50">
                     <div className="p-3 bg-yellow-50 text-yellow-600 rounded-2xl"><Calendar size={20}/></div>
                     <div>
                         <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest">Reservadas</p>
-                        <p className="text-xl font-black text-yellow-700">{habitaciones.filter(h => h.estado === 'Reservada').length}</p>
+                        <p className="text-xl font-black text-yellow-700">{habitaciones.filter(h => h.estado.toLowerCase() === 'reservada').length}</p>
                     </div>
                 </div>
                 <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4 border-sky-50">
