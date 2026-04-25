@@ -47,19 +47,27 @@ exports.getComparativeStats = async (req, res) => {
         }, inicio, fin);
         const plazaRooms = await getRoomCounts(Habitacion);
 
+        // Cash Balances (From last closure to now)
+        const plazaCash = await getCashBalance({
+            CierreCaja, Venta, Registro, Gasto, Reserva
+        });
+
         // Colonial Stats
         const colonialModels = await getColonialModels();
         const colonialData = await getStatsFromDB(colonialModels, inicio, fin);
         const colonialRooms = await getRoomCounts(colonialModels.Habitacion);
+        const colonialCash = await getCashBalance(colonialModels);
 
         res.json({
             plaza: {
                 history: plazaData,
-                rooms: plazaRooms
+                rooms: plazaRooms,
+                cash: plazaCash
             },
             colonial: {
                 history: colonialData,
-                rooms: colonialRooms
+                rooms: colonialRooms,
+                cash: colonialCash
             }
         });
     } catch (error) {
@@ -284,3 +292,84 @@ async function getStatsFromDB(models, startDateStr, endDateStr) {
         };
     });
 }
+async function getCashBalance(models) {
+    try {
+        const { CierreCaja, Venta, Registro, Gasto, Reserva } = models;
+        
+        // 1. Get last closure
+        const ultimoCierre = await CierreCaja.findOne().sort({ fecha: -1 });
+        const startDate = ultimoCierre ? ultimoCierre.fecha : new Date(0);
+        const endDate = new Date();
+
+        // 2. Fetch Hospedaje Payments
+        const pagosRegistros = await Registro.find({
+            "pagos.fecha": { $gte: startDate, $lte: endDate }
+        });
+
+        // 3. Fetch Reserva Deposits
+        const abonosReservas = await Reserva.find({
+            "abonos.fecha": { $gte: startDate, $lte: endDate }
+        });
+
+        // 4. Fetch Product Sales
+        const ventas = await Venta.find({
+            fecha: { $gte: startDate, $lte: endDate }
+        });
+
+        // 5. Fetch Manual Expenses/Incomes
+        const gastos = await Gasto.find({
+            fecha: { $gte: startDate, $lte: endDate }
+        }).populate('categoria');
+
+        let cash = 0;
+        let nequi = 0;
+        let bancolombia = 0;
+
+        const processMedio = (medio, monto) => {
+            const m = (medio || '').toUpperCase();
+            if (m.includes('NEQUI')) nequi += monto;
+            else if (m.includes('BANCOLOMBIA') || m.includes('TRANS')) bancolombia += monto;
+            else if (m.includes('EFECTIVO') || m === '') cash += monto;
+            else cash += monto; // Default to cash for others if not specified
+        };
+
+        pagosRegistros.forEach(reg => {
+            reg.pagos.forEach(p => {
+                if (p.fecha >= startDate && p.fecha <= endDate) {
+                    processMedio(p.medio, p.monto);
+                }
+            });
+        });
+
+        abonosReservas.forEach(res => {
+            res.abonos.forEach(a => {
+                if (a.fecha >= startDate && a.fecha <= endDate) {
+                    processMedio(a.medio_pago, a.monto);
+                }
+            });
+        });
+
+        ventas.forEach(v => {
+            processMedio(v.medioPago, v.total);
+        });
+
+        gastos.forEach(g => {
+            const esIngreso = g.categoria?.tipo === 'Ingreso';
+            const monto = esIngreso ? g.monto : -g.monto;
+            processMedio(g.medioPago, monto);
+        });
+
+        return {
+            efectivo: cash,
+            nequi: nequi,
+            bancolombia: bancolombia,
+            total: cash + nequi + bancolombia,
+            ultimaFecha: startDate
+        };
+    } catch (error) {
+        console.error('Error calculating cash balance:', error);
+        return { efectivo: 0, nequi: 0, bancolombia: 0, total: 0 };
+    }
+}
+
+module.exports = exports;

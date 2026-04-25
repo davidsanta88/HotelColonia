@@ -134,6 +134,12 @@ const ComparativaHoteles = () => {
     const globalOccupancyPercent = globalTotalHabitaciones > 0 ? (globalOcupadas / globalTotalHabitaciones) * 100 : 0;
     const globalFreePercent = globalTotalHabitaciones > 0 ? (globalDisponibles / globalTotalHabitaciones) * 100 : 0;
     const globalAseoPercent = globalTotalHabitaciones > 0 ? (globalAseo / globalTotalHabitaciones) * 100 : 0;
+    
+    // Totales de Caja Consolidados
+    const globalCashEfectivo = (data?.plaza?.cash?.efectivo || 0) + (data?.colonial?.cash?.efectivo || 0);
+    const globalCashNequi = (data?.plaza?.cash?.nequi || 0) + (data?.colonial?.cash?.nequi || 0);
+    const globalCashBancolombia = (data?.plaza?.cash?.bancolombia || 0) + (data?.colonial?.cash?.bancolombia || 0);
+    const globalCashTotal = (data?.plaza?.cash?.total || 0) + (data?.colonial?.cash?.total || 0);
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">
@@ -174,6 +180,94 @@ const ComparativaHoteles = () => {
                             <button onClick={fetchComparativeData} className="text-primary-600 hover:text-primary-800 transition" title="Actualizar">
                                 <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Resumen de Caja Consolidado */}
+            <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-8 opacity-5">
+                    <DollarSign size={120} className="text-slate-900" />
+                </div>
+                
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 relative z-10">
+                    <div>
+                        <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                            <RefreshCw size={20} className="text-primary-500" /> 
+                            Consolidado de Cuadre de Caja
+                        </h2>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Saldos pendientes de cierre en ambos hoteles</p>
+                    </div>
+                    <div className="bg-primary-50 px-4 py-2 rounded-2xl border border-primary-100">
+                        <span className="text-[10px] font-black text-primary-600 uppercase tracking-widest">Balance Final Combinado</span>
+                        <div className="text-2xl font-black text-primary-700">${new Intl.NumberFormat().format(globalCashTotal)}</div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
+                    {/* Efectivo */}
+                    <div className="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100 flex flex-col justify-between">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-100">
+                                <DollarSign size={18} />
+                            </div>
+                            <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Efectivo Hoy</span>
+                        </div>
+                        <div className="text-2xl font-black text-emerald-600">${new Intl.NumberFormat().format(globalCashEfectivo)}</div>
+                        <div className="mt-3 pt-3 border-t border-emerald-100 flex justify-between text-[9px] font-bold text-emerald-500/60 uppercase">
+                            <span>Plaza: ${new Intl.NumberFormat().format(data?.plaza?.cash?.efectivo || 0)}</span>
+                            <span>Colonial: ${new Intl.NumberFormat().format(data?.colonial?.cash?.efectivo || 0)}</span>
+                        </div>
+                    </div>
+
+                    {/* Nequi */}
+                    <div className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100 flex flex-col justify-between">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-100">
+                                <Zap size={18} />
+                            </div>
+                            <span className="text-[10px] font-black text-indigo-700 uppercase tracking-widest">Total Nequi</span>
+                        </div>
+                        <div className="text-2xl font-black text-indigo-600">${new Intl.NumberFormat().format(globalCashNequi)}</div>
+                        <div className="mt-3 pt-3 border-t border-indigo-100 flex justify-between text-[9px] font-bold text-indigo-500/60 uppercase">
+                            <span>Plaza: ${new Intl.NumberFormat().format(data?.plaza?.cash?.nequi || 0)}</span>
+                            <span>Colonial: ${new Intl.NumberFormat().format(data?.colonial?.cash?.nequi || 0)}</span>
+                        </div>
+                    </div>
+
+                    {/* Bancolombia */}
+                    <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100 flex flex-col justify-between">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-100">
+                                <Activity size={18} />
+                            </div>
+                            <span className="text-[10px] font-black text-blue-700 uppercase tracking-widest">Trans. Bancolombia</span>
+                        </div>
+                        <div className="text-2xl font-black text-blue-600">${new Intl.NumberFormat().format(globalCashBancolombia)}</div>
+                        <div className="mt-3 pt-3 border-t border-blue-100 flex justify-between text-[9px] font-bold text-blue-500/60 uppercase">
+                            <span>Plaza: ${new Intl.NumberFormat().format(data?.plaza?.cash?.bancolombia || 0)}</span>
+                            <span>Colonial: ${new Intl.NumberFormat().format(data?.colonial?.cash?.bancolombia || 0)}</span>
+                        </div>
+                    </div>
+
+                    {/* Promedio x Hotel */}
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col justify-center">
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hotel Plaza</span>
+                                <span className="text-sm font-black text-slate-700">${new Intl.NumberFormat().format(data?.plaza?.cash?.total || 0)}</span>
+                            </div>
+                            <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary-500 rounded-full" style={{ width: `${globalCashTotal > 0 ? ((data?.plaza?.cash?.total || 0) / globalCashTotal) * 100 : 0}%` }}></div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hotel Colonial</span>
+                                <span className="text-sm font-black text-slate-700">${new Intl.NumberFormat().format(data?.colonial?.cash?.total || 0)}</span>
+                            </div>
+                            <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div className="h-full bg-slate-500 rounded-full" style={{ width: `${globalCashTotal > 0 ? ((data?.colonial?.cash?.total || 0) / globalCashTotal) * 100 : 0}%` }}></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -327,6 +421,7 @@ const ComparativaHoteles = () => {
                     profitAvg={plazaProfitAvg}
                     shopSales={shopPlaza}
                     rooms={data?.plaza.rooms}
+                    cash={data?.plaza.cash}
                     color="primary"
                 />
                 <HotelCard 
@@ -338,6 +433,7 @@ const ComparativaHoteles = () => {
                     profitAvg={colonialProfitAvg}
                     shopSales={shopColonial}
                     rooms={data?.colonial.rooms}
+                    cash={data?.colonial.cash}
                     color="slate"
                 />
             </div>
@@ -485,7 +581,7 @@ const ComparativaHoteles = () => {
     );
 };
 
-const HotelCard = ({ hotelName, income, expenses, dailyAvg, expensesAvg, profitAvg, shopSales, rooms, color }) => {
+const HotelCard = ({ hotelName, income, expenses, dailyAvg, expensesAvg, profitAvg, shopSales, rooms, cash, color }) => {
     const margin = income - expenses;
     const marginPercent = income > 0 ? (margin / income) * 100 : 0;
     const themeColor = color === 'primary' ? 'blue' : 'slate';
@@ -518,6 +614,22 @@ const HotelCard = ({ hotelName, income, expenses, dailyAvg, expensesAvg, profitA
                             <span className="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Aseo</span>
                             <span className="text-xs font-black text-amber-600 leading-none mt-1">{rooms?.aseo || 0}</span>
                         </div>
+                    </div>
+                </div>
+
+                {/* New Cash Summary Section in Card */}
+                <div className="mb-8 p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                    <div className="flex flex-col items-center flex-1 border-r border-slate-200">
+                        <span className="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Efectivo</span>
+                        <span className="text-xs font-black text-emerald-600">${new Intl.NumberFormat().format(cash?.efectivo || 0)}</span>
+                    </div>
+                    <div className="flex flex-col items-center flex-1 border-r border-slate-200">
+                        <span className="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Nequi</span>
+                        <span className="text-xs font-black text-indigo-600">${new Intl.NumberFormat().format(cash?.nequi || 0)}</span>
+                    </div>
+                    <div className="flex flex-col items-center flex-1">
+                        <span className="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Bancolombia</span>
+                        <span className="text-xs font-black text-blue-600">${new Intl.NumberFormat().format(cash?.bancolombia || 0)}</span>
                     </div>
                 </div>
 
