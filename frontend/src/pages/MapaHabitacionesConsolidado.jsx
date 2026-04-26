@@ -312,6 +312,16 @@ const MapaHabitacionesConsolidado = () => {
                                                             <span className="text-[8px]">→</span>
                                                             <span className="text-[8px] font-bold">{moment(hab.registroActual.fecha_salida).format('DD/MM')}</span>
                                                         </div>
+                                                        <div className="mt-1 pt-1 border-t border-black/5 flex flex-col gap-0.5">
+                                                            <div className="flex justify-between text-[7px] font-bold">
+                                                                <span className="opacity-60 uppercase">Pagado:</span>
+                                                                <span className="text-emerald-600">${formatCurrency(hab.registroActual.pagado || 0)}</span>
+                                                            </div>
+                                                            <div className={`flex justify-between text-[7px] font-black ${hab.registroActual.saldo > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                                                                <span className="opacity-60 uppercase">Saldo:</span>
+                                                                <span>${formatCurrency(hab.registroActual.saldo || 0)}</span>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 ) : (
                                                     <div className="flex flex-col gap-0.5">
