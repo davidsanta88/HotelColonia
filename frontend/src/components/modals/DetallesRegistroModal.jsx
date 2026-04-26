@@ -449,6 +449,12 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                             <p class="text-sm font-bold text-center opacity-90 uppercase tracking-widest leading-tight">REGISTRAR COBRO ANTES DE SALIDA</p>
                         </div>
                     ` : ''}
+                    <div class="bg-amber-50 border-2 border-amber-500 p-4 rounded-xl text-amber-800 shadow-sm flex items-center gap-3 animate-pulse">
+                        <div class="bg-amber-500 text-white p-2 rounded-lg shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H9a1 1 0 0 0-1 1v2c0 .6.4 1 1 1h6c.6 0 1-.4 1-1V3a1 1 0 0 0-1-1Z"/><rect width="12" height="14" x="6" y="5" rx="2"/><path d="M9 10h6"/><path d="M9 14h6"/></svg>
+                        </div>
+                        <p class="text-[11px] font-black uppercase tracking-tight leading-tight">Favor reclamar las llaves y validar que la habitación quede todo OK</p>
+                    </div>
                     <div class="mt-2">
                         <label class="block text-sm font-black text-gray-400 uppercase mb-1 tracking-wider">Notas de salida (Opcional):</label>
                     </div>
@@ -457,7 +463,7 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
             input: 'textarea',
             inputPlaceholder: 'Observaciones aquí...',
             icon: saldo > 0 ? 'warning' : 'question',
-            width: '450px',
+            width: 'min(95%, 450px)',
             showCancelButton: true,
             confirmButtonColor: saldo > 0 ? '#ef4444' : '#3b82f6',
             cancelButtonColor: '#6b7280',
@@ -507,6 +513,14 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                              <span className={`px-3 md:px-4 py-1 md:py-1.5 text-[9px] md:text-[10px] font-black rounded-full uppercase tracking-widest ${['activa', 'activo'].includes(details?.estado?.toLowerCase()) ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800'}`}>
                                 {details?.estado || 'Cargando...'}
                             </span>
+                            {details?.estado?.toLowerCase() === 'finalizado' && (
+                                <div className="flex items-center gap-1.5 text-rose-600 bg-rose-50 px-3 py-1 rounded-full border border-rose-100">
+                                    <Clock size={12} className="animate-pulse" />
+                                    <span className="text-[10px] font-black uppercase tracking-tight">
+                                        Salida: {details?.fecha_salida_real ? moment(details.fecha_salida_real).format('DD/MM/YYYY HH:mm') : (details?.fecha_salida ? moment(details.fecha_salida).format('DD/MM/YYYY HH:mm') : '-')}
+                                    </span>
+                                </div>
+                            )}
                             {!isEditing && (
                                 <div className="flex flex-wrap items-center gap-2">
                                     <button 
@@ -619,7 +633,9 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                                                 </div>
                                             </div>
                                             <div className="flex flex-col">
-                                                <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Check-out (Est.)</label>
+                                                <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                                                    {details?.estado?.toLowerCase() === 'finalizado' ? 'Check-out Real' : 'Check-out (Est.)'}
+                                                </label>
                                                 {isEditing ? (
                                                     <input 
                                                         type="date"
@@ -630,12 +646,15 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                                                     />
                                                 ) : (
                                                     <div 
-                                                        className="flex items-center gap-1.5 font-bold text-slate-800 cursor-pointer hover:text-blue-600 transition-colors group/field text-xs"
-                                                        onClick={() => setIsEditing(true)}
+                                                        className={`flex items-center gap-1.5 font-bold cursor-pointer transition-colors group/field text-xs ${details?.estado?.toLowerCase() === 'finalizado' ? 'text-emerald-700' : 'text-slate-800 hover:text-blue-600'}`}
+                                                        onClick={() => details?.estado?.toLowerCase() !== 'finalizado' && setIsEditing(true)}
                                                     >
-                                                        <Calendar size={14} className="text-gray-300 group-hover/field:text-blue-400" />
-                                                        {details?.fecha_salida ? format(new Date(details.fecha_salida), 'dd/MM/yyyy') : '-'}
-                                                        <Edit3 size={10} className="opacity-0 group-hover/field:opacity-100 text-blue-400 ml-1 transition-opacity" />
+                                                        <Calendar size={14} className={`${details?.estado?.toLowerCase() === 'finalizado' ? 'text-emerald-400' : 'text-gray-300 group-hover/field:text-blue-400'}`} />
+                                                        {details?.estado?.toLowerCase() === 'finalizado' 
+                                                            ? (details?.fecha_salida_real ? format(new Date(details.fecha_salida_real), 'dd/MM/yyyy HH:mm') : format(new Date(details.fecha_salida), 'dd/MM/yyyy HH:mm'))
+                                                            : (details?.fecha_salida ? format(new Date(details.fecha_salida), 'dd/MM/yyyy') : '-')
+                                                        }
+                                                        {details?.estado?.toLowerCase() !== 'finalizado' && <Edit3 size={10} className="opacity-0 group-hover/field:opacity-100 text-blue-400 ml-1 transition-opacity" />}
                                                     </div>
                                                 )}
                                             </div>
@@ -880,10 +899,11 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                                                 )}
                                             </div>
 
-                                            {details?.estado === 'finalizado' && (
+                                            {details?.estado?.toLowerCase() === 'finalizado' && (
                                                 <div className="pt-3 border-t border-red-100 mt-2">
-                                                    <label className="block text-[8px] font-black text-red-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
-                                                        <LogOut size={10} /> Notas de Salida (Check-out)
+                                                    <label className="block text-[8px] font-black text-red-500 uppercase tracking-widest mb-1.5 flex items-center justify-between">
+                                                        <span className="flex items-center gap-1"><LogOut size={10} /> Notas de Salida (Check-out)</span>
+                                                        <span className="text-[9px] opacity-60">{details?.fecha_salida_real ? moment(details.fecha_salida_real).format('DD/MM/YYYY HH:mm') : (details?.fecha_salida ? moment(details.fecha_salida).format('DD/MM/YYYY HH:mm') : '')}</span>
                                                     </label>
                                                     <div className="bg-red-50/50 p-4 rounded-2xl border border-red-100 italic font-black text-red-900 text-[10px] shadow-sm min-h-[50px] flex items-center px-4">
                                                         {details.notasSalida || 'Sin observaciones registradas al momento de salida.'}

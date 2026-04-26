@@ -38,6 +38,7 @@ exports.getRegistros = async (req, res) => {
                 huespedes: huespedesObjs,
                 fecha_ingreso: raw.fecha_ingreso || raw.fechaEntrada || raw.fechaCreacion,
                 fecha_salida: raw.fecha_salida || raw.fechaSalida || raw.fechaEntrada || raw.fechaCreacion,
+                fecha_salida_real: raw.fechaSalidaReal,
                 nombre_cliente: raw.nombre_cliente || (clienteObj ? clienteObj.nombre : 'Sín Nombre'),
                 documento_cliente: raw.documento_cliente || (clienteObj ? clienteObj.documento : '-'),
                 telefono_cliente: raw.telefono_cliente || (clienteObj ? clienteObj.telefono : ''),
@@ -84,6 +85,7 @@ exports.getActiveRegistros = async (req, res) => {
                 huespedes: huespedesObjs,
                 fecha_ingreso: raw.fecha_ingreso || raw.fechaEntrada || raw.fechaCreacion,
                 fecha_salida: raw.fecha_salida || raw.fechaSalida || raw.fechaEntrada || raw.fechaCreacion,
+                fecha_salida_real: raw.fechaSalidaReal,
                 nombre_cliente: raw.nombre_cliente || (clienteObj ? clienteObj.nombre : 'Sín Nombre'),
                 documento_cliente: raw.documento_cliente || (clienteObj ? clienteObj.documento : '-'),
                 telefono_cliente: raw.telefono_cliente || (clienteObj ? clienteObj.telefono : ''),
@@ -123,6 +125,7 @@ exports.getRegistroById = async (req, res) => {
             id: raw._id,
             fecha_ingreso: raw.fecha_ingreso || raw.fechaEntrada || raw.fechaCreacion,
             fecha_salida: raw.fecha_salida || raw.fechaSalida || raw.fechaEntrada || raw.fechaCreacion,
+            fecha_salida_real: raw.fechaSalidaReal,
             nombre_cliente: raw.nombre_cliente || (clienteObj ? clienteObj.nombre : 'Sín Nombre'),
             numero_habitacion: raw.numero_habitacion || (raw.habitacion ? raw.habitacion.numero : '?'),
             notas: raw.notas || raw.observaciones || '',
@@ -259,7 +262,8 @@ exports.checkout = async (req, res) => {
 
         // 1. Finalizar registro
         registro.estado = 'finalizado';
-        registro.fechaSalida = Date.now();
+        registro.fechaSalidaReal = Date.now();
+        // registro.fechaSalida = Date.now(); // Mantener la original estimada si se prefiere, o actualizarla. El usuario pidió ver la real.
         console.log('Recibiendo notasSalida:', notasSalida); // Log para depuración
         registro.notasSalida = notasSalida || "";
         await registro.save();

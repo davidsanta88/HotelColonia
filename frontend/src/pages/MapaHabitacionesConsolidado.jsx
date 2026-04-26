@@ -62,6 +62,112 @@ const MapaHabitacionesConsolidado = () => {
         }
     };
 
+    const toggleLimpieza = async (habId, currentEstado, hotel) => {
+        const isPlaza = window.location.hostname.includes('plaza') || window.location.port === '5173';
+        const targetHotel = isPlaza ? 'Hotel Plaza' : 'Hotel Colonial';
+        
+        if (hotel !== targetHotel) {
+            Swal.fire({
+                title: 'Cambio de Hotel',
+                text: `Para gestionar la limpieza del ${hotel}, debe ir a su respectivo sistema.`,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: `Ir al ${hotel.split(' ')[1]}`,
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = hotel.includes('Plaza') ? 'https://hotelbalconplaza.com/mapa-habitaciones' : 'https://hotelbalconcolonial.com/mapa-habitaciones';
+                }
+            });
+            return;
+        }
+
+        try {
+            setUpdating(habId);
+            const nuevoEstado = currentEstado === 'LIMPIA' ? 'SUCIA' : 'LIMPIA';
+            await api.put(`/habitaciones/${habId}/limpieza`, { estado: nuevoEstado });
+            await fetchMapa();
+        } catch (error) {
+            Swal.fire('Error', 'No se pudo actualizar el estado de limpieza', 'error');
+        } finally {
+            setUpdating(null);
+        }
+    };
+
+    const handleQuickCheckout = async (habId, registroId, saldo, hotel) => {
+        const isPlaza = window.location.hostname.includes('plaza') || window.location.port === '5173';
+        const targetHotel = isPlaza ? 'Hotel Plaza' : 'Hotel Colonial';
+        
+        if (hotel !== targetHotel) {
+            Swal.fire({
+                title: 'Cambio de Hotel',
+                text: `Para realizar el check-out en el ${hotel}, debe ir a su respectivo sistema.`,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: `Ir al ${hotel.split(' ')[1]}`,
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = hotel.includes('Plaza') ? 'https://hotelbalconplaza.com/mapa-habitaciones' : 'https://hotelbalconcolonial.com/mapa-habitaciones';
+                }
+            });
+            return;
+        }
+
+        const tieneSaldo = (saldo || 0) > 0;
+        
+        const result = await Swal.fire({
+            title: '¿Confirmar Check-out?',
+            html: `
+                <div class="text-left space-y-4">
+                    <p class="text-lg text-gray-700 font-bold">Esta acción liberará la habitación y la marcará para aseo.</p>
+                    <p class="bg-amber-50 text-amber-700 p-2 rounded-lg border border-amber-200 text-[11px] font-black uppercase text-center mt-2 animate-pulse">Favor reclamar las llaves y validar que la habitacion quede todo OK</p>
+                    ${tieneSaldo ? `
+                        <div class="bg-red-50 border-2 border-red-500 p-6 rounded-2xl text-red-700 shadow-lg animate-pulse">
+                            <div class="flex items-center gap-3 mb-2 justify-center">
+                                <span class="bg-red-500 text-white p-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+                                <strong class="text-2xl font-black uppercase tracking-tighter">¡SALDO PENDIENTE!</strong>
+                            </div>
+                            <p class="text-4xl font-black text-center mb-1">$${formatCurrency(saldo)}</p>
+                            <p class="text-sm font-bold text-center opacity-90 uppercase tracking-widest">DEBE COBRAR ANTES DE LIBERAR LA HABITACIÓN</p>
+                        </div>
+                    ` : ''}
+                    <div class="mt-2">
+                        <label class="block text-sm font-black text-gray-400 uppercase mb-1 tracking-wider">Notas de salida (Opcional):</label>
+                    </div>
+                </div>
+            `,
+            input: 'textarea',
+            inputPlaceholder: 'Escriba observaciones aquí...',
+            icon: (saldo || 0) > 0 ? 'warning' : 'question',
+            width: 'min(95%, 450px)',
+            showCancelButton: true,
+            confirmButtonColor: (saldo || 0) > 0 ? '#ef4444' : '#3b82f6',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: (saldo || 0) > 0 ? 'Sí, salir con saldo' : 'Sí, finalizar estancia',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'rounded-3xl shadow-2xl border border-gray-100',
+                title: 'text-2xl font-black text-gray-800',
+                htmlContainer: 'text-base font-medium',
+                confirmButton: 'rounded-xl font-black uppercase tracking-widest text-sm px-8 py-4 transition-transform active:scale-95',
+                cancelButton: 'rounded-xl font-black uppercase tracking-widest text-sm px-8 py-4 transition-transform active:scale-95'
+            }
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const notasCapturadas = result.value || '';
+                Swal.fire({ title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                await api.put(`/registros/checkout/${registroId}`, { notasSalida: notasCapturadas });
+                Swal.fire('Éxito', 'Check-out realizado', 'success');
+                fetchMapa();
+            } catch (error) {
+                Swal.fire('Error', 'No se pudo completar el check-out', 'error');
+            }
+        }
+    };
+
     useEffect(() => {
         fetchMapa();
         const interval = setInterval(fetchMapa, 60000);
@@ -77,7 +183,7 @@ const MapaHabitacionesConsolidado = () => {
                                  (h.registroActual?.huesped || '').toLowerCase().includes(searchTerm.toLowerCase());
             
             return matchesStatus && matchesHotel && matchesSearch;
-        });
+        }).sort((a, b) => parseInt(a.numero) - parseInt(b.numero));
     }, [habitaciones, filter, hotelFilter, searchTerm]);
 
     const getStatusStyles = (estado, limpieza) => {
@@ -300,9 +406,69 @@ const MapaHabitacionesConsolidado = () => {
                                         >
                                             <div className="flex justify-between items-start mb-1">
                                                 <span className="text-xs font-black text-gray-900 group-hover:scale-110 transition-transform">{hab.numero}</span>
-                                                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md ${styles.text} bg-white/80 border ${styles.border} shadow-sm uppercase tracking-tighter`}>
-                                                    {styles.label === 'Por Asear' ? 'ASEO' : styles.label.substring(0, 4)}
-                                                </span>
+                                                <div className="flex items-center gap-1">
+                                                    <div className="hidden group-hover:flex items-center gap-0.5 animate-in fade-in zoom-in duration-200">
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                toggleLimpieza(hab.id, hab.estadoLimpieza, hab.hotel);
+                                                            }}
+                                                            disabled={updating === hab.id}
+                                                            className={`p-1 rounded-md transition-all shadow-sm border ${
+                                                                hab.estadoLimpieza === 'SUCIA' 
+                                                                ? 'bg-orange-500 border-orange-400 text-white hover:bg-orange-600' 
+                                                                : 'bg-emerald-500 border-emerald-400 text-white hover:bg-emerald-600'
+                                                            }`}
+                                                            title={hab.estadoLimpieza === 'SUCIA' ? 'Marcar como Limpia' : 'Marcar como Sucia'}
+                                                        >
+                                                            {updating === hab.id ? <Loader2 size={8} className="animate-spin" /> : (hab.estadoLimpieza === 'SUCIA' ? <Brush size={8} /> : <CheckCircle size={8} />)}
+                                                        </button>
+
+                                                        {hab.estado.toLowerCase() === 'ocupada' && hab.registroActual?.id && (
+                                                            <button 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleQuickCheckout(hab.id, hab.registroActual.id, hab.registroActual.saldo, hab.hotel);
+                                                                }}
+                                                                className="p-1 rounded-md bg-red-600 border border-red-500 text-white hover:bg-red-700 shadow-sm transition-all"
+                                                                title="Salida Rápida"
+                                                            >
+                                                                <LogOut size={8} />
+                                                            </button>
+                                                        )}
+
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                const isPlaza = window.location.hostname.includes('plaza') || window.location.port === '5173';
+                                                                const targetHotel = isPlaza ? 'Hotel Plaza' : 'Hotel Colonial';
+                                                                if (hab.hotel !== targetHotel) {
+                                                                     Swal.fire({
+                                                                        title: 'Cambio de Hotel',
+                                                                        text: `Para reservar en el ${hab.hotel}, debe ir a su sistema.`,
+                                                                        icon: 'info',
+                                                                        showCancelButton: true,
+                                                                        confirmButtonText: `Ir al ${hab.hotel.split(' ')[1]}`,
+                                                                        cancelButtonText: 'Cancelar'
+                                                                    }).then((result) => {
+                                                                        if (result.isConfirmed) {
+                                                                            window.location.href = hab.hotel.includes('Plaza') ? 'https://hotelbalconplaza.com/reservas' : 'https://hotelbalconcolonial.com/reservas';
+                                                                        }
+                                                                    });
+                                                                    return;
+                                                                }
+                                                                navigate('/reservas', { state: { fromMap: true, selectedHab: hab } });
+                                                            }}
+                                                            className="p-1 rounded-md bg-sky-500 border border-sky-400 text-white hover:bg-sky-600 shadow-sm transition-all"
+                                                            title="Reservar"
+                                                        >
+                                                            <CalendarPlus size={8} />
+                                                        </button>
+                                                    </div>
+                                                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md ${styles.text} bg-white/80 border ${styles.border} shadow-sm uppercase tracking-tighter`}>
+                                                        {styles.label === 'Por Asear' ? 'ASEO' : styles.label.substring(0, 4)}
+                                                    </span>
+                                                </div>
                                             </div>
                                             
                                             <div className="space-y-0.5">
@@ -318,15 +484,17 @@ const MapaHabitacionesConsolidado = () => {
                                                             <span className="text-[8px]">→</span>
                                                             <span className="text-[8px] font-bold">{moment(hab.registroActual.fecha_salida).format('DD/MM')}</span>
                                                         </div>
-                                                        <div className="mt-1 pt-1 border-t border-black/5 flex flex-col gap-0.5">
-                                                            <div className="flex justify-between text-[7px] font-bold">
+                                                        <div className="mt-1 pt-1 border-t border-black/5 space-y-0.5">
+                                                            <div className="flex justify-between items-center text-[9px] font-bold text-gray-500">
                                                                 <span className="opacity-60 uppercase">Pagado:</span>
-                                                                <span className="text-emerald-600">${formatCurrency(hab.registroActual.pagado || 0)}</span>
+                                                                <span className="text-emerald-600 font-black">${formatCurrency(hab.registroActual?.pagado || 0)}</span>
                                                             </div>
-                                                            <div className={`flex justify-between text-[7px] font-black ${hab.registroActual.saldo > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                                                <span className="opacity-60 uppercase">Saldo:</span>
-                                                                <span>${formatCurrency(hab.registroActual.saldo || 0)}</span>
-                                                            </div>
+                                                            {(hab.registroActual?.saldo || 0) > 0 && (
+                                                                <div className="flex justify-between items-center text-[9px] font-black text-rose-600">
+                                                                    <span className="opacity-60 uppercase">Pendiente:</span>
+                                                                    <span>${formatCurrency(hab.registroActual?.saldo || 0)}</span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 ) : (

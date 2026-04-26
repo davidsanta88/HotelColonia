@@ -271,11 +271,12 @@ const Registros = () => {
             title: '¿Confirmar Check-out?',
             html: `
                 <div class="text-left">
-                    <p class="text-gray-600 mb-4">La habitación pasará a estado 'Pendiente por asear'.</p>
-                    <p class="bg-amber-50 text-amber-700 p-3 rounded-xl border border-amber-200 text-xs font-black uppercase text-center">Favor reclamar las llaves y validar que la habitacion quede todo OK</p>
+                    <p class="text-gray-600 mb-4 font-medium">La habitación pasará a estado 'Pendiente por asear'.</p>
+                    <p class="bg-amber-50 text-amber-700 p-3 rounded-xl border border-amber-200 text-[11px] font-black uppercase text-center animate-pulse">Favor reclamar las llaves y validar que la habitacion quede todo OK</p>
                 </div>
             `,
             icon: 'question',
+            width: 'min(95%, 450px)',
             showCancelButton: true,
             confirmButtonColor: '#3b82f6',
             cancelButtonColor: '#6b7280',
@@ -627,8 +628,16 @@ const Registros = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-bold">#{res.numero_habitacion}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-[11px] text-gray-500 font-medium">
-                                                {format(new Date(res.fecha_ingreso), 'dd/MM/yyyy')} - {format(new Date(res.fecha_salida), 'dd/MM/yyyy')}
+                                            <td className="px-6 py-4 whitespace-nowrap text-[11px] font-medium">
+                                                <div className="text-gray-500">
+                                                    {format(new Date(res.fecha_ingreso), 'dd/MM/yyyy')} - 
+                                                    <span className={res.estado?.toLowerCase() === 'finalizado' ? 'text-emerald-600 font-black ml-1' : ''}>
+                                                        {res.estado?.toLowerCase() === 'finalizado' 
+                                                            ? (res.fecha_salida_real ? format(new Date(res.fecha_salida_real), 'dd/MM/yyyy HH:mm') : format(new Date(res.fecha_salida), 'dd/MM/yyyy HH:mm'))
+                                                            : format(new Date(res.fecha_salida), 'dd/MM/yyyy')
+                                                        }
+                                                    </span>
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-tight">

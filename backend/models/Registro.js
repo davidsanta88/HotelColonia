@@ -5,6 +5,7 @@ const registroSchema = new mongoose.Schema({
     cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Cliente', required: true },
     fechaEntrada: { type: Date, required: true },
     fechaSalida: Date,
+    fechaSalidaReal: Date,
     estado: { type: String, enum: ['activo', 'finalizado', 'cancelado'], default: 'activo' },
     total: Number,
     pagos: [{
