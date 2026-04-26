@@ -1173,7 +1173,11 @@ exports.getStatsConsolidadas = async (req, res) => {
                     { fechaEntrada: { $gte: startDate, $lte: endDate } },
                     { fechaSalida: { $gte: startDate, $lte: endDate } }
                 ]
-            }).populate('cliente', 'nombre empresa_id').lean();
+            }).populate({ 
+                path: 'cliente', 
+                select: 'nombre empresa_id', 
+                populate: { path: 'empresa_id', select: 'nombre' } 
+            }).lean();
             const regIds = registrosPeriodo.map(r => r._id);
             const ventasPeriodo = await Venta.find({ registro: { $in: regIds } }).lean();
 
@@ -1247,8 +1251,10 @@ exports.getStatsConsolidadas = async (req, res) => {
                         huespedes: numHuespedes,
                         hotel: hotelLabel,
                         huespedTitular: r.cliente?.nombre || 'Desconocido',
+                        nombreEmpresa: r.cliente?.empresa_id?.nombre || null,
                         esEmpresa: !!r.cliente?.empresa_id,
-                        diferenciaPct: pct
+                        diferenciaPct: pct,
+                        fecha: r.fecha_ingreso
                     });
                 }
             }

@@ -674,12 +674,15 @@ const ComparativaHoteles = () => {
                                                 <span>Ref: <strong className="text-slate-500">${new Intl.NumberFormat().format(details.precioRecomendado || 0)}</strong></span>
                                             </div>
                                             <div className="flex items-center justify-between pt-1 border-t border-slate-200/50">
-                                                <span className="text-[10px] font-black text-slate-600 truncate uppercase tracking-tighter">
-                                                    {details.huespedTitular}
-                                                </span>
-                                                {details.esEmpresa && (
-                                                    <span className="text-[7px] font-black text-blue-500 uppercase tracking-widest bg-blue-50 px-1 rounded">Empresa</span>
-                                                )}
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">
+                                                        {details.huespedTitular}
+                                                    </span>
+                                                    {details.nombreEmpresa && (
+                                                        <span className="text-[8px] font-bold text-blue-500 uppercase tracking-widest">{details.nombreEmpresa}</span>
+                                                    )}
+                                                </div>
+                                                <span className="text-[8px] font-bold text-slate-400">{details.fecha ? format(parseISO(details.fecha), 'dd/MM/yy') : '-'}</span>
                                             </div>
                                         </div>
                                     </div>
