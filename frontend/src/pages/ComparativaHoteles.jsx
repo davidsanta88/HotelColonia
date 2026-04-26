@@ -22,7 +22,13 @@ import {
     Sparkles,
     AlertTriangle,
     Eye,
-    MapPin
+    MapPin,
+    Zap,
+    Users,
+    Brush,
+    Target,
+    Heart,
+    Crown
 } from 'lucide-react';
 import { format, subDays, startOfMonth, differenceInDays, parseISO } from 'date-fns';
 
@@ -337,9 +343,6 @@ const ComparativaHoteles = () => {
                             <Brush size={24} />
                         </div>
                     </div>
-                </div>
-            </div>
-
                 </div>
             </div>
 
