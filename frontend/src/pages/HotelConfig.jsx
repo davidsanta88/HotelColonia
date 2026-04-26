@@ -251,6 +251,29 @@ const HotelConfig = () => {
                         <p className="mt-2 text-[10px] text-slate-400 font-medium italic">* Este mensaje aparecerá como despedida en el pie de página de los vouchers.</p>
                     </div>
 
+                    {/* ALERTA DE CAJA */}
+                    <div className="bg-indigo-50 p-6 rounded-2xl shadow-sm border border-indigo-100 hover:shadow-md transition-shadow md:col-span-2">
+                        <div className="flex items-center gap-2 mb-4">
+                            <ShieldAlert className="text-indigo-600" size={24} />
+                            <h3 className="text-sm font-black text-indigo-900 uppercase tracking-widest">Alertas de Tesorería</h3>
+                        </div>
+                        <label className="block text-xs font-black text-indigo-400 uppercase mb-2 ml-1">Monto Límite en Caja (+Base) para Alerta</label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-indigo-400">
+                                <DollarSign size={18} />
+                            </div>
+                            <input
+                                type="number"
+                                name="montoAlertaCaja"
+                                value={config.montoAlertaCaja || 0}
+                                onChange={handleChange}
+                                className="block w-full pl-10 pr-3 py-2.5 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm font-black text-indigo-700 bg-white"
+                                placeholder="Ej: 500000"
+                            />
+                        </div>
+                        <p className="mt-2 text-[10px] text-indigo-500/60 font-medium italic">* Se mostrará una alerta automática al Administrador cuando el efectivo total en caja (incluyendo la base del cierre anterior) supere este valor.</p>
+                    </div>
+
                     {/* SECCIÓN ADMINISTRADOR (FIRMA) */}
                     <div className="md:col-span-2 mt-4">
                         <div className="flex items-center gap-2 mb-4">

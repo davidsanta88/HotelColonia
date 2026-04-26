@@ -3,9 +3,13 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import NotificationOverlay from '../common/NotificationOverlay';
+import useCashAlert from '../../hooks/useCashAlert';
 
 const Layout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    
+    // Alerta de Tesorería para Admin
+    useCashAlert();
 
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden relative">
