@@ -346,12 +346,17 @@ const ComparativaHoteles = () => {
                 </div>
 
                 {/* 7. Total en Caja (+Base) Global */}
-                <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-indigo-100">
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-2">Total en Caja (+Base)</p>
-                    <div className="flex items-center justify-between">
-                        <h4 className="text-3xl font-black">${new Intl.NumberFormat().format(globalCashTotalConBase)}</h4>
-                        <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                            <Lock size={24} />
+                <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 p-8 rounded-[2.5rem] text-white shadow-2xl shadow-indigo-200/50 border border-indigo-400/20 relative overflow-hidden">
+                    {/* Decoración */}
+                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
+                    
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2 relative z-10">Total en Caja (+Base)</p>
+                    <div className="flex items-center justify-between relative z-10">
+                        <h4 className="text-4xl font-black tracking-tighter drop-shadow-sm">
+                            ${new Intl.NumberFormat().format(globalCashTotalConBase)}
+                        </h4>
+                        <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm shadow-inner">
+                            <Lock size={28} />
                         </div>
                     </div>
                 </div>
@@ -759,15 +764,15 @@ const HotelCard = ({ hotelName, income, expenses, dailyAvg, expensesAvg, profitA
                 </div>
 
                 {/* Total en Caja (+Base) Individual */}
-                <div className="mb-8 p-5 bg-indigo-50 rounded-[2rem] border border-indigo-100 flex items-center justify-between">
+                <div className="mb-8 p-6 bg-gradient-to-br from-indigo-50 to-white rounded-[2.5rem] border-2 border-indigo-100 flex items-center justify-between shadow-sm hover:border-indigo-200 transition-colors">
                     <div>
-                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Total en Caja (+Base)</p>
-                        <h4 className="text-2xl font-black text-indigo-600">
+                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Total en Caja (+Base)</p>
+                        <h4 className="text-3xl font-black text-indigo-600 tracking-tighter">
                             ${new Intl.NumberFormat().format((cash?.efectivo || 0) + (cash?.base || 0))}
                         </h4>
                     </div>
-                    <div className="p-3 bg-white rounded-2xl text-indigo-500 shadow-sm">
-                        <Lock size={20} />
+                    <div className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                        <Lock size={22} />
                     </div>
                 </div>
 
