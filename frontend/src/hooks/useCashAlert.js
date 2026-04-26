@@ -20,25 +20,32 @@ const useCashAlert = () => {
             if (!isSuperAdmin || hasAlerted) return;
 
             try {
-                // 1. Obtener la configuración para el monto límite
+                // 1. Obtener el último cierre primero para tener la base y el punto de partida
+                const cierresRes = await api.get('/cierres-caja');
+                let base = 0;
+                let lastClosureDate = new Date();
+                lastClosureDate.setHours(0, 0, 0, 0); // Default a inicio del día
+
+                if (cierresRes.data && cierresRes.data.length > 0) {
+                    const ultimo = cierresRes.data[0];
+                    base = ultimo.medios_pago?.efectivo || ultimo.saldo_real || ultimo.saldo_calculado || 0;
+                    lastClosureDate = new Date(ultimo.fecha);
+                }
+
+                // 2. Obtener la configuración para el monto límite
                 const configRes = await api.get('/hotel-config');
                 const threshold = configRes.data.montoAlertaCaja;
 
                 if (!threshold || threshold <= 0) return;
 
-                // 2. Obtener los datos de caja actuales
-                // Usamos el reporte de cuadre de caja para el día de hoy
-                const today = new Date().toISOString().split('T')[0];
-                const cuadreRes = await api.get(`/reportes/cuadre-caja?inicio=${today}&fin=${today}`);
+                // 3. Obtener los datos de caja actuales DESDE el último cierre hasta ahora
+                // Usamos la fecha exacta del cierre para no duplicar lo que ya se cerró
+                const params = new URLSearchParams({
+                    inicio: lastClosureDate.toISOString(),
+                    fin: new Date().toISOString()
+                });
                 
-                // 3. Obtener el último cierre para la base
-                const cierresRes = await api.get('/cierres-caja');
-                let base = 0;
-                if (cierresRes.data && cierresRes.data.length > 0) {
-                    const ultimo = cierresRes.data[0];
-                    base = ultimo.medios_pago?.efectivo || ultimo.saldo_real || ultimo.saldo_calculado || 0;
-                }
-
+                const cuadreRes = await api.get(`/reportes/cuadre-caja?${params.toString()}`);
                 const currentCash = (cuadreRes.data.resumen.total_efectivo || 0) + base;
 
                 if (currentCash > threshold) {
