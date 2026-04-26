@@ -1036,36 +1036,25 @@ exports.getRentabilidadConsolidada = async (req, res) => {
 exports.getMapaHabitacionesConsolidado = async (req, res) => {
     try {
         const fetchHotelData = async (models, hotelLabel) => {
-            const { Habitacion, Registro, Reserva, Cliente } = models;
+            const { Habitacion, Registro, Reserva, Cliente, Venta } = models;
             console.log(`[DEBUG] Fetching data for ${hotelLabel}...`);
             
-            // 1. Get all rooms
-            const habs = await Habitacion.find()
-                .populate('tipo', 'nombre')
-                .populate('estado', 'nombre color')
-                .lean();
-
-            const porAsear = habs.filter(h => h.estadoLimpieza?.toUpperCase() === 'SUCIA').length;
-            const registrosActivos = await Registro.find({ estado: 'activo' })
-                .populate('habitacion')
-                .populate('tipo_registro', 'nombre');
+            const [habs, registrosActivos, todasVentas, reservasProximas] = await Promise.all([
+                Habitacion.find().populate('tipo', 'nombre').populate('estado', 'nombre color').lean(),
+                Registro.find({ estado: 'activo' }).populate('habitacion').populate('tipo_registro', 'nombre').lean(),
+                Venta.find({ registro: { $exists: true } }).lean(),
+                Reserva.find({ 
+                    estado: 'Pendiente',
+                    fecha_entrada: { $gte: moment().startOf('day').toDate() }
+                }).sort({ fecha_entrada: 1 }).lean()
+            ]);
 
             const clientIds = registrosActivos.map(r => r.cliente).filter(id => id);
-            // IMPORTANTE: Buscar clientes en el modelo proporcionado (que corresponde al hotel actual en el bucle)
-            const clientes = await Cliente.find({ _id: { $in: clientIds } });
+            const clientes = await Cliente.find({ _id: { $in: clientIds } }).lean();
             const clientMap = new Map(clientes.map(c => [c._id.toString(), c]));
 
-            // 3. Get upcoming reservations
-            const reservasProximas = await Reserva.find({ 
-                estado: 'Pendiente',
-                fecha_entrada: { $gte: moment().startOf('day').toDate() }
-            }).sort({ fecha_entrada: 1 });
-
-            // 4. Map everything together
             return habs.map(hab => {
                 const habId = hab._id.toString();
-                
-                // Active registration
                 const reg = registrosActivos.find(r => {
                     const rHabId = r.habitacion?._id ? r.habitacion._id.toString() : r.habitacion?.toString();
                     return rHabId === habId;
@@ -1074,18 +1063,39 @@ exports.getMapaHabitacionesConsolidado = async (req, res) => {
                 let registroInfo = null;
                 if (reg) {
                     const titular = reg.cliente ? clientMap.get(reg.cliente.toString()) : null;
+                    const pagos = reg.pagos || [];
+                    const totalPagado = pagos.reduce((sum, p) => sum + (p.monto || 0), 0);
+                    const consumosReg = todasVentas.filter(v => v.registro?.toString() === reg._id.toString());
+                    const totalConsumos = consumosReg.reduce((sum, v) => sum + (v.total || 0), 0);
+                    
+                    // Cálculo robusto del total de estancia (igual que en mapa local)
+                    let totalEstancia = reg.total || 0;
+                    if (totalEstancia <= 0 && reg.fechaEntrada && reg.fechaSalida) {
+                        const inDate = new Date(reg.fechaEntrada);
+                        const outDate = new Date(reg.fechaSalida);
+                        if (!isNaN(inDate) && !isNaN(outDate)) {
+                            const diffDays = Math.max(Math.ceil((outDate - inDate) / (1000 * 60 * 60 * 24)), 1);
+                            const numHuespedes = Math.min(Math.max((reg.huespedes || []).length, 1), 6);
+                            const precioKey = `precio_${numHuespedes}`;
+                            const precioBase = parseFloat(hab[precioKey]) || parseFloat(hab.precio_1) || 0;
+                            totalEstancia = precioBase * diffDays;
+                        }
+                    }
+
+                    const totalGeneral = totalEstancia + totalConsumos;
+
                     registroInfo = {
                         id: reg._id,
                         huesped: titular?.nombre || 'Huésped',
-                        fecha_ingreso: reg.fecha_ingreso || reg.fechaEntrada,
-                        fecha_salida: reg.fecha_salida || reg.fechaSalida,
-                        total: reg.total,
-                        pagos: reg.pagos || [],
+                        fecha_ingreso: reg.fechaEntrada || reg.fecha_ingreso,
+                        fecha_salida: reg.fechaSalida || reg.fecha_salida,
+                        totalGeneral,
+                        pagado: totalPagado,
+                        saldo: totalGeneral - totalPagado,
                         tipo_registro: reg.tipo_registro?.nombre || 'Particular'
                     };
                 }
 
-                // Upcoming reservations
                 const proximas = reservasProximas
                     .filter(res => {
                         if (res.habitaciones && res.habitaciones.length > 0) {
@@ -1115,10 +1125,7 @@ exports.getMapaHabitacionesConsolidado = async (req, res) => {
             });
         };
 
-        // Fetch Plaza
-        const plazaRooms = await fetchHotelData({ Habitacion, Registro, Reserva, Cliente }, 'Hotel Plaza');
-
-        // Fetch Colonial
+        const plazaRooms = await fetchHotelData({ Habitacion, Registro, Reserva, Cliente, Venta }, 'Hotel Plaza');
         const colonialModels = await getColonialModels();
         const colonialRooms = await fetchHotelData(colonialModels, 'Hotel Colonial');
 
