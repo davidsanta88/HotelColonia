@@ -243,10 +243,11 @@ const MapaHabitaciones = () => {
         const tieneSaldo = (saldo || 0) > 0;
         
         const result = await Swal.fire({
-            title: '¿Realizar Check-out?',
+            title: '¿Confirmar Check-out?',
             html: `
                 <div class="text-left space-y-4">
                     <p class="text-lg text-gray-700 font-bold">Esta acción liberará la habitación y la marcará para aseo.</p>
+                    <p class="bg-amber-50 text-amber-700 p-2 rounded-lg border border-amber-200 text-xs font-black uppercase text-center mt-2">Favor reclamar las llaves y validar que la habitacion quede todo OK</p>
                     ${tieneSaldo ? `
                         <div class="bg-red-50 border-2 border-red-500 p-6 rounded-2xl text-red-700 shadow-lg animate-pulse">
                             <div class="flex items-center gap-3 mb-2 justify-center">

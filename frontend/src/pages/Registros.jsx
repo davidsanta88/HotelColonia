@@ -269,7 +269,12 @@ const Registros = () => {
     const handleCheckout = async (id) => {
         const result = await Swal.fire({
             title: '¿Confirmar Check-out?',
-            text: "La habitación pasará a estado 'Pendiente por asear'.",
+            html: `
+                <div class="text-left">
+                    <p class="text-gray-600 mb-4">La habitación pasará a estado 'Pendiente por asear'.</p>
+                    <p class="bg-amber-50 text-amber-700 p-3 rounded-xl border border-amber-200 text-xs font-black uppercase text-center">Favor reclamar las llaves y validar que la habitacion quede todo OK</p>
+                </div>
+            `,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#3b82f6',
