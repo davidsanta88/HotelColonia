@@ -268,7 +268,13 @@ const MapaHabitacionesConsolidado = () => {
             {/* Grid */}
             <div className="space-y-4">
                 {['Hotel Plaza', 'Hotel Colonial'].filter(hotel => hotelFilter === 'todos' || hotel === hotelFilter).map(hotel => {
-                    const hotelHabs = filteredHabitaciones.filter(h => h.hotel === hotel);
+                    const hotelHabs = filteredHabitaciones
+                        .filter(h => h.hotel === hotel)
+                        .sort((a, b) => {
+                            const numA = parseInt(a.numero.toString().replace(/\D/g, '')) || 0;
+                            const numB = parseInt(b.numero.toString().replace(/\D/g, '')) || 0;
+                            return numB - numA;
+                        });
                     if (hotelHabs.length === 0) return null;
                     
                     return (
