@@ -436,17 +436,7 @@ const ComparativaHoteles = () => {
 
                 <div className="h-[400px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData}>
-                            <defs>
-                                <linearGradient id="colorPlaza" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
-                                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-                                </linearGradient>
-                                <linearGradient id="colorColonial" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#64748b" stopOpacity={0.1}/>
-                                    <stop offset="95%" stopColor="#64748b" stopOpacity={0}/>
-                                </linearGradient>
-                            </defs>
+                        <BarChart data={chartData}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                             <XAxis 
                                 dataKey="name" 
@@ -458,16 +448,17 @@ const ComparativaHoteles = () => {
                                 axisLine={false} 
                                 tickLine={false} 
                                 tick={{fill: '#94a3b8', fontSize: 10}}
-                                tickFormatter={(val) => `$${(val/1000000).toFixed(1)}M`}
+                                tickFormatter={(val) => `$${new Intl.NumberFormat('es-CO', { notation: 'compact' }).format(val)}`}
                             />
                             <Tooltip 
+                                cursor={{fill: '#f8fafc'}}
                                 contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold', padding: '16px' }}
                                 formatter={(value) => [`$${new Intl.NumberFormat().format(value)}`, '']}
                             />
                             <Legend verticalAlign="top" height={36} iconType="circle" />
-                            <Area name="Plaza" type="monotone" dataKey="plazaIngresos" stroke="#2563eb" strokeWidth={4} fillOpacity={1} fill="url(#colorPlaza)" />
-                            <Area name="Colonial" type="monotone" dataKey="colonialIngresos" stroke="#64748b" strokeWidth={4} fillOpacity={1} fill="url(#colorColonial)" />
-                        </AreaChart>
+                            <Bar name="Plaza" dataKey="plazaIngresos" fill="#2563eb" radius={[6, 6, 0, 0]} barSize={25} />
+                            <Bar name="Colonial" dataKey="colonialIngresos" fill="#64748b" radius={[6, 6, 0, 0]} barSize={25} />
+                        </BarChart>
                     </ResponsiveContainer>
                 </div>
             </div>
