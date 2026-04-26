@@ -330,7 +330,7 @@ const MapaHabitacionesConsolidado = () => {
                         </div>
                     );
                 })}
-            </div>  </div>
+            </div>
 
             {filteredHabitaciones.length === 0 && (
                 <div className="bg-white rounded-[3rem] p-20 text-center border border-gray-100">
