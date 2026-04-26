@@ -11,13 +11,14 @@ const useCashAlert = () => {
         const checkCashThreshold = async () => {
             if (!user) return;
             
-            // Solo para Administrador o SuperAdmin
-            const isSuperAdmin = user?.rol_id === 1 || 
+            // Permitir para Administrador, SuperAdmin y Supervisor
+            const isAuthorized = user?.rol_id === 1 || 
                                user?.rol_nombre?.toLowerCase()?.includes('admin') || 
+                               user?.rol_nombre?.toLowerCase()?.includes('supervisor') ||
                                user?.nombre === 'Administrador' ||
                                user?.email === 'admin@hotel.com';
             
-            if (!isSuperAdmin || hasAlerted) return;
+            if (!isAuthorized || hasAlerted) return;
 
             try {
                 // 1. Obtener el último cierre primero para tener la base y el punto de partida
