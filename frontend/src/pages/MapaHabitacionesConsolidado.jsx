@@ -273,7 +273,7 @@ const MapaHabitacionesConsolidado = () => {
                         .sort((a, b) => {
                             const numA = parseInt(a.numero.toString().replace(/\D/g, '')) || 0;
                             const numB = parseInt(b.numero.toString().replace(/\D/g, '')) || 0;
-                            return numB - numA;
+                            return numA - numB;
                         });
                     if (hotelHabs.length === 0) return null;
                     
