@@ -50,8 +50,8 @@ const PERIODOS = [
 const ComparativaHoteles = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [dates, setDates] = useState(PERIODOS[0].getDates()); // Hoy por defecto
-    const [periodoActivo, setPeriodoActivo] = useState(0);
+    const [dates, setDates] = useState(PERIODOS[4].getDates()); // 90 días por defecto
+    const [periodoActivo, setPeriodoActivo] = useState(4);
     const [statsConsolidadas, setStatsConsolidadas] = useState(null);
 
     useEffect(() => {

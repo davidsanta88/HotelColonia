@@ -24,7 +24,7 @@ const Login = () => {
                 user?.email === 'admin@hotel.com';
             
             if (isSuperAdmin) {
-                navigate('/mapa-habitaciones-consolidado');
+                navigate('/comparativa');
             } else {
                 navigate('/mapa-habitaciones');
             }
@@ -58,7 +58,7 @@ const Login = () => {
                 loggedUser?.email === 'admin@hotel.com';
 
             if (isSuperAdmin) {
-                navigate('/mapa-habitaciones-consolidado');
+                navigate('/comparativa');
             } else {
                 navigate('/mapa-habitaciones');
             }
