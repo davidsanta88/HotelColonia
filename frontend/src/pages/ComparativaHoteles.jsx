@@ -790,9 +790,18 @@ const ComparativaHoteles = () => {
                                             <td className="px-6 py-4 text-right last:rounded-r-2xl">
                                                 <button 
                                                     onClick={() => {
-                                                        const isPlaza = alert.hotel.includes('Plaza');
-                                                        const baseUrl = isPlaza ? 'https://hotelbalconplaza.com' : 'https://hotelbalconcolonial.com';
-                                                        window.location.href = `${baseUrl}/mapa-habitaciones?search=${details.id}`;
+                                                        const currentHost = window.location.hostname;
+                                                        const targetIsPlaza = alert.hotel.includes('Plaza');
+                                                        const isPlazaHost = currentHost.includes('plaza') || currentHost === 'localhost';
+                                                        
+                                                        // Si estamos en el mismo hotel, usamos navegación interna (SPA)
+                                                        // De lo contrario, usamos URL absoluta
+                                                        if (targetIsPlaza === isPlazaHost) {
+                                                            navigate(`/mapa-habitaciones?search=${details.id}`);
+                                                        } else {
+                                                            const baseUrl = targetIsPlaza ? 'https://hotelbalconplaza.com' : 'https://hotelbalconcolonial.com';
+                                                            window.location.href = `${baseUrl}/mapa-habitaciones?search=${details.id}`;
+                                                        }
                                                     }}
                                                     className="p-2 bg-white text-slate-400 hover:text-indigo-600 rounded-xl border border-slate-100 hover:border-indigo-100 transition-all group-hover:scale-110 shadow-sm"
                                                     title="Ver en Mapa"

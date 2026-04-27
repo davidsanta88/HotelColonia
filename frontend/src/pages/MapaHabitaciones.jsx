@@ -80,10 +80,9 @@ const MapaHabitaciones = () => {
         const queryParams = new URLSearchParams(location.search);
         const searchId = queryParams.get('search');
         if (searchId) {
+            console.log('[DEBUG] Abriendo detalle desde URL:', searchId);
             setSelectedRegistroId(searchId);
             setShowDetailsModal(true);
-            // Limpiar el query param para no reabrir al recargar
-            navigate(location.pathname, { replace: true });
         }
     }, [location.search]);
 
@@ -597,6 +596,10 @@ const MapaHabitaciones = () => {
                     setShowDetailsModal(false);
                     setSelectedRegistroId(null);
                     setInitialEditMode(false);
+                    // Si veníamos por URL, limpiamos el parámetro al cerrar
+                    if (location.search.includes('search')) {
+                        navigate(location.pathname, { replace: true });
+                    }
                 }}
                 onSuccess={() => {
                     fetchMapa();
