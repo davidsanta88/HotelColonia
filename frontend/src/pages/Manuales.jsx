@@ -507,7 +507,7 @@ const Manuales = () => {
                         </div>
                         <div>
                             <h4 className="text-xl font-black text-slate-900 tracking-tight">¿Alguna duda adicional?</h4>
-                            <p className="text-slate-500 font-medium">Esta documentación se actualiza automáticamente con cada versión del software.</p>
+                            <p className="text-slate-500 font-medium">Esta documentación se actualiza automáticamente. Última actualización: 27/04/2026 16:35</p>
                         </div>
                     </div>
                     <div className="flex gap-4">
