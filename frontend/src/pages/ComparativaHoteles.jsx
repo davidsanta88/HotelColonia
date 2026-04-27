@@ -738,8 +738,8 @@ const ComparativaHoteles = () => {
                                 <th className="px-6 py-4">Hab</th>
                                 <th className="px-6 py-4">Huésped</th>
                                 <th className="px-6 py-4">Empresa</th>
-                                <th className="px-6 py-4 text-right">Cobrado</th>
                                 <th className="px-6 py-4 text-right">Referencia</th>
+                                <th className="px-6 py-4 text-right">Cobrado</th>
                                 <th className="px-6 py-4 text-center">Desviación</th>
                                 <th className="px-6 py-4 text-right">Acciones</th>
                             </tr>
@@ -777,10 +777,10 @@ const ComparativaHoteles = () => {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <span className="font-black text-slate-900 text-sm">${new Intl.NumberFormat().format(details.precioCobrado || 0)}</span>
+                                                <span className="font-bold text-slate-400 text-sm">${new Intl.NumberFormat().format(details.precioRecomendado || 0)}</span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <span className="font-bold text-slate-400 text-sm">${new Intl.NumberFormat().format(details.precioRecomendado || 0)}</span>
+                                                <span className="font-black text-slate-900 text-sm">${new Intl.NumberFormat().format(details.precioCobrado || 0)}</span>
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-xl text-xs font-black shadow-sm">
