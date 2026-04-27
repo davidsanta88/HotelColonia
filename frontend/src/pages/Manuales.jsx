@@ -87,6 +87,7 @@ const Manuales = () => {
         try {
             const doc = new jsPDF();
             const primaryColor = [15, 23, 42];
+            let currentY = 45;
 
             const getBase64ImageFromURL = (url) => {
                 return new Promise((resolve) => {
@@ -128,23 +129,28 @@ const Manuales = () => {
             };
 
             if (activeTab === 'usuario') {
-                addHeader('MANUAL INTEGRAL DE USUARIO', 'Sistema de Gestión Balcón Plaza v2.8 - Operación y Administración');
+                addHeader('MANUAL INTEGRAL DE USUARIO', 'Sistema de Gestión Balcón Plaza v3.0 - Operación y Administración');
                 
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-                doc.text('I. VISUALIZACIÓN GENERAL Y MAPA', 15, 45);
+                doc.text('I. VISUALIZACIÓN GENERAL Y MAPA', 15, currentY);
+                currentY += 5;
                 
                 const roomMapImg = await getBase64ImageFromURL(window.location.origin + '/manual/room_map.png');
                 if (roomMapImg) {
                     try {
-                        doc.addImage(roomMapImg, 'PNG', 15, 50, 180, 70);
+                        doc.addImage(roomMapImg, 'PNG', 15, currentY, 180, 70);
+                        currentY += 75;
                     } catch (e) {
                         console.warn("doc.addImage failed:", e);
+                        currentY += 10;
                     }
+                } else {
+                    currentY += 10;
                 }
 
                 autoTable(doc, {
-                    startY: roomMapImg ? 125 : 55,
+                    startY: currentY,
                     head: [['ESTADO', 'SIGNIFICADO Y ACCIÓN']],
                     body: [
                         ['VERDE (Disponible)', 'Habitación libre. Haga clic para registrar un nuevo huésped.'],
@@ -174,12 +180,13 @@ const Manuales = () => {
                     headStyles: { fillColor: [59, 130, 246] }
                 });
 
+                let nextY = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY + 15 : 150;
+                
                 doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(0,0,0);
-                const secondTableY = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY + 15 : 150;
-                doc.text('II. ESTRUCTURA DE MENÚS Y OPCIONES', 15, secondTableY);
+                doc.text('II. ESTRUCTURA DE MENÚS Y OPCIONES', 15, nextY);
 
                 autoTable(doc, {
-                    startY: secondTableY + 5,
+                    startY: nextY + 5,
                     head: [['GRUPO', 'MÓDULO', 'FUNCIONALIDAD PRINCIPAL']],
                     body: [
                         ['Operaciones', 'Tienda / POS', 'Venta de productos y cargos directos a la habitación.'],
@@ -245,7 +252,7 @@ const Manuales = () => {
             Swal.fire({
                 icon: 'error',
                 title: 'Error de Generación',
-                text: `Detalle: ${error.message || 'Error desconocido'}`
+                html: `<b>Detalle:</b> ${error.message || 'Error desconocido'}<br/><br/><p style="font-size: 12px; color: #666">Por favor, presiona Ctrl+F5 para asegurar que estás usando la versión V3.0</p>`
             });
         } finally {
             setIsGenerating(false);
@@ -265,7 +272,7 @@ const Manuales = () => {
                     <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div className="space-y-6">
                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500/20 text-primary-400 rounded-full font-black text-[10px] uppercase tracking-widest border border-primary-500/30">
-                                <Zap size={14} /> Guía Elite PRO v2.8
+                                <Zap size={14} /> Guía Elite PRO v3.0
                             </div>
                             <h1 className="text-5xl md:text-6xl font-black tracking-tighter leading-none">
                                 Centro de <span className="text-primary-500">Manuales</span> Profesionales.
@@ -548,7 +555,7 @@ const Manuales = () => {
                         </div>
                         <div>
                             <h4 className="text-xl font-black text-slate-900 tracking-tight">¿Alguna duda adicional?</h4>
-                            <p className="text-slate-500 font-medium">Esta documentación se actualiza automáticamente. Última actualización: 27/04/2026 16:55</p>
+                            <p className="text-slate-500 font-medium">Esta documentación se actualiza automáticamente. Última actualización: 27/04/2026 17:00</p>
                         </div>
                     </div>
                     <div className="flex gap-4">
