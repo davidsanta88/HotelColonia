@@ -640,6 +640,73 @@ const ComparativaHoteles = () => {
                         )}
                     </div>
                 </div>
+                {/* 2. Pronóstico de Ingresos */}
+                <div className="bg-gradient-to-br from-primary-600 to-primary-800 rounded-[2.5rem] p-8 text-white shadow-xl shadow-primary-100 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform duration-700">
+                        <Target size={120} />
+                    </div>
+                    
+                    <div className="relative z-10 h-full flex flex-col justify-between">
+                        <div>
+                            <div className="p-3 bg-white/20 rounded-2xl w-fit mb-6 backdrop-blur-md">
+                                <Sparkles size={24} />
+                            </div>
+                            <h3 className="text-xl font-black tracking-tight">Pronóstico de Ingresos</h3>
+                            <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mt-1">Próximos 7 días (Reservas + Saldos)</p>
+                        </div>
+
+                        <div>
+                            <div className="text-4xl font-black tracking-tighter mb-2">
+                                ${new Intl.NumberFormat().format(statsConsolidadas?.forecast || 0)}
+                            </div>
+                            <div className="flex items-center gap-2 text-[10px] font-black bg-white/10 w-fit px-3 py-1.5 rounded-full backdrop-blur-sm">
+                                <TrendingUp size={12} />
+                                ESTIMACIÓN BASADA EN DATOS
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 3. Ranking Habitaciones Estrella */}
+                <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col h-[400px]">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                                <Trophy size={20} className="text-amber-500" />
+                                Habitaciones Estrella
+                            </h3>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Top 5 más rentables</p>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 space-y-4">
+                        {statsConsolidadas?.rankingHabs?.slice(0, 5).map((hab, idx) => (
+                            <div key={idx} className="flex items-center gap-4">
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black ${
+                                    idx === 0 ? 'bg-amber-100 text-amber-600' : 
+                                    idx === 1 ? 'bg-slate-100 text-slate-600' : 
+                                    idx === 2 ? 'bg-orange-100 text-orange-600' : 'bg-slate-50 text-slate-400'
+                                }`}>
+                                    {idx + 1}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-end mb-1">
+                                        <span className="text-xs font-black text-slate-700">Hab #{hab.numero} <span className="text-[9px] text-slate-400">({hab.hotel})</span></span>
+                                        <span className="text-xs font-black text-emerald-600">${new Intl.NumberFormat().format(hab.income)}</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <div 
+                                            className={`h-full rounded-full transition-all duration-1000 ${
+                                                hab.hotel === 'Plaza' ? 'bg-primary-500' : 'bg-slate-700'
+                                            }`} 
+                                            style={{ width: `${(hab.income / (statsConsolidadas?.rankingHabs?.[0]?.income || 1)) * 100}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
 
             {/* Nueva Sección de Anomalías de Precio - Pantalla Completa abajo */}
@@ -751,74 +818,7 @@ const ComparativaHoteles = () => {
                 </div>
             </div>
 
-                {/* 2. Pronóstico de Ingresos */}
-                <div className="bg-gradient-to-br from-primary-600 to-primary-800 rounded-[2.5rem] p-8 text-white shadow-xl shadow-primary-100 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform duration-700">
-                        <Target size={120} />
-                    </div>
-                    
-                    <div className="relative z-10 h-full flex flex-col justify-between">
-                        <div>
-                            <div className="p-3 bg-white/20 rounded-2xl w-fit mb-6 backdrop-blur-md">
-                                <Sparkles size={24} />
-                            </div>
-                            <h3 className="text-xl font-black tracking-tight">Pronóstico de Ingresos</h3>
-                            <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mt-1">Próximos 7 días (Reservas + Saldos)</p>
-                        </div>
 
-                        <div>
-                            <div className="text-4xl font-black tracking-tighter mb-2">
-                                ${new Intl.NumberFormat().format(statsConsolidadas?.forecast || 0)}
-                            </div>
-                            <div className="flex items-center gap-2 text-[10px] font-black bg-white/10 w-fit px-3 py-1.5 rounded-full backdrop-blur-sm">
-                                <TrendingUp size={12} />
-                                ESTIMACIÓN BASADA EN DATOS
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 3. Ranking Habitaciones Estrella */}
-                <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col h-[400px]">
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                                <Trophy size={20} className="text-amber-500" />
-                                Habitaciones Estrella
-                            </h3>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Top 5 más rentables</p>
-                        </div>
-                    </div>
-
-                    <div className="flex-1 space-y-4">
-                        {statsConsolidadas?.rankingHabs?.slice(0, 5).map((hab, idx) => (
-                            <div key={idx} className="flex items-center gap-4">
-                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black ${
-                                    idx === 0 ? 'bg-amber-100 text-amber-600' : 
-                                    idx === 1 ? 'bg-slate-100 text-slate-600' : 
-                                    idx === 2 ? 'bg-orange-100 text-orange-600' : 'bg-slate-50 text-slate-400'
-                                }`}>
-                                    {idx + 1}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex justify-between items-end mb-1">
-                                        <span className="text-xs font-black text-slate-700">Hab #{hab.numero} <span className="text-[9px] text-slate-400">({hab.hotel})</span></span>
-                                        <span className="text-xs font-black text-emerald-600">${new Intl.NumberFormat().format(hab.income)}</span>
-                                    </div>
-                                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                        <div 
-                                            className={`h-full rounded-full transition-all duration-1000 ${
-                                                hab.hotel === 'Plaza' ? 'bg-primary-500' : 'bg-slate-700'
-                                            }`} 
-                                            style={{ width: `${(hab.income / (statsConsolidadas?.rankingHabs?.[0]?.income || 1)) * 100}%` }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
         </div>
     );
 };
