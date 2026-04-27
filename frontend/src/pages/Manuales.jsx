@@ -175,10 +175,11 @@ const Manuales = () => {
                 });
 
                 doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(0,0,0);
-                doc.text('II. ESTRUCTURA DE MENÚS Y OPCIONES', 15, doc.previousAutoTable.finalY + 15);
+                const secondTableY = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY + 15 : 150;
+                doc.text('II. ESTRUCTURA DE MENÚS Y OPCIONES', 15, secondTableY);
 
                 autoTable(doc, {
-                    startY: doc.previousAutoTable.finalY + 20,
+                    startY: secondTableY + 5,
                     head: [['GRUPO', 'MÓDULO', 'FUNCIONALIDAD PRINCIPAL']],
                     body: [
                         ['Operaciones', 'Tienda / POS', 'Venta de productos y cargos directos a la habitación.'],
