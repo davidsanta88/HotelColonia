@@ -8,6 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatCurrency, cleanNumericValue, getImageUrl } from '../utils/format';
 import { usePermissions } from '../hooks/usePermissions';
+import Select from 'react-select';
 
 const ToggleSwitch = ({ checked, onChange }) => (
     <button
@@ -567,14 +568,52 @@ const Inventory = () => {
                             <h2 className="text-xl font-bold">Nuevo Movimiento</h2>
                         </div>
                         <form onSubmit={handleMovementSubmit} className="p-6 space-y-4">
-                            <div>
+                            <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Producto</label>
-                                <select required className="input-field" value={movementFormData.producto_id} onChange={e => setMovementFormData({...movementFormData, producto_id: e.target.value})}>
-                                    <option value="">Seleccione producto...</option>
-                                    {productos.map(p => (
-                                        <option key={p.id} value={p.id}>{p.nombre} (Stock: {p.stock})</option>
-                                    ))}
-                                </select>
+                                <Select 
+                                    placeholder="Buscar y seleccionar producto..."
+                                    options={productos.map(p => ({
+                                        value: p.id,
+                                        label: `${p.nombre} (Stock: ${p.stock})`
+                                    }))}
+                                    value={
+                                        movementFormData.producto_id 
+                                        ? { 
+                                            value: movementFormData.producto_id, 
+                                            label: (() => {
+                                                const p = productos.find(prod => prod.id === movementFormData.producto_id);
+                                                return p ? `${p.nombre} (Stock: ${p.stock})` : 'Seleccione producto...';
+                                            })()
+                                        } 
+                                        : null
+                                    }
+                                    onChange={opt => setMovementFormData({...movementFormData, producto_id: opt ? opt.value : ''})}
+                                    styles={{
+                                        control: (base, state) => ({
+                                            ...base,
+                                            border: state.isFocused ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                                            borderRadius: '0.75rem',
+                                            padding: '2px',
+                                            boxShadow: 'none',
+                                            '&:hover': { border: '2px solid #3b82f6' }
+                                        }),
+                                        option: (base, state) => ({
+                                            ...base,
+                                            backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#eff6ff' : 'white',
+                                            color: state.isSelected ? 'white' : '#374151',
+                                        }),
+                                        menu: (base) => ({
+                                            ...base,
+                                            borderRadius: '0.75rem',
+                                            overflow: 'hidden',
+                                            zIndex: 9999
+                                        }),
+                                        menuPortal: base => ({ ...base, zIndex: 9999 })
+                                    }}
+                                    menuPortalTarget={document.body}
+                                    noOptionsMessage={() => "No se encontraron productos"}
+                                    isClearable
+                                />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
