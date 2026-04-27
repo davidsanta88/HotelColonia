@@ -79,166 +79,143 @@ const Manuales = () => {
         }
     ];
 
-    const downloadPDF = () => {
+    const downloadPDF = async () => {
         const doc = new jsPDF();
-        let pageNum = 1;
+        const primaryColor = [15, 23, 42]; // slate-900
 
-        const addHeader = (title, subtitle) => {
-            doc.setFillColor(15, 23, 42); 
-            doc.rect(0, 0, 210, 40, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(22);
-            doc.setFont('helvetica', 'bold');
-            doc.text(title, 20, 20);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text(subtitle, 20, 30);
-            
-            // Page Number
-            doc.setTextColor(150, 150, 150);
-            doc.text(`Página ${pageNum}`, 180, 30);
+        // Función para cargar imágenes y convertirlas a Base64 para el PDF
+        const getBase64ImageFromURL = (url) => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.setAttribute('crossOrigin', 'anonymous');
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    const dataURL = canvas.toDataURL('image/png');
+                    resolve(dataURL);
+                };
+                img.onerror = (error) => reject(error);
+                img.src = url;
+            });
         };
 
-        const checkPage = (currentY, needed) => {
-            if (currentY + needed > 270) {
-                doc.addPage();
-                pageNum++;
-                addHeader(activeTab === 'usuario' ? 'MANUAL DE USUARIO INTEGRAL' : 'DOCUMENTACIÓN TÉCNICA', 'Continuación - Hotel Balcón Plaza');
-                return 50;
-            }
-            return currentY;
+        const addHeader = (title, subtitle) => {
+            doc.setFillColor(...primaryColor); 
+            doc.rect(0, 0, 210, 35, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text(title, 15, 18);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text(subtitle, 15, 26);
         };
 
         if (activeTab === 'usuario') {
-            addHeader('MANUAL DE USUARIO INTEGRAL', 'Guía Maestra de Operaciones y Administración - Hotel Balcón Plaza');
+            addHeader('MANUAL INTEGRAL DE USUARIO', 'Sistema de Gestión Balcón Plaza v2.6 - Operación y Administración');
             
-            let y = 55;
-
-            // --- INTRODUCCIÓN ---
-            doc.setTextColor(15, 23, 42);
-            doc.setFontSize(16); doc.setFont('helvetica', 'bold');
-            doc.text('I. INTRODUCCIÓN AL SISTEMA', 20, y); y += 10;
-            doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-            const introText = 'Este documento constituye la guía oficial para el uso del Sistema de Gestión Hotelera Balcón Plaza. El software está diseñado para centralizar la operación, desde la recepción hasta el análisis financiero consolidado.';
-            const splitIntro = doc.splitTextToSize(introText, 170);
-            doc.text(splitIntro, 20, y); y += (splitIntro.length * 6) + 10;
-
-            // --- TABLA DE CONTENIDOS (RESUMIDA) ---
-            doc.setFont('helvetica', 'bold');
-            doc.text('ESTRUCTURA DEL MANUAL:', 20, y); y += 8;
-            doc.setFont('helvetica', 'normal');
-            doc.text('1. Recepción y Operaciones Diarias', 25, y); y += 5;
-            doc.text('2. Administración, Tesorería y Caja', 25, y); y += 5;
-            doc.text('3. Gestión Multi-Hotel y Consolidados', 25, y); y += 5;
-            doc.text('4. Configuraciones y Personalización', 25, y); y += 15;
-
-            // --- GRUPO 1: RECEPCIÓN Y OPERACIONES ---
-            y = checkPage(y, 20);
-            doc.setFillColor(241, 245, 249); doc.rect(15, y - 5, 180, 10, 'F');
-            doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
-            doc.text('1. RECEPCIÓN Y OPERACIONES', 20, y + 2); y += 15;
-
-            const items1 = [
-                { n: 'Mapa de Habitaciones', d: 'Vista gráfica en tiempo real. Permite ver estados (Libre, Ocupada, Reservada, Sucia). Clic para Check-in, ver folio de pagos o Check-out.' },
-                { n: 'Dashboard de Inicio', d: 'Métricas rápidas del día: ocupación actual, ingresos proyectados y alertas de mantenimiento pendientes.' },
-                { n: 'Tienda / POS', d: 'Punto de venta para productos adicionales. Permite cargar el costo a la habitación del huésped o cobrar de inmediato.' },
-                { n: 'Reservas a Futuro', d: 'Gestión de preventas. Permite bloquear habitaciones para fechas específicas y capturar abonos iniciales.' },
-                { n: 'Solicitudes de Reserva', d: 'Bandeja de entrada para solicitudes externas (página web o digital) que deben ser confirmadas por recepción.' },
-                { n: 'Aseo y Mantenimiento', d: 'Control de limpieza diaria y reporte de daños técnicos. Bloquea habitaciones si el estado impide su uso comercial.' }
-            ];
-
-            items1.forEach(item => {
-                y = checkPage(y, 15);
-                doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
-                doc.text(`• ${item.n}:`, 20, y);
-                doc.setFont('helvetica', 'normal');
-                const splitD = doc.splitTextToSize(item.d, 160);
-                doc.text(splitD, 45, y);
-                y += (splitD.length * 5) + 3;
-            });
-            y += 5;
-
-            // --- GRUPO 2: ADMINISTRACIÓN Y TESORERÍA ---
-            y = checkPage(y, 20);
-            doc.setFillColor(241, 245, 249); doc.rect(15, y - 5, 180, 10, 'F');
-            doc.setFont('helvetica', 'bold'); doc.text('2. ADMINISTRACIÓN Y TESORERÍA', 20, y + 2); y += 15;
-
-            const items2 = [
-                { n: 'Cuadre de Caja', d: 'Proceso de cierre de turno. El recepcionista rinde cuentas del efectivo, transferencias y tarjetas recibidas.' },
-                { n: 'Reporte de Ingresos', d: 'Listado detallado de todas las transacciones financieras filtrado por fechas y medios de pago.' },
-                { n: 'Calendario de Flujo', d: 'Visualización mensual de ingresos vs gastos para identificar tendencias de liquidez.' },
-                { n: 'Rentabilidad', d: 'Análisis de qué habitaciones generan más beneficios y cuáles tienen mayor rotación.' },
-                { n: 'Cotizaciones', d: 'Emisión de documentos formales de precio para grupos o eventos antes de realizar la reserva.' }
-            ];
-
-            items2.forEach(item => {
-                y = checkPage(y, 15);
-                doc.setFont('helvetica', 'bold'); doc.text(`• ${item.n}:`, 20, y);
-                doc.setFont('helvetica', 'normal');
-                const splitD = doc.splitTextToSize(item.d, 160);
-                doc.text(splitD, 45, y);
-                y += (splitD.length * 5) + 3;
-            });
-
-            // --- GRUPO 3: GESTIÓN MULTI-HOTEL ---
-            y = checkPage(y, 20);
-            doc.setFillColor(241, 245, 249); doc.rect(15, y - 5, 180, 10, 'F');
-            doc.setFont('helvetica', 'bold'); doc.text('3. GESTIÓN MULTI-HOTEL (CONSOLIDADOS)', 20, y + 2); y += 15;
+            // 1. INTRODUCCIÓN CON IMAGEN
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+            doc.text('I. VISUALIZACIÓN GENERAL Y MAPA', 15, 45);
             
-            doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-            const multiText = 'Esta sección es exclusiva para administradores generales. Permite ver el Mapa de Habitaciones de todas las sedes (Plaza y Colonial) simultáneamente, así como el flujo de caja total del grupo empresarial.';
-            const splitMulti = doc.splitTextToSize(multiText, 170);
-            doc.text(splitMulti, 20, y); y += (splitMulti.length * 5) + 10;
+            try {
+                const roomMapImg = await getBase64ImageFromURL('/manual/room_map.png');
+                doc.addImage(roomMapImg, 'PNG', 15, 50, 180, 70);
+            } catch (e) { console.error('Error loading image', e); }
 
-            // --- GRUPO 4: CONFIGURACIONES ---
-            y = checkPage(y, 20);
-            doc.setFillColor(241, 245, 249); doc.rect(15, y - 5, 180, 10, 'F');
-            doc.setFont('helvetica', 'bold'); doc.text('4. CONFIGURACIONES DEL SISTEMA', 20, y + 2); y += 15;
-
-            const items4 = [
-                { n: 'Usuarios y Roles', d: 'Creación de cuentas de empleado y definición exacta de sus permisos (Ver, Editar, Eliminar).' },
-                { n: 'Zonas y Hab.', d: 'Creación y edición de la planta física. Permite añadir nuevas habitaciones o cambiar sus descripciones.' },
-                { n: 'Cat. Productos', d: 'Organización del inventario de la tienda en categorías lógicas para facilitar la búsqueda.' },
-                { n: 'Info Hotel', d: 'Configuración de datos legales, NIT, dirección y logo que aparecerán en los comprobantes.' }
-            ];
-
-            items4.forEach(item => {
-                y = checkPage(y, 15);
-                doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
-                doc.text(`• ${item.n}:`, 20, y);
-                doc.setFont('helvetica', 'normal');
-                const splitD = doc.splitTextToSize(item.d, 160);
-                doc.text(splitD, 45, y);
-                y += (splitD.length * 5) + 3;
+            doc.autoTable({
+                startY: 125,
+                head: [['ESTADO', 'SIGNIFICADO Y ACCIÓN']],
+                body: [
+                    ['VERDE (Disponible)', 'Habitación libre. Haga clic para registrar un nuevo huésped.'],
+                    ['ROJO (Ocupada)', 'Habitación con huésped. Haga clic para ver saldo, pagos o hacer Check-out.'],
+                    ['AMARILLO (Reservada)', 'Bloqueada por una reserva que ingresa el día de hoy.'],
+                    ['AZUL (Por Asear)', 'Check-out realizado. Requiere limpieza para volver a estar disponible.'],
+                ],
+                theme: 'striped',
+                headStyles: { fillColor: [0, 163, 255] }
             });
+
+            // 2. PASO A PASO CHECK-IN
+            doc.addPage();
+            addHeader('PROCESO PASO A PASO: CHECK-IN', 'Guía Detallada para Recepción');
+            
+            doc.autoTable({
+                startY: 45,
+                head: [['PASO', 'ACTIVIDAD', 'DETALLE OPERATIVO']],
+                body: [
+                    ['1', 'Selección', 'Ubique una habitación verde en el mapa y presione el botón principal.'],
+                    ['2', 'Huésped', 'Ingrese el documento. El sistema autocompleta si ya existe en la base de datos.'],
+                    ['3', 'Fechas', 'Indique la fecha de salida. El sistema calculará el total automáticamente.'],
+                    ['4', 'Pagos', 'Registre cualquier abono inicial en la pestaña de Pagos para que el saldo sea correcto.'],
+                    ['5', 'Finalizar', 'Presione "Guardar". La habitación pasará a estado OCUPADA.'],
+                ],
+                theme: 'grid',
+                styles: { fontSize: 9 },
+                headStyles: { fillColor: [59, 130, 246] }
+            });
+
+            // 3. TODOS LOS MENÚS Y OPCIONES
+            doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(0,0,0);
+            doc.text('II. ESTRUCTURA DE MENÚS Y OPCIONES', 15, doc.lastAutoTable.finalY + 15);
+
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY + 20,
+                head: [['GRUPO', 'MÓDULO', 'FUNCIONALIDAD PRINCIPAL']],
+                body: [
+                    ['Operaciones', 'Tienda / POS', 'Venta de productos y cargos directos a la habitación.'],
+                    ['Operaciones', 'Reservas', 'Gestión de preventas y bloqueos de calendario a futuro.'],
+                    ['Operaciones', 'Mantenimiento', 'Reporte de daños y bloqueos técnicos de habitaciones.'],
+                    ['Finanzas', 'Cuadre de Caja', 'Rendición de cuentas diaria por turno y medio de pago.'],
+                    ['Finanzas', 'Reporte Ingresos', 'Auditoría detallada de todo el dinero recibido.'],
+                    ['Finanzas', 'Rentabilidad', 'Análisis de ocupación y ganancias por cada habitación.'],
+                    ['Multi-Hotel', 'Caja Consolidada', 'Vista financiera total de todas las sedes del grupo.'],
+                    ['Multi-Hotel', 'Mapa Consolidado', 'Visualización de estados de habitaciones de todos los hoteles.'],
+                    ['Configuración', 'Usuarios / Roles', 'Administración de personal y sus permisos de acceso.'],
+                    ['Configuración', 'Info Hotel', 'Configuración de NIT, Dirección y datos de facturación.'],
+                ],
+                theme: 'striped',
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [15, 23, 42] }
+            });
+
+            // 4. ANALÍTICA CON IMAGEN
+            doc.addPage();
+            addHeader('INTERPRETACIÓN DE ANALÍTICA', 'Entendiendo los Gráficos de Gestión');
+            
+            try {
+                const analyticsImg = await getBase64ImageFromURL('/manual/analytics.png');
+                doc.addImage(analyticsImg, 'PNG', 15, 45, 180, 80);
+            } catch (e) { console.error('Error loading image', e); }
+
+            doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(50,50,50);
+            const analText = 'Las gráficas muestran el balance entre ingresos y gastos. Una gestión eficiente busca maximizar el área azul (Ingresos) y mantener controlada el área roja (Gastos). Use los filtros de fecha para comparar temporadas.';
+            doc.text(doc.splitTextToSize(analText, 180), 15, 135);
 
         } else {
-            // MANUAL TÉCNICO COMPLETO
-            addHeader('DOCUMENTACIÓN TÉCNICA AVANZADA', 'Especificaciones de Ingeniería y Arquitectura - Hotel System');
-            let y = 55;
+            // MANUAL TÉCNICO
+            addHeader('DOCUMENTACIÓN TÉCNICA MAESTRA', 'Ingeniería de Software y Arquitectura de Sistemas');
             
-            const techItems = [
-                { t: 'Stack de Desarrollo', c: 'Frontend basado en React 18 con motor de compilación Vite. Backend Node.js utilizando el framework Express v4. Base de datos MongoDB Atlas (Cluster NoSQL).' },
-                { t: 'Seguridad y Auth', c: 'Implementación de JSON Web Tokens (JWT) con expiración configurable. Contraseñas hasheadas mediante BCrypt. Middlewares de protección CORS y Rate-Limiting.' },
-                { t: 'Gestión de Estados', c: 'Uso de Context API para el estado global de autenticación y permisos. Hook personalizado usePermissions para control de acceso en componentes de UI.' },
-                { t: 'Despliegue y CI/CD', c: 'Despliegue automatizado mediante Git hooks. El frontend se sirve como archivos estáticos optimizados. El backend se ejecuta en un entorno escalable con Node.js.' },
-                { t: 'Integraciones Media', c: 'Utilización de Cloudinary para el almacenamiento persistente de imágenes de productos y habitaciones, optimizando el ancho de banda del servidor.' }
-            ];
-
-            techItems.forEach(item => {
-                y = checkPage(y, 20);
-                doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-                doc.setTextColor(37, 99, 235);
-                doc.text(item.t, 20, y); y += 6;
-                doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
-                doc.setTextColor(15, 23, 42);
-                const splitC = doc.splitTextToSize(item.c, 170);
-                doc.text(splitC, 20, y);
-                y += (splitC.length * 5) + 10;
+            doc.autoTable({
+                startY: 45,
+                head: [['COMPONENTE', 'TECNOLOGÍA', 'DESCRIPCIÓN']],
+                body: [
+                    ['Frontend', 'React + Vite', 'Single Page Application con renderizado eficiente y Tailwind CSS.'],
+                    ['Backend', 'Node.js + Express', 'API RESTful con autenticación JWT y middleware de seguridad.'],
+                    ['Database', 'MongoDB Atlas', 'Base de datos NoSQL escalable orientada a documentos.'],
+                    ['Media', 'Cloudinary', 'Servicio cloud para optimización y entrega de imágenes.'],
+                    ['Seguridad', 'BCrypt + Helmet', 'Protección de datos sensibles y encabezados de seguridad HTTP.'],
+                ],
+                theme: 'striped',
+                headStyles: { fillColor: [37, 99, 235] }
             });
         }
 
-        doc.save(`Manual_Elite_Balcon_${activeTab.toUpperCase()}.pdf`);
+        doc.save(`Manual_Elite_Pro_Balcon_${activeTab.toUpperCase()}.pdf`);
     };
 
     return (
@@ -254,20 +231,20 @@ const Manuales = () => {
                     <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div className="space-y-6">
                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500/20 text-primary-400 rounded-full font-black text-[10px] uppercase tracking-widest border border-primary-500/30">
-                                <Zap size={14} /> Guía Elite del Administrador v2.5
+                                <Zap size={14} /> Guía Elite PRO v2.6
                             </div>
                             <h1 className="text-5xl md:text-6xl font-black tracking-tighter leading-none">
-                                Centro de <span className="text-primary-500">Documentación</span> Profesional.
+                                Centro de <span className="text-primary-500">Manuales</span> Profesionales.
                             </h1>
                             <p className="text-slate-400 text-lg font-medium leading-relaxed max-w-lg">
-                                Manuales exhaustivos que cubren cada menú, opción y funcionalidad técnica del ecosistema Balcón Plaza.
+                                Manuales con imágenes integradas, tablas estructuradas y guías paso a paso para la mejor operación hotelera.
                             </p>
                             <div className="flex flex-wrap gap-4 pt-4">
                                 <button 
                                     onClick={downloadPDF}
                                     className="flex items-center gap-3 bg-white text-slate-900 px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-100 transition-all transform hover:scale-105 active:scale-95 shadow-xl"
                                 >
-                                    <Download size={20} /> Descargar Manual Elite
+                                    <Download size={20} /> Descargar Manual PRO
                                 </button>
                                 <div className="flex p-1 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10">
                                     <button 
@@ -305,8 +282,8 @@ const Manuales = () => {
                             <div className="flex items-center gap-4">
                                 <div className="bg-primary-500 text-white p-3 rounded-2xl shadow-lg shadow-primary-200"><Activity size={24}/></div>
                                 <div>
-                                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">Guía de Operación: Check-in Maestro</h2>
-                                    <p className="text-slate-500 font-medium italic">El proceso fundamental de recepción explicado paso a paso.</p>
+                                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">Manual Operativo: Check-in Maestro</h2>
+                                    <p className="text-slate-500 font-medium italic">Sigue este flujo paso a paso en la aplicación.</p>
                                 </div>
                             </div>
 
@@ -343,8 +320,8 @@ const Manuales = () => {
                             <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm space-y-8">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-1">
-                                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Analítica y Toma de Decisiones</h3>
-                                        <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">Interpretación de Dashboard</p>
+                                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Análisis de Resultados</h3>
+                                        <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">Dashboard Financiero</p>
                                     </div>
                                     <PieChart className="text-blue-500" size={32} />
                                 </div>
@@ -372,7 +349,7 @@ const Manuales = () => {
                                     <div className="flex items-start gap-4 p-4 bg-blue-50 rounded-2xl">
                                         <Info className="text-blue-500 shrink-0 mt-1" size={18} />
                                         <p className="text-sm text-blue-900 font-medium">
-                                            Las gráficas del manual se basan en datos reales de ocupación. Los picos de ingresos te permiten planificar el stock de tienda con anticipación.
+                                            Las métricas te permiten visualizar la rentabilidad neta diaria. El manual PDF explica cómo leer cada una de estas gráficas en detalle.
                                         </p>
                                     </div>
                                 </div>
@@ -387,7 +364,7 @@ const Manuales = () => {
                                     <div className="space-y-4 relative z-10">
                                         <div className="bg-white/20 p-3 rounded-xl w-fit"><DollarSign size={24} /></div>
                                         <h4 className="text-xl font-black">POS y Tienda</h4>
-                                        <p className="text-white/80 text-xs font-medium leading-relaxed">Gestione ventas cruzadas de snacks y bebidas. Los cargos se anexan al folio de habitación automáticamente.</p>
+                                        <p className="text-white/80 text-xs font-medium leading-relaxed">Cargue consumos al folio del huésped de forma instantánea. Ideal para minibar y snacks.</p>
                                     </div>
                                     <button className="flex items-center gap-2 text-xs font-black uppercase tracking-widest mt-6 group-hover:gap-4 transition-all relative z-10">
                                         Ver guía <ArrowRight size={14} />
@@ -400,8 +377,8 @@ const Manuales = () => {
                                     </div>
                                     <div className="space-y-4 relative z-10">
                                         <div className="bg-white/10 p-3 rounded-xl w-fit"><Box size={24} /></div>
-                                        <h4 className="text-xl font-black">Logística y Stock</h4>
-                                        <p className="text-white/60 text-xs font-medium leading-relaxed">Control total sobre inventarios. Reciba notificaciones cuando el stock de productos críticos esté bajo.</p>
+                                        <h4 className="text-xl font-black">Stock Inteligente</h4>
+                                        <p className="text-white/60 text-xs font-medium leading-relaxed">Alertas de stock bajo para productos de alta rotación. Nunca te quedes sin suministros.</p>
                                     </div>
                                     <button className="flex items-center gap-2 text-xs font-black uppercase tracking-widest mt-6 group-hover:gap-4 transition-all relative z-10 text-primary-400">
                                         Explorar <ArrowRight size={14} />
@@ -413,9 +390,9 @@ const Manuales = () => {
                                         <Clock size={40} />
                                     </div>
                                     <div className="space-y-2">
-                                        <h4 className="text-xl font-black text-slate-900 tracking-tight">Flujo de Caja Ininterrumpido</h4>
+                                        <h4 className="text-xl font-black text-slate-900 tracking-tight">Rendición de Cuentas Diaria</h4>
                                         <p className="text-slate-500 text-sm font-medium">
-                                            Cada movimiento de dinero queda trazado por usuario y medio de pago, garantizando un cierre de caja transparente cada día.
+                                            El cierre de caja es ahora automático. El sistema suma ingresos por tarjeta, efectivo y transferencias por separado.
                                         </p>
                                     </div>
                                 </div>
@@ -425,54 +402,52 @@ const Manuales = () => {
                     </div>
                 ) : (
                     <div className="space-y-12">
-                        {/* Tech Specs Table */}
                         <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm space-y-10">
                             <div className="flex items-center gap-4">
                                 <div className="bg-indigo-50 p-4 rounded-2xl text-indigo-600"><Cpu size={24} /></div>
-                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Arquitectura de Alta Disponibilidad</h2>
+                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Ecosistema de Desarrollo</h2>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                                 <div className="space-y-4">
-                                    <h5 className="font-black text-slate-400 uppercase tracking-widest text-[10px]">Ecosistema Frontend</h5>
+                                    <h5 className="font-black text-slate-400 uppercase tracking-widest text-[10px]">Frontend Core</h5>
                                     <ul className="space-y-2">
-                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div> React 18.2 (Virtual DOM)</li>
-                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div> Vite (Hot Module Replace)</li>
-                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div> Tailwind CSS 3.4</li>
+                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div> React 18 / Vite</li>
+                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div> Tailwind CSS</li>
+                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div> Recharts Analytics</li>
                                     </ul>
                                 </div>
                                 <div className="space-y-4">
-                                    <h5 className="font-black text-slate-400 uppercase tracking-widest text-[10px]">Ecosistema Backend</h5>
+                                    <h5 className="font-black text-slate-400 uppercase tracking-widest text-[10px]">Backend Core</h5>
                                     <ul className="space-y-2">
                                         <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div> Node.js / Express</li>
-                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div> MongoDB Atlas (NoSQL)</li>
-                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div> Cloudinary Storage</li>
+                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div> MongoDB Atlas</li>
+                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div> JWT Security</li>
                                     </ul>
                                 </div>
                                 <div className="space-y-4">
-                                    <h5 className="font-black text-slate-400 uppercase tracking-widest text-[10px]">Cloud & DevOps</h5>
+                                    <h5 className="font-black text-slate-400 uppercase tracking-widest text-[10px]">DevOps</h5>
                                     <ul className="space-y-2">
                                         <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-slate-900 rounded-full"></div> Vercel PaaS</li>
-                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-slate-900 rounded-full"></div> GitHub Actions CI/CD</li>
-                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-slate-900 rounded-full"></div> SSL/TLS Encrypted</li>
+                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-slate-900 rounded-full"></div> GitHub Actions</li>
+                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-slate-900 rounded-full"></div> SSL Encryption</li>
                                     </ul>
                                 </div>
                                 <div className="space-y-4">
-                                    <h5 className="font-black text-slate-400 uppercase tracking-widest text-[10px]">Ciberseguridad</h5>
+                                    <h5 className="font-black text-slate-400 uppercase tracking-widest text-[10px]">Almacenamiento</h5>
                                     <ul className="space-y-2">
-                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div> JWT Stateless Auth</li>
-                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div> Helmet Protection</li>
-                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div> RBAC granular control</li>
+                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div> Cloudinary Media</li>
+                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div> Local Auth Storage</li>
+                                        <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div> JSON Doc Storage</li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
 
-                        {/* DB Schema Illustration (Visual) */}
                         <div className="bg-slate-900 p-12 rounded-[3rem] text-white space-y-12">
                             <div className="text-center space-y-4 max-w-2xl mx-auto">
-                                <h3 className="text-4xl font-black tracking-tight">Estructura de Documentos</h3>
-                                <p className="text-slate-400 font-medium">Modelado de datos flexible para una respuesta en milisegundos.</p>
+                                <h3 className="text-4xl font-black tracking-tight">Esquemas de Datos</h3>
+                                <p className="text-slate-400 font-medium">Modelos optimizados para alta concurrencia.</p>
                             </div>
                             
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -488,8 +463,7 @@ const Manuales = () => {
   entrada: Date,
   salida: Date,
   total: Number,
-  pagado: Number,
-  estado: "ACTIVO"
+  pagado: Number
 }`}
                                     </div>
                                 </div>
@@ -503,11 +477,9 @@ const Manuales = () => {
   registro: Ref(Registro),
   productos: [{
     prod: Ref(Producto),
-    cant: Number,
-    precio: Number
+    cant: Number
   }],
-  total: Number,
-  pago: Ref(MedioPago)
+  total: Number
 }`}
                                     </div>
                                 </div>
@@ -522,10 +494,8 @@ const Manuales = () => {
   rol: Ref(Rol),
   permisos: [{
     p: "manuales",
-    v: true,
-    e: false
-  }],
-  lastLogin: Date
+    v: true
+  }]
 }`}
                                     </div>
                                 </div>
@@ -542,7 +512,7 @@ const Manuales = () => {
                         </div>
                         <div>
                             <h4 className="text-xl font-black text-slate-900 tracking-tight">¿Alguna duda adicional?</h4>
-                            <p className="text-slate-500 font-medium">Esta documentación se actualiza automáticamente. Última actualización: 27/04/2026 16:40</p>
+                            <p className="text-slate-500 font-medium">Esta documentación se actualiza automáticamente. Última actualización: 27/04/2026 16:45</p>
                         </div>
                     </div>
                     <div className="flex gap-4">
