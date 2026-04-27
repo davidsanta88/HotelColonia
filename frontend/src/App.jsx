@@ -44,6 +44,7 @@ import ReporteIngresosConsolidado from './pages/ReporteIngresosConsolidado';
 import CalendarioIngresos from './pages/CalendarioIngresos';
 import RentabilidadHabitaciones from './pages/RentabilidadHabitaciones';
 import Manuales from './pages/Manuales';
+import Restaurante from './pages/Restaurante';
 import Layout from './components/Layout/Layout';
 
 const PrivateRoute = ({ children, roles, code }) => {
@@ -101,6 +102,7 @@ const AppRoutes = () => {
                 <Route path="tipos-registro" element={<PrivateRoute code="tipos_registro"><TiposRegistro /></PrivateRoute>} />
                 <Route path="roles" element={<PrivateRoute code="roles_permisos"><Roles /></PrivateRoute>} />
                 <Route path="notas" element={<PrivateRoute code="notas"><Notas /></PrivateRoute>} />
+                <Route path="restaurante" element={<PrivateRoute code="restaurante"><Restaurante /></PrivateRoute>} />
                 <Route path="solicitudes" element={<Solicitudes />} />
                 <Route path="notificaciones" element={<PrivateRoute><ConfigNotificaciones /></PrivateRoute>} />
                 <Route path="mantenimiento" element={<PrivateRoute code="mantenimiento"><Mantenimiento /></PrivateRoute>} />

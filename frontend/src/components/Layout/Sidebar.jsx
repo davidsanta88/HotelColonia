@@ -33,7 +33,9 @@ import {
     ExternalLink,
     Award,
     Calendar,
-    Book
+    Book,
+    Coffee,
+    UtensilsCrossed
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -61,6 +63,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { name: 'Empresas', path: '/empresas', icon: <Building2 size={20} />, code: 'empresas' },
                 { name: 'Gastos e Ingresos', path: '/gastos', icon: <TrendingDown size={20} />, code: 'gastos' },
                 { name: 'Solicitudes Reserva', path: '/solicitudes', icon: <Bell size={20} />, code: 'solicitudes' },
+                { name: 'Restaurante y Café', path: '/restaurante', icon: <UtensilsCrossed size={20} />, code: 'restaurante' },
                 { name: 'Mantenimiento', path: '/mantenimiento', icon: <Wrench size={20} />, code: 'mantenimiento' },
                 { name: 'Aseo Diario', path: '/aseo', icon: <Brush size={20} />, code: 'aseo' },
                 { name: 'Auditoría Limpieza', path: '/auditoria-limpieza', icon: <ShieldCheck size={20} />, code: 'auditoria_limpieza' }

@@ -34,6 +34,8 @@ require('./models/Producto');
 require('./models/Venta');
 require('./models/Gasto');
 require('./models/MedioPago');
+require('./models/Mesa');
+require('./models/Comanda');
 
 
 const helmet = require('helmet');
@@ -151,6 +153,7 @@ app.use('/api/auditoria-limpieza', require('./routes/auditoriaLimpieza'));
 app.use('/api/cotizaciones', require('./routes/cotizaciones'));
 app.use('/api/stats', require('./routes/stats'));
 app.use('/api/search', require('./routes/search'));
+app.use('/api/restaurante', require('./routes/restaurante'));
 
 // Global Error Handler for JSON responses
 app.use((err, req, res, next) => {
