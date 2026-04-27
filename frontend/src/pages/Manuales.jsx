@@ -20,7 +20,8 @@ import {
     Info,
     Layers,
     Activity,
-    Cpu
+    Cpu,
+    LogOut
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
