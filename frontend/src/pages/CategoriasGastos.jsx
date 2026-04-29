@@ -280,3 +280,4 @@ const CategoriasGastos = () => {
 };
 
 export default CategoriasGastos;
+

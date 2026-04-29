@@ -12,7 +12,7 @@ const Login = () => {
     const { user, login } = useContext(AuthContext);
     const navigate = useNavigate();
 
-    const [hotelInfo, setHotelInfo] = useState({ nombre: 'HOTEL BALCÓN PLAZA' });
+    const [hotelInfo, setHotelInfo] = useState({ nombre: 'HOTEL BALCÓN COLONIAL' });
 
     useEffect(() => {
         if (user) {
@@ -166,3 +166,4 @@ const Login = () => {
 };
 
 export default Login;
+

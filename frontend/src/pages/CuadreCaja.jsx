@@ -945,3 +945,4 @@ const CuadreCaja = () => {
 };
 
 export default CuadreCaja;
+

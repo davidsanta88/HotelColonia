@@ -683,3 +683,4 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
 };
 
 export default RegistroModal;
+

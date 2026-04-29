@@ -569,3 +569,4 @@ const Manuales = () => {
 };
 
 export default Manuales;
+

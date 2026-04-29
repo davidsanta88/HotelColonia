@@ -312,3 +312,4 @@ const ReservasConsolidadas = () => {
 };
 
 export default ReservasConsolidadas;
+

@@ -48,12 +48,12 @@ export const generateVoucher = async (data) => {
         
         // 0. Obtener configuración dinámica del hotel
         let hotelInfo = {
-            nombre: 'HOTEL BALCÓN PLAZA',
-            nit: '900.000.000-1',
-            direccion: 'Calle Real # 12-34, Santa Fe de Antioquia',
-            telefono: '(604) 000-0000',
-            correo: 'reservas@hotelbalconplaza.com',
-            sitioWeb: 'www.hotelbalconplaza.com',
+            nombre: 'HOTEL BALCÓN COLONIAL',
+            nit: '1.045.047.432',
+            direccion: 'CRA 4 No. 12-10 Segundo Piso',
+            telefono: '313 552 4652',
+            correo: 'balconcolonialhotel@gmail.com',
+            sitioWeb: 'www.hotelbalconcolonial.com',
             datosBancarios: 'Banco: XXXXXX | Cuenta: Ahorros # XXXXXXXXX | Nequi: XXXXXXXXXX',
             lema: '¡Gracias por su preferencia!',
             politica: 'Este documento es un comprobante informativo. Los consumos adicionales se cobrarán al check-out.'
@@ -318,3 +318,4 @@ export const generateVoucher = async (data) => {
         });
     }
 };
+

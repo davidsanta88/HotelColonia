@@ -1050,3 +1050,4 @@ const HotelCard = ({ hotelName, income, expenses, dailyAvg, expensesAvg, profitA
 };
 
 export default ComparativaHoteles;
+

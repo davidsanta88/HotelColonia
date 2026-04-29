@@ -267,3 +267,4 @@ const RentabilidadHabitaciones = () => {
 };
 
 export default RentabilidadHabitaciones;
+

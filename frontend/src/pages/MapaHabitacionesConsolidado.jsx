@@ -492,3 +492,4 @@ const MapaHabitacionesConsolidado = () => {
 };
 
 export default MapaHabitacionesConsolidado;
+

@@ -519,3 +519,4 @@ const Gastos = () => {
 };
 
 export default Gastos;
+

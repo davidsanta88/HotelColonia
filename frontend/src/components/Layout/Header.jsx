@@ -18,9 +18,9 @@ const Header = ({ setSidebarOpen }) => {
                 
                 {/* Identidad del Hotel */}
                 <div className="flex items-center gap-3 sm:gap-4 px-4 py-2 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all hover:shadow-md">
-                    <img src="/logo.jpg" alt="Logo Hotel Plaza" className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-cover shadow-sm border border-slate-100" />
+                    <img src="/logo.jpg" alt="Logo Hotel Colonial" className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-cover shadow-sm border border-slate-100" />
                     <div className="flex flex-col">
-                        <h2 className="text-sm sm:text-lg md:text-xl font-bold text-slate-900 tracking-tight leading-none uppercase">Hotel Balcón Plaza</h2>
+                        <h2 className="text-sm sm:text-lg md:text-xl font-bold text-slate-900 tracking-tight leading-none uppercase">Hotel Balcón Colonial</h2>
                     </div>
                 </div>
  
@@ -28,10 +28,10 @@ const Header = ({ setSidebarOpen }) => {
                 <a 
                     href="https://www.hotelbalconcolonial.com/login"
                     className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-[10px] sm:text-xs font-black hover:bg-amber-100 transition-all shadow-sm"
-                    title="Ir a Hotel Colonial"
+                    title="Ir a Hotel Plaza"
                 >
                     <ExternalLink size={14} className="text-amber-500" />
-                    <span className="uppercase tracking-widest">Ir al Colonial</span>
+                    <span className="uppercase tracking-widest">Ir al Plaza</span>
                 </a>
             </div>
 
@@ -54,3 +54,4 @@ const Header = ({ setSidebarOpen }) => {
 };
 
 export default Header;
+

@@ -153,3 +153,4 @@ const MediosPago = () => {
 };
 
 export default MediosPago;
+

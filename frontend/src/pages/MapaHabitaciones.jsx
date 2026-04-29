@@ -610,3 +610,4 @@ const MapaHabitaciones = () => {
 };
 
 export default MapaHabitaciones;
+

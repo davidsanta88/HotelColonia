@@ -777,3 +777,4 @@ const Registros = () => {
 };
 
 export default Registros;
+

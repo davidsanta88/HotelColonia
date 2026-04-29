@@ -49,3 +49,4 @@ const useTableData = (data, searchKeys = [], itemsPerPage = 10) => {
 };
 
 export default useTableData;
+

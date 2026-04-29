@@ -336,3 +336,4 @@ const MetricBar = ({ label, value, color }) => (
 );
 
 export default Estadisticas;
+

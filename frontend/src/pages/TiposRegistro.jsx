@@ -262,3 +262,4 @@ const TiposRegistro = () => {
 };
 
 export default TiposRegistro;
+

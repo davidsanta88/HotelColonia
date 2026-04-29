@@ -7,8 +7,8 @@ import Swal from 'sweetalert2';
 const SLIDES = [
     {
         img: '/hotel_noche.jpg',
-        title: 'Hotel Balcón Plaza',
-        sub: 'Tu hogar en Belalcázar, Caldas',
+        title: 'Hotel Balcón Colonial',
+        sub: 'Tradición y Confort en el Corazón de Belalcázar',
     },
     {
         img: '/hotel_globos1.jpg',
@@ -38,7 +38,7 @@ const SLIDES = [
     {
         img: '/mapa_region.png',
         title: 'Ubicación Estratégica',
-        sub: 'Carrera 4 #11-03, 2do Piso (Plaza Córdoba) | Tel: 321 805 1869',
+        sub: 'CRA 4 No. 12-10 Segundo Piso | Tel: 313 552 4652',
     },
     {
         img: '/hotel_studio.jpg',
@@ -98,12 +98,12 @@ const Landing = () => {
     const [loading, setLoading] = useState(false);
     const [sent, setSent] = useState(false);
     const [hotelInfo, setHotelInfo] = useState({
-        nombre: 'HOTEL BALCÓN PLAZA',
-        nit: '900.000.000-1',
-        direccion: 'CRA 4 #11-03 2DO PISO (PLAZA CÓRDOBA)',
-        telefono: '573218051869',
-        correo: 'hotelbalconplaza60@gmail.com',
-        sitioWeb: 'www.hotelbalconplaza.com'
+        nombre: 'HOTEL BALCÓN COLONIAL',
+        nit: '1.045.047.432',
+        direccion: 'CRA 4 No. 12-10 Segundo Piso',
+        telefono: '573135524652',
+        correo: 'balconcolonialhotel@gmail.com',
+        sitioWeb: 'www.hotelbalconcolonial.com'
     });
 
     useEffect(() => {
@@ -160,8 +160,8 @@ const Landing = () => {
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: '🏨 Hotel Balcón Plaza',
-                    text: '✨ ¡Descubre el corazón de Belalcázar! Hospédate en el Hotel Balcón Plaza y vive una experiencia cafetera inolvidable. ☕⛰️ ¡Mira sus habitaciones!',
+                    title: '🏨 Hotel Balcón Colonial',
+                    text: '✨ ¡Descubre el encanto de Belalcázar! Hospédate en el Hotel Balcón Colonial y vive una experiencia inolvidable. ☕⛰️ ¡Mira sus habitaciones!',
                     url: window.location.href,
                 });
             } catch (err) {
@@ -477,3 +477,4 @@ const Landing = () => {
 };
 
 export default Landing;
+

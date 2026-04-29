@@ -1123,3 +1123,4 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
 };
 
 export default DetallesRegistroModal;
+

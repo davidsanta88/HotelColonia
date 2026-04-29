@@ -154,7 +154,7 @@ const CheckinPublico = () => {
                     >
                         Hacer otro registro
                     </button>
-                    <p className="text-[10px] text-slate-300 font-black uppercase tracking-widest italic">Hotel Balcón Plaza</p>
+                    <p className="text-[10px] text-slate-300 font-black uppercase tracking-widest italic">Hotel Balcón Colonial</p>
                 </div>
             </div>
         );
@@ -172,7 +172,7 @@ const CheckinPublico = () => {
                         <Hotel size={32} />
                     </div>
                     <h1 className="text-2xl font-black text-white tracking-tight">Registro Digital</h1>
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Bienvenido al Hotel Balcón Plaza</p>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Bienvenido al Hotel Balcón Colonial</p>
                 </div>
 
                 <div className="p-8">
@@ -311,3 +311,4 @@ const CheckinPublico = () => {
 };
 
 export default CheckinPublico;
+
