@@ -12,7 +12,7 @@ const mssqlConfig = {
     }
 };
 
-const mongoURI = 'mongodb+srv://adminhotel:hotel2026@cluster0.zsiq9ye.mongodb.net/HotelDB?retryWrites=true&w=majority';
+const mongoURI = 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
 
 // Mongoose Models
 const Cliente = require('./models/Cliente');

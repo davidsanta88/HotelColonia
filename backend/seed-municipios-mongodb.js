@@ -6,7 +6,7 @@ require('dotenv').config();
 
 const seed = async () => {
     try {
-        const URI = 'mongodb+srv://adminhotel:hotel2026@cluster0.zsiq9ye.mongodb.net/HotelDB?retryWrites=true&w=majority';
+        const URI = 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
         await mongoose.connect(URI);
         console.log('Connected to MongoDB Atlas');
 
