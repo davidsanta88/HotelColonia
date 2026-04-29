@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 
 const SLIDES = [
     {
-        img: '/hotel_noche.jpg',
+        img: '/hotel_colonial_fachada.jpg',
         title: 'Hotel Balcón Colonial',
         sub: 'Tradición y Confort en el Corazón de Belalcázar',
     },
@@ -76,7 +76,7 @@ const SLIDES = [
         sub: 'Descubre la esencia de Belalcázar, un vibrante pueblo de tradición agrícola',
     },
     {
-        img: '/hotel_dia.jpg',
+        img: '/hotel_colonial_fachada.jpg',
         title: 'Belalcázar nos espera',
         sub: 'Ubicación privilegiada en el corazón de Belalcázar',
     },
