@@ -78,7 +78,7 @@ const SLIDES = [
     {
         img: '/hotel_dia.jpg',
         title: 'Belalcázar nos espera',
-        sub: 'Ubicación privilegiada frente a la Plaza Córdoba',
+        sub: 'Ubicación privilegiada en el corazón de Belalcázar',
     },
 ];
 
@@ -328,7 +328,7 @@ const Landing = () => {
                            className="bg-white/10 hover:bg-white/20 p-2.5 rounded-full border border-white/20 backdrop-blur-md transition-all duration-300 hover:scale-110">
                             <Facebook className="w-5 h-5 text-white" />
                         </a>
-                        <a href="https://www.instagram.com/hotelbalconplaza?igsh=MXE1NGF6OG81eDV3Ng==" target="_blank" rel="noreferrer" 
+                        <a href="https://www.instagram.com/hotelbalconcolonial" target="_blank" rel="noreferrer" 
                            className="bg-white/10 hover:bg-white/20 p-2.5 rounded-full border border-white/20 backdrop-blur-md transition-all duration-300 hover:scale-110">
                             <Instagram className="w-5 h-5 text-white" />
                         </a>

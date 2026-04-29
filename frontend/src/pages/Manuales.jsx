@@ -129,7 +129,7 @@ const Manuales = () => {
             };
 
             if (activeTab === 'usuario') {
-                addHeader('MANUAL INTEGRAL DE USUARIO', 'Sistema de Gestión Balcón Plaza v3.0 - Operación y Administración');
+                addHeader('MANUAL INTEGRAL DE USUARIO', 'Sistema de Gestión Balcón Colonial v3.0 - Operación y Administración');
                 
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(14); doc.setFont('helvetica', 'bold');
@@ -239,7 +239,7 @@ const Manuales = () => {
                 });
             }
 
-            doc.save(`Manual_Elite_Pro_Balcon_${activeTab.toUpperCase()}.pdf`);
+            doc.save(`Manual_Elite_Pro_Colonial_${activeTab.toUpperCase()}.pdf`);
             Swal.fire({
                 icon: 'success',
                 title: 'Descarga Iniciada',

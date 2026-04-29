@@ -26,7 +26,7 @@ const Header = ({ setSidebarOpen }) => {
  
                 {/* Botón de Cambio de Hotel */}
                 <a 
-                    href="https://www.hotelbalconcolonial.com/login"
+                    href="https://www.hotelbalconplaza.com/login"
                     className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-[10px] sm:text-xs font-black hover:bg-amber-100 transition-all shadow-sm"
                     title="Ir a Hotel Plaza"
                 >

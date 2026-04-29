@@ -184,7 +184,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
             <div className="p-4 border-t border-slate-800 bg-slate-950 mt-auto space-y-2">
                 <a
-                    href="https://www.hotelbalconcolonial.com/login"
+                    href="https://www.hotelbalconplaza.com/login"
                     className="flex w-full items-center space-x-3 px-4 py-3 text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all border border-transparent hover:border-blue-500/20"
                 >
                     <ExternalLink size={20} />
