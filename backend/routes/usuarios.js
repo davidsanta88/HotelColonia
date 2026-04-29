@@ -10,3 +10,4 @@ router.put('/:id', [verifyToken, isAdmin], usuariosController.updateUsuario);
 router.delete('/:id', [verifyToken, isAdmin], usuariosController.deleteUsuario);
 
 module.exports = router;
+

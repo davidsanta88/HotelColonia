@@ -43,3 +43,4 @@ async function migrateCategorias() {
 }
 
 migrateCategorias();
+

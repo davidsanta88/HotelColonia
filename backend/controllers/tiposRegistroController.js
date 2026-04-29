@@ -42,3 +42,4 @@ const tiposRegistroController = {
 };
 
 module.exports = tiposRegistroController;
+

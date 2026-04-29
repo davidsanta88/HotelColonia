@@ -26,3 +26,4 @@ if (cl_url) {
 }
 
 module.exports = cloudinary;
+

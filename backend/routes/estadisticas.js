@@ -7,3 +7,4 @@ const { verifyToken, isAdmin } = require('../middleware/auth');
 router.get('/dashboard', [verifyToken, isAdmin], estadisticasController.getDashboardStats);
 
 module.exports = router;
+

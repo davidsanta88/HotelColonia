@@ -14,3 +14,4 @@ router.get('/consumo/:registro_id', verifyToken, ventasController.getConsumosByR
 router.delete('/:id', verifyToken, ventasController.deleteVenta);
 
 module.exports = router;
+

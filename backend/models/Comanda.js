@@ -34,3 +34,4 @@ const comandaSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Comanda', comandaSchema);
+

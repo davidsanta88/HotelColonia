@@ -51,7 +51,7 @@ const allowedOrigins = [
     'http://localhost:5173', 
     'http://localhost:3000',
     'https://hotelbalconplaza.com',
-    'https://www.hotelbalconplaza.com'
+    'https://www.hotelbalconcolonial.com'
 ];
 app.use(cors({
     origin: function(origin, callback) {
@@ -180,3 +180,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+

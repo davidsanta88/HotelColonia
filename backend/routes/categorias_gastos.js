@@ -13,3 +13,4 @@ router.put('/:id/toggle', [verifyToken, isAdmin], categoriasGastosController.tog
 router.delete('/:id', [verifyToken, isAdmin], categoriasGastosController.deleteCategoria);
 
 module.exports = router;
+

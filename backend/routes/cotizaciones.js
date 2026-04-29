@@ -10,3 +10,4 @@ router.put('/:id/status', cotizacionesController.updateCotizacionStatus);
 router.delete('/:id', cotizacionesController.deleteCotizacion);
 
 module.exports = router;
+

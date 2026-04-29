@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     }
 
     // URL DE DIGITAL OCEAN (Confirmada por el usuario como la actual)
-    const baseUrl = 'https://whale-app-c75fy.ondigitalocean.app';
+    const baseUrl = 'https://octopus-app-omxcu.ondigitalocean.app';
     
     // The original `path` from `req.query` is used to construct the base target path.
     // `req.url` includes the full path and query string from the client's request to this proxy.

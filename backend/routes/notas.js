@@ -14,3 +14,4 @@ router.patch('/:id/leida', notasController.markAsRead);
 router.delete('/:id', notasController.delete);
 
 module.exports = router;
+

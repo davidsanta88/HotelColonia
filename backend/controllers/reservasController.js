@@ -353,3 +353,4 @@ exports.getCrossHotelAvailability = async (req, res) => {
         res.status(500).json({ message: 'Error al consultar disponibilidad en el otro hotel', error: err.message });
     }
 };
+

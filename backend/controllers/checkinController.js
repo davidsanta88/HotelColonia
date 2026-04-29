@@ -64,3 +64,4 @@ const checkinController = {
 };
 
 module.exports = checkinController;
+

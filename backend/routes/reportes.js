@@ -23,3 +23,4 @@ router.get('/mapa-habitaciones-consolidado', verifyToken, checkPermission('mapa_
 router.get('/stats-consolidado', verifyToken, checkPermission('dashboard', 'v'), reportesController.getStatsConsolidadas);
 
 module.exports = router;
+

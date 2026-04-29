@@ -15,3 +15,4 @@ const solicitudReservaSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('SolicitudReserva', solicitudReservaSchema);
+

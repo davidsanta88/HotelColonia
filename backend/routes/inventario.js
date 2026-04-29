@@ -8,3 +8,4 @@ router.post('/movimientos', [verifyToken, isAdmin], inventarioController.createM
 router.get('/alertas', verifyToken, inventarioController.getStockAlerts);
 
 module.exports = router;
+

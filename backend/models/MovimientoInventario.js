@@ -10,3 +10,4 @@ const movimientoInventarioSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('MovimientoInventario', movimientoInventarioSchema);
+

@@ -7,3 +7,4 @@ const estadoHabitacionSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('EstadoHabitacion', estadoHabitacionSchema);
+

@@ -26,3 +26,4 @@ const registroSchema = new mongoose.Schema({
 
 
 module.exports = mongoose.model('Registro', registroSchema);
+

@@ -18,3 +18,4 @@ router.post('/track', analyticsController.trackVisit);
 router.get('/stats', verifyToken, analyticsController.getStats);
 
 module.exports = router;
+

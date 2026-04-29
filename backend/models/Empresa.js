@@ -15,3 +15,4 @@ const empresaSchema = new mongoose.Schema({
 });
 
 module.exports = sharedConn.model('Empresa', empresaSchema);
+

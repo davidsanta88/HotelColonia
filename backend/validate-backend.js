@@ -24,3 +24,4 @@ async function validate() {
 }
 
 validate();
+

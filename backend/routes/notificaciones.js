@@ -8,3 +8,4 @@ router.get('/settings', verifyToken, notificacionesController.getSettings);
 router.post('/settings', verifyToken, notificacionesController.updateSettings);
 
 module.exports = router;
+

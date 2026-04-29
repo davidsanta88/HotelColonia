@@ -6,3 +6,4 @@ const { verifyToken } = require('../middleware/auth');
 router.get('/', verifyToken, searchController.globalSearch);
 
 module.exports = router;
+

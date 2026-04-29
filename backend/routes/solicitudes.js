@@ -13,3 +13,4 @@ router.put('/:id', verifyToken, solicitudesController.actualizarEstado);
 router.delete('/:id', verifyToken, solicitudesController.eliminarSolicitud);
 
 module.exports = router;
+

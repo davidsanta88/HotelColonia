@@ -19,3 +19,4 @@ const cierreCajaSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('CierreCaja', cierreCajaSchema);
+

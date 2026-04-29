@@ -18,3 +18,4 @@ router.delete('/:id', verifyToken, registrosController.deleteRegistro);
 router.use('/:id/pagos', verifyToken, registrosPagosRouter);
 
 module.exports = router;
+

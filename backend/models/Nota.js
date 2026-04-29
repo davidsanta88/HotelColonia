@@ -12,3 +12,4 @@ const notaSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Nota', notaSchema);
+

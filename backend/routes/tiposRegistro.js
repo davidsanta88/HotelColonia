@@ -9,3 +9,4 @@ router.put('/:id', verifyToken, isAdmin, tiposRegistroController.update);
 router.delete('/:id', verifyToken, isAdmin, tiposRegistroController.delete);
 
 module.exports = router;
+

@@ -21,3 +21,4 @@ const ventaSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Venta', ventaSchema);
+

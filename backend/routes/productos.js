@@ -19,3 +19,4 @@ router.delete('/:id', [verifyToken, isAdmin], productosController.deleteProducto
 
 
 module.exports = router;
+

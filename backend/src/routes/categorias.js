@@ -13,3 +13,4 @@ router.patch('/:id/activo', [verifyToken, isAdmin], categoriasController.toggleC
 router.delete('/:id', [verifyToken, isAdmin], categoriasController.deleteCategoria);
 
 module.exports = router;
+

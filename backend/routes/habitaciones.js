@@ -22,3 +22,4 @@ router.post('/:id/fotos', [verifyToken, isAdmin, upload.array('fotos', 10)], hab
 router.delete('/fotos/:id/:index', [verifyToken, isAdmin], habitacionesController.deleteFoto);
 
 module.exports = router;
+

@@ -9,3 +9,4 @@ router.put('/:id', verifyToken, clientesController.updateCliente);
 router.delete('/:id', verifyToken, clientesController.deleteCliente);
 
 module.exports = router;
+

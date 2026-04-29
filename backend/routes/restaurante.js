@@ -15,3 +15,4 @@ router.get('/comandas/historial', restauranteController.getHistorial);
 router.post('/comandas/cerrar', restauranteController.cerrarComanda);
 
 module.exports = router;
+

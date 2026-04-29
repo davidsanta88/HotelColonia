@@ -57,3 +57,4 @@ const categoriasGastosController = {
 
 
 module.exports = categoriasGastosController;
+
