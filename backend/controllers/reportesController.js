@@ -18,25 +18,49 @@ let colonialConn = null;
 
 const getColonialConnection = async () => {
     if (colonialConn && colonialConn.readyState === 1) return colonialConn;
-    colonialConn = await mongoose.createConnection(COLONIAL_URI);
+    colonialConn = await mongoose.createConnection(COLONIAL_URI).asPromise();
     return colonialConn;
+};
+
+// PLAZA CONNECTION
+const PLAZA_URI = 'mongodb+srv://adminhotel:hotel2026@cluster0.zsiq9ye.mongodb.net/HotelDB?retryWrites=true&w=majority';
+let plazaConn = null;
+
+const getPlazaConnection = async () => {
+    if (plazaConn && plazaConn.readyState === 1) return plazaConn;
+    plazaConn = await mongoose.createConnection(PLAZA_URI).asPromise();
+    return plazaConn;
 };
 
 const getColonialModels = async () => {
     const conn = await getColonialConnection();
     return {
-        Venta: conn.models.Venta || conn.model('Venta', Venta.schema),
-        Registro: conn.models.Registro || conn.model('Registro', Registro.schema),
-        Gasto: conn.models.Gasto || conn.model('Gasto', Gasto.schema),
-        Reserva: conn.models.Reserva || conn.model('Reserva', Reserva.schema),
-        Cliente: conn.models.Cliente || conn.model('Cliente', Cliente.schema),
-        Habitacion: conn.models.Habitacion || conn.model('Habitacion', Habitacion.schema),
-        Usuario: conn.models.Usuario || conn.model('Usuario', Usuario.schema),
-        CategoriaGasto: conn.models.CategoriaGasto || conn.model('CategoriaGasto', CategoriaGasto.schema),
-        Producto: conn.models.Producto || conn.model('Producto', Producto.schema),
-        TipoHabitacion: conn.models.TipoHabitacion || conn.model('TipoHabitacion', require('../models/TipoHabitacion').schema),
-        EstadoHabitacion: conn.models.EstadoHabitacion || conn.model('EstadoHabitacion', require('../models/EstadoHabitacion').schema),
-        TipoRegistro: conn.models.TipoRegistro || conn.model('TipoRegistro', require('../models/TipoRegistro').schema)
+        CierreCaja: conn.model('CierreCaja', CierreCaja.schema),
+        Venta: conn.model('Venta', Venta.schema),
+        Registro: conn.model('Registro', Registro.schema),
+        Gasto: conn.model('Gasto', Gasto.schema),
+        CategoriaGasto: conn.model('CategoriaGasto', CategoriaGasto.schema),
+        Habitacion: conn.model('Habitacion', Habitacion.schema),
+        EstadoHabitacion: conn.model('EstadoHabitacion', require('../models/EstadoHabitacion').schema),
+        Reserva: conn.model('Reserva', Reserva.schema),
+        Cliente: conn.model('Cliente', Cliente.schema),
+        Producto: conn.model('Producto', Producto.schema)
+    };
+};
+
+const getPlazaModels = async () => {
+    const conn = await getPlazaConnection();
+    return {
+        CierreCaja: conn.model('CierreCaja', CierreCaja.schema),
+        Venta: conn.model('Venta', Venta.schema),
+        Registro: conn.model('Registro', Registro.schema),
+        Gasto: conn.model('Gasto', Gasto.schema),
+        CategoriaGasto: conn.model('CategoriaGasto', CategoriaGasto.schema),
+        Habitacion: conn.model('Habitacion', Habitacion.schema),
+        EstadoHabitacion: conn.model('EstadoHabitacion', require('../models/EstadoHabitacion').schema),
+        Reserva: conn.model('Reserva', Reserva.schema),
+        Cliente: conn.model('Cliente', Cliente.schema),
+        Producto: conn.model('Producto', Producto.schema)
     };
 };
 
@@ -444,28 +468,16 @@ exports.getDetalleIngresos = async (req, res) => {
         }).populate('items.producto', 'nombre').populate('empleado', 'nombre');
 
         ventas.forEach(venta => {
-                    alerts.push({
-                        hotel: hotelLabel,
-                        type: 'TIME',
-                        msg: `Check-out vencido: Hab #${hab.numero}`,
-                        details: {
-                            id: r._id,
-                            habitacion: hab.numero,
-                            fechaSalidaProgramada: r.fechaSalida,
-                            huespedTitular: r.cliente?.nombre || 'Desconocido',
-                            nombreEmpresa: r.cliente?.empresa_id?.nombre || null,
-                            esEmpresa: !!r.cliente?.empresa_id
-                        }
-                    });    ingresos.push({
-                        fecha: venta.fecha,
-                        tipo: 'VENTA',
-                        descripcion: `Venta de productos`,
-                        detalle: venta.items?.map(i => `${i.cantidad}x ${i.producto?.nombre || 'Prod'}`).join(', ') || '-',
-                        usuario: venta.empleado?.nombre || venta.usuarioCreacion,
-                        medioPago: (venta.medioPago || 'EFECTIVO').toUpperCase(),
-                        monto: venta.total,
-                        id_ref: venta._id
-                    });
+            ingresos.push({
+                fecha: venta.fecha,
+                tipo: 'VENTA',
+                descripcion: `Venta de productos`,
+                detalle: venta.items?.map(i => `${i.cantidad}x ${i.producto?.nombre || 'Prod'}`).join(', ') || '-',
+                usuario: venta.empleado?.nombre || venta.usuarioCreacion,
+                medioPago: (venta.medioPago || 'EFECTIVO').toUpperCase(),
+                monto: venta.total,
+                id_ref: venta._id
+            });
         });
 
         // 4. Gastos e Ingresos manuales
@@ -1300,7 +1312,9 @@ exports.getStatsConsolidadas = async (req, res) => {
             };
         };
 
-        const plaza = await fetchHotelStats({ Registro, Venta, Habitacion, Producto, Reserva, Cliente }, 'Plaza');
+        const plazaModels = await getPlazaModels();
+        const plaza = await fetchHotelStats(plazaModels, 'Plaza');
+        
         const colonialModels = await getColonialModels();
         const colonial = await fetchHotelStats(colonialModels, 'Colonial');
 

@@ -21,9 +21,34 @@ const getColonialConnection = async () => {
     return colonialConn;
 };
 
+// PLAZA CONNECTION
+const PLAZA_URI = 'mongodb+srv://adminhotel:hotel2026@cluster0.zsiq9ye.mongodb.net/HotelDB?retryWrites=true&w=majority';
+let plazaConn = null;
+
+const getPlazaConnection = async () => {
+    if (plazaConn && plazaConn.readyState === 1) return plazaConn;
+    plazaConn = await mongoose.createConnection(PLAZA_URI).asPromise();
+    return plazaConn;
+};
+
 // Modelos para la conexión Colonial (usando los mismos esquemas)
 const getColonialModels = async () => {
     const conn = await getColonialConnection();
+    return {
+        CierreCaja: conn.model('CierreCaja', CierreCaja.schema),
+        Venta: conn.model('Venta', Venta.schema),
+        Registro: conn.model('Registro', Registro.schema),
+        Gasto: conn.model('Gasto', Gasto.schema),
+        CategoriaGasto: conn.model('CategoriaGasto', CategoriaGasto.schema),
+        Habitacion: conn.model('Habitacion', Habitacion.schema),
+        EstadoHabitacion: conn.model('EstadoHabitacion', EstadoHabitacion.schema),
+        Reserva: conn.model('Reserva', Reserva.schema),
+        Cliente: conn.model('Cliente', Cliente.schema)
+    };
+};
+
+const getPlazaModels = async () => {
+    const conn = await getPlazaConnection();
     return {
         CierreCaja: conn.model('CierreCaja', CierreCaja.schema),
         Venta: conn.model('Venta', Venta.schema),
@@ -41,16 +66,11 @@ exports.getComparativeStats = async (req, res) => {
     try {
         const { inicio, fin } = req.query;
         
-        // Plaza Stats (Current DB)
-        const plazaData = await getStatsFromDB({
-            Venta, Registro, Gasto
-        }, inicio, fin);
-        const plazaRooms = await getRoomCounts(Habitacion);
-
-        // Cash Balances (From last closure to now)
-        const plazaCash = await getCashBalance({
-            CierreCaja, Venta, Registro, Gasto, Reserva
-        });
+        // Plaza Stats (Fetch from Plaza DB)
+        const plazaModels = await getPlazaModels();
+        const plazaData = await getStatsFromDB(plazaModels, inicio, fin);
+        const plazaRooms = await getRoomCounts(plazaModels.Habitacion);
+        const plazaCash = await getCashBalance(plazaModels);
 
         // Colonial Stats
         const colonialModels = await getColonialModels();

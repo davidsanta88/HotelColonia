@@ -269,7 +269,7 @@ const CuadreCaja = () => {
         // Header
         doc.setFontSize(22);
         doc.setTextColor(30, 41, 59);
-        doc.text("HOTEL BALCÓN PLAZA", 14, 22);
+        doc.text("HOTEL BALCÓN COLONIAL", 14, 22);
         
         doc.setFontSize(14);
         doc.text("Reporte de Cuadre de Caja Consolidado", 14, 30);
