@@ -85,7 +85,8 @@ exports.downloadDocumento = async (req, res) => {
         const response = await axios({
             method: 'get',
             url: url,
-            responseType: 'stream'
+            responseType: 'stream',
+            timeout: 30000 // 30 segundos de timeout
         });
 
         const extension = path.extname(url) || '.pdf';
@@ -101,17 +102,38 @@ exports.downloadDocumento = async (req, res) => {
             console.log(`[DOWNLOAD PROXY] Descarga completada: ${doc.nombre}`);
         });
 
-    } catch (error) {
-        console.error('[DOWNLOAD PROXY] Error crítico:', error.message);
-        if (error.response) {
-            console.error('[DOWNLOAD PROXY] Detalle error:', error.response.status, error.response.data);
-        }
-        res.status(500).json({ message: 'Error interno al procesar la descarga' });
-    }
+        response.data.on('error', (err) => {
+            console.error('[DOWNLOAD PROXY] Error en el stream:', err.message);
+            if (!res.headersSent) {
+                res.status(500).json({ message: 'Error durante la descarga del archivo' });
+            }
+        });
 
     } catch (error) {
         console.error('[DOWNLOAD PROXY] Error crítico:', error.message);
-        res.status(500).json({ message: 'Error interno al procesar la descarga' });
+        
+        // Manejo específico para errores de Mongoose (ID malformado)
+        if (error.name === 'CastError') {
+            return res.status(400).json({ 
+                message: 'ID de documento malformado', 
+                error: error.message,
+                receivedId: req.params.id 
+            });
+        }
+
+        if (error.response) {
+            console.error('[DOWNLOAD PROXY] Detalle error de red:', error.response.status);
+            if (!res.headersSent) {
+                return res.status(error.response.status).json({ 
+                    message: 'Error al obtener el archivo desde el servidor remoto',
+                    status: error.response.status
+                });
+            }
+        }
+        
+        if (!res.headersSent) {
+            res.status(500).json({ message: 'Error interno al procesar la descarga', error: error.message });
+        }
     }
 };
 
