@@ -11,4 +11,3 @@ router.delete('/:id', [verifyToken, checkPermission('municipios', 'can_delete')]
 router.get('/fix/reseed', municipiosController.reseed); // Temporary fix trigger
 
 module.exports = router;
-

@@ -9,4 +9,3 @@ router.get('/comparative', verifyToken, statsController.getComparativeStats);
 router.get('/consolidated-reservations', verifyToken, statsController.getConsolidatedReservations);
 
 module.exports = router;
-

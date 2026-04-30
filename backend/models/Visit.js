@@ -20,4 +20,3 @@ visitSchema.index({ timestamp: -1 });
 visitSchema.index({ country: 1, city: 1 });
 
 module.exports = mongoose.model('Visit', visitSchema);
-

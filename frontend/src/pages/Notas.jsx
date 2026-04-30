@@ -364,4 +364,3 @@ const Notas = () => {
 };
 
 export default Notas;
-

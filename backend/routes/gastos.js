@@ -18,4 +18,3 @@ router.put('/:id', [verifyToken, upload.single('imagen')], gastosController.upda
 router.delete('/:id', [verifyToken, isAdmin], gastosController.deleteGasto);
 
 module.exports = router;
-

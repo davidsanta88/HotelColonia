@@ -6,9 +6,9 @@ import Swal from 'sweetalert2';
 
 const SLIDES = [
     {
-        img: '/hotel_colonial_fachada.jpg',
+        img: '/hotel_noche.jpg',
         title: 'Hotel Balcón Colonial',
-        sub: 'Tradición y Confort en el Corazón de Belalcázar',
+        sub: 'Tu hogar en Belalcázar, Caldas',
     },
     {
         img: '/hotel_globos1.jpg',
@@ -38,7 +38,7 @@ const SLIDES = [
     {
         img: '/mapa_region.png',
         title: 'Ubicación Estratégica',
-        sub: 'CRA 4 No. 12-10 Segundo Piso | Tel: 313 552 4652',
+        sub: 'Carrera 4 #11-49 | Tel: 316 279 9224',
     },
     {
         img: '/hotel_studio.jpg',
@@ -76,9 +76,9 @@ const SLIDES = [
         sub: 'Descubre la esencia de Belalcázar, un vibrante pueblo de tradición agrícola',
     },
     {
-        img: '/hotel_colonial_fachada.jpg',
+        img: '/hotel_dia.jpg',
         title: 'Belalcázar nos espera',
-        sub: 'Ubicación privilegiada en el corazón de Belalcázar',
+        sub: 'Ubicación privilegiada en Belalcázar',
     },
 ];
 
@@ -99,9 +99,9 @@ const Landing = () => {
     const [sent, setSent] = useState(false);
     const [hotelInfo, setHotelInfo] = useState({
         nombre: 'HOTEL BALCÓN COLONIAL',
-        nit: '1.045.047.432',
-        direccion: 'CRA 4 No. 12-10 Segundo Piso',
-        telefono: '573135524652',
+        nit: '1.045.047.432-1',
+        direccion: 'CRA 4 #11-49',
+        telefono: '573162799224',
         correo: 'balconcolonialhotel@gmail.com',
         sitioWeb: 'www.hotelbalconcolonial.com'
     });
@@ -160,8 +160,8 @@ const Landing = () => {
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: '🏨 Hotel Balcón Colonial',
-                    text: '✨ ¡Descubre el encanto de Belalcázar! Hospédate en el Hotel Balcón Colonial y vive una experiencia inolvidable. ☕⛰️ ¡Mira sus habitaciones!',
+                    title: `🏨 ${hotelInfo.nombre}`,
+                    text: `✨ ¡Descubre el corazón de ${hotelInfo.direccion?.toLowerCase()?.includes('antioquia') ? 'Santa Fe de Antioquia' : 'Belalcázar'}! Hospédate en ${hotelInfo.nombre} y vive una experiencia inolvidable. ☕⛰️ ¡Mira sus habitaciones!`,
                     url: window.location.href,
                 });
             } catch (err) {
@@ -260,12 +260,12 @@ const Landing = () => {
                 
                 {/* Header / Logo (Top Left) */}
                 <div className="absolute top-6 lg:top-8 left-6 lg:left-8 flex items-center gap-3 lg:gap-4 group z-[60]">
-                    <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-full overflow-hidden ring-2 ring-accent-400/50 shadow-2xl transition-transform group-hover:scale-110 duration-500">
-                        <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover" />
+                    <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-full overflow-hidden ring-2 ring-accent-400/50 shadow-2xl transition-transform group-hover:scale-110 duration-500 bg-white/10 flex items-center justify-center">
+                        <img src={hotelInfo.logoUrl || "/logo.jpg"} alt="Logo" className="w-full h-full object-cover" />
                     </div>
                     <div className="text-left">
-                        <p className="text-white font-black text-lg lg:text-xl leading-tight tracking-wider drop-shadow-md">{hotelInfo.nombre.toUpperCase()}</p>
-                        <p className="text-accent-500 text-[8px] lg:text-[10px] font-black tracking-[0.3em] uppercase drop-shadow-sm">{hotelInfo.direccion.split(',').pop().trim()}</p>
+                        <p className="text-white font-black text-lg lg:text-xl leading-tight tracking-wider drop-shadow-md">{(hotelInfo.nombre || 'HOTEL BALCÓN COLONIAL').toUpperCase()}</p>
+                        <p className="text-accent-500 text-[8px] lg:text-[10px] font-black tracking-[0.3em] uppercase drop-shadow-sm">{hotelInfo.direccion?.split(',').pop().trim() || 'Colombia'}</p>
                     </div>
                 </div>
 
@@ -477,4 +477,3 @@ const Landing = () => {
 };
 
 export default Landing;
-

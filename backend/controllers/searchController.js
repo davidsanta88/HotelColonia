@@ -47,4 +47,3 @@ exports.globalSearch = async (req, res) => {
         res.status(500).json({ message: 'Error en la búsqueda global' });
     }
 };
-

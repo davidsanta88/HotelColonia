@@ -59,4 +59,3 @@ reservaSchema.virtual('documento').get(function() {
 });
 
 module.exports = mongoose.model('Reserva', reservaSchema);
-

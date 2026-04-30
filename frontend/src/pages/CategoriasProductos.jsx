@@ -211,4 +211,3 @@ const CategoriasProductos = () => {
 };
 
 export default CategoriasProductos;
-

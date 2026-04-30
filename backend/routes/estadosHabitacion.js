@@ -14,4 +14,3 @@ router.route('/:id')
     .delete(isAdmin, estadosHabitacionController.deleteEstadoHabitacion);
 
 module.exports = router;
-

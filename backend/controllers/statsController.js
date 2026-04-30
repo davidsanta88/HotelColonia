@@ -10,7 +10,7 @@ const Reserva = require('../models/Reserva');
 const Cliente = require('../models/Cliente');
 
 // Configuración para la conexión al Hotel Colonial
-const COLONIAL_URI = 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
+const COLONIAL_URI = process.env.COLONIAL_MONGODB_URI || 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
 
 // Variable para mantener la conexión
 let colonialConn = null;
@@ -19,16 +19,6 @@ const getColonialConnection = async () => {
     if (colonialConn && colonialConn.readyState === 1) return colonialConn;
     colonialConn = await mongoose.createConnection(COLONIAL_URI).asPromise();
     return colonialConn;
-};
-
-// PLAZA CONNECTION
-const PLAZA_URI = 'mongodb+srv://adminhotel:hotel2026@cluster0.zsiq9ye.mongodb.net/HotelDB?retryWrites=true&w=majority';
-let plazaConn = null;
-
-const getPlazaConnection = async () => {
-    if (plazaConn && plazaConn.readyState === 1) return plazaConn;
-    plazaConn = await mongoose.createConnection(PLAZA_URI).asPromise();
-    return plazaConn;
 };
 
 // Modelos para la conexión Colonial (usando los mismos esquemas)
@@ -47,35 +37,25 @@ const getColonialModels = async () => {
     };
 };
 
-const getPlazaModels = async () => {
-    const conn = await getPlazaConnection();
-    return {
-        CierreCaja: conn.model('CierreCaja', CierreCaja.schema),
-        Venta: conn.model('Venta', Venta.schema),
-        Registro: conn.model('Registro', Registro.schema),
-        Gasto: conn.model('Gasto', Gasto.schema),
-        CategoriaGasto: conn.model('CategoriaGasto', CategoriaGasto.schema),
-        Habitacion: conn.model('Habitacion', Habitacion.schema),
-        EstadoHabitacion: conn.model('EstadoHabitacion', EstadoHabitacion.schema),
-        Reserva: conn.model('Reserva', Reserva.schema),
-        Cliente: conn.model('Cliente', Cliente.schema)
-    };
-};
-
 exports.getComparativeStats = async (req, res) => {
     try {
         const { inicio, fin } = req.query;
         
-        // Plaza Stats (Fetch from Plaza DB)
-        const plazaModels = await getPlazaModels();
-        const plazaData = await getStatsFromDB(plazaModels, inicio, fin);
-        const plazaRooms = await getRoomCounts(plazaModels.Habitacion);
-        const plazaCash = await getCashBalance(plazaModels);
+        // Plaza Stats (Current DB)
+        const plazaRooms = await getRoomCounts(Habitacion);
+        const plazaData = await getStatsFromDB({
+            Venta, Registro, Gasto
+        }, inicio, fin, plazaRooms.total);
+
+        // Cash Balances (From last closure to now)
+        const plazaCash = await getCashBalance({
+            CierreCaja, Venta, Registro, Gasto, Reserva
+        });
 
         // Colonial Stats
         const colonialModels = await getColonialModels();
-        const colonialData = await getStatsFromDB(colonialModels, inicio, fin);
         const colonialRooms = await getRoomCounts(colonialModels.Habitacion);
+        const colonialData = await getStatsFromDB(colonialModels, inicio, fin, colonialRooms.total);
         const colonialCash = await getCashBalance(colonialModels);
 
         res.json({
@@ -201,7 +181,7 @@ async function getRoomCounts(HabitacionModel) {
     }
 }
 
-async function getStatsFromDB(models, startDateStr, endDateStr) {
+async function getStatsFromDB(models, startDateStr, endDateStr, totalRooms = 1) {
     const { Venta, Registro, Gasto } = models;
     
     const moment = require('moment-timezone');
@@ -260,28 +240,87 @@ async function getStatsFromDB(models, startDateStr, endDateStr) {
         }
     ]);
 
+    // 4. Ocupación (Cálculo por día/mes)
+    let occupancyMap = new Map();
+    
+    const registrosParaOcupacion = await Registro.find({
+        $or: [
+            { fechaEntrada: { $lte: endDate }, fechaSalida: { $gte: startDate } },
+            { estado: 'activo' }
+        ]
+    }).select('fechaEntrada fechaSalida').lean();
+
+    let current = moment.tz(startDate, "America/Bogota").startOf('day');
+    const endRange = moment.tz(endDate, "America/Bogota").endOf('day');
+
+    if (!useMonthly) {
+        while (current.isBefore(endRange)) {
+            const dateKey = current.format('YYYY-MM-DD');
+            const dS = current.toDate();
+            const dE = moment(current).endOf('day').toDate();
+
+            const count = registrosParaOcupacion.filter(r => {
+                const inD = r.fechaEntrada;
+                const outD = r.fechaSalida || new Date();
+                return inD <= dE && outD >= dS;
+            }).length;
+
+            occupancyMap.set(dateKey, (count / (totalRooms || 1)) * 100);
+            current.add(1, 'day');
+        }
+    } else {
+        // Modo Mensual: Calcular promedio de ocupación por mes
+        const monthCounts = new Map(); // monthKey -> { sum: 0, count: 0 }
+        
+        while (current.isBefore(endRange)) {
+            const monthKey = current.month() + 1; // 1-12
+            const dS = current.toDate();
+            const dE = moment(current).endOf('day').toDate();
+
+            const count = registrosParaOcupacion.filter(r => {
+                const inD = r.fechaEntrada;
+                const outD = r.fechaSalida || new Date();
+                return inD <= dE && outD >= dS;
+            }).length;
+
+            const existing = monthCounts.get(monthKey) || { sum: 0, days: 0 };
+            existing.sum += (count / (totalRooms || 1)) * 100;
+            existing.days += 1;
+            monthCounts.set(monthKey, existing);
+            
+            current.add(1, 'day');
+        }
+
+        monthCounts.forEach((val, key) => {
+            occupancyMap.set(key, val.sum / val.days);
+        });
+    }
+
     // Merge results
     const resultsMap = new Map();
 
     const addToMap = (stats, key) => {
         stats.forEach(s => {
-            const entry = resultsMap.get(s._id) || { ingresos: 0, egresos: 0, ventasTienda: 0 };
-            if (key === 'ingresos_tienda') {
+            const entry = resultsMap.get(s._id) || { ingresos: 0, egresos: 0, hospedaje: 0, tienda: 0, otros: 0 };
+            if (key === 'tienda') {
                 entry.ingresos += s.total;
-                entry.ventasTienda += s.total;
+                entry.tienda += s.total;
             }
-            else if (key === 'ingresos') entry.ingresos += s.total;
+            else if (key === 'hospedaje') {
+                entry.ingresos += s.total;
+                entry.hospedaje += s.total;
+            }
             else if (key === 'gastos_mixed') {
                 entry.ingresos += s.totalIngreso || 0;
+                entry.otros += s.totalIngreso || 0;
                 entry.egresos += s.totalGasto || 0;
             }
-            else entry.egresos += s.total;
             resultsMap.set(s._id, entry);
         });
     };
 
-    addToMap(ventaStats, 'ingresos_tienda');
-    addToMap(registroStats, 'ingresos');
+    addToMap(ventaStats, 'tienda');
+    addToMap(registroStats, 'hospedaje');
     addToMap(gastoStats, 'gastos_mixed');
 
     // Convert to sorted array
@@ -290,25 +329,34 @@ async function getStatsFromDB(models, startDateStr, endDateStr) {
     return sortedKeys.map(k => {
         const data = resultsMap.get(k);
         let label = k;
+        let sortKey = k;
         if (useMonthly) {
             const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
             label = months[parseInt(k) - 1];
+            sortKey = parseInt(k);
         } else {
             // Formatear fecha para mostrar (DD/MM)
             try {
                 const [y, m, d] = k.split('-');
                 label = `${d}/${m}`;
+                sortKey = k; // "YYYY-MM-DD" is sortable
             } catch (e) {
                 label = k;
+                sortKey = k;
             }
         }
         
         return {
             label,
+            sortKey,
+            fullDate: k,
             ingresos: data.ingresos,
+            hospedaje: data.hospedaje,
+            tienda: data.tienda,
+            otros: data.otros,
             egresos: data.egresos,
-            ventasTienda: data.ventasTienda,
-            margen: data.ingresos - data.egresos
+            margen: data.ingresos - data.egresos,
+            ocupacion: occupancyMap.get(useMonthly ? sortKey : k) || 0
         };
     });
 }
@@ -397,4 +445,3 @@ async function getCashBalance(models) {
 }
 
 module.exports = exports;
-

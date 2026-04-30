@@ -203,4 +203,3 @@ const ConfigNotificaciones = () => {
 };
 
 export default ConfigNotificaciones;
-

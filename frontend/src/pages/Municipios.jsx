@@ -253,4 +253,3 @@ const Municipios = () => {
 };
 
 export default Municipios;
-

@@ -9,4 +9,3 @@ const municipioSchema = new mongoose.Schema({
 });
 
 module.exports = sharedConn.model('Municipio', municipioSchema);
-

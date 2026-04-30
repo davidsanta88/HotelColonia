@@ -41,7 +41,12 @@ import {
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-    const { user, logout } = useContext(AuthContext);
+    const { user, logout, hotelConfig } = useContext(AuthContext);
+
+    // Determinar a qué hotel redirigir en el botón de cambio
+    const isColonial = hotelConfig?.nombre?.toLowerCase()?.includes('colonial');
+    const switchHotelLabel = isColonial ? 'Ir al Plaza' : 'Ir al Colonial';
+    const switchHotelUrl = isColonial ? 'https://www.hotelbalconplaza.com/login' : 'https://www.hotelbalconcolonial.com/login';
 
     const hasPermission = (code) => {
         if (!code) return true;
@@ -89,7 +94,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { name: 'Rentabilidad Habitaciones', path: '/rentabilidad-habitaciones', icon: <Award size={20} />, code: 'rentabilidad' },
                 { name: 'Cotizaciones', path: '/cotizaciones', icon: <FileText size={20} />, code: 'cotizaciones' },
                 { name: 'Invitación Religiosa', path: '/invitacion-religiosa', icon: <Mail size={20} />, code: 'invitacion' },
-                { name: 'Medios de Pago', path: '/medios-pago', icon: <CreditCard size={20} />, code: 'medios_pago' },
             ]
         },
         {
@@ -102,7 +106,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { name: 'Rentabilidad Consolidada', path: '/rentabilidad-habitaciones?mode=consolidated', icon: <Award size={20} />, code: 'rentabilidad' },
                 { name: 'Consolidado Reservas', path: '/reservas-consolidadas', icon: <Building2 size={20} />, code: 'reservas_consolidadas' },
                 { name: 'Comparativa Hoteles', path: '/comparativa', icon: <LayoutDashboard size={20} />, code: 'comparativa' },
-                { name: 'Estadísticas Avanzadas', path: '/estadisticas', icon: <TrendingUp size={20} />, code: 'estadisticas' },
             ]
         },
         {
@@ -112,6 +115,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { name: 'Tipos de Habitación', path: '/tipos-habitaciones', icon: <Bed size={20} />, code: 'tipos_habitaciones' },
                 { name: 'Estados de Hab.', path: '/estados-habitaciones', icon: <Bed size={20} />, code: 'estados_habitaciones' },
                 { name: 'O. Lugares', path: '/municipios', icon: <MapPin size={20} />, code: 'municipios' },
+                { name: 'Medios de Pago', path: '/medios-pago', icon: <CreditCard size={20} />, code: 'medios_pago' },
                 { name: 'Cat. Productos', path: '/categorias-productos', icon: <Package size={20} />, code: 'categorias_productos' },
                 { name: 'Cat. Gastos/Ingresos', path: '/categorias-gastos', icon: <Package size={20} />, code: 'categorias_gastos' },
                 { name: 'Tipos de Registro', path: '/tipos-registro', icon: <ClipboardList size={20} />, code: 'tipos_registro' },
@@ -135,10 +139,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             {/* Branding Header */}
             <div className="p-5 border-b border-slate-800/50 bg-slate-950/30 flex items-center gap-3">
                 <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center p-1 shadow-inner">
-                    <img src="/logo.jpg" alt="Logo" className="w-full h-full object-contain" />
+                    <img src={hotelConfig?.logoUrl || "/logo.jpg"} alt="Logo" className="w-full h-full object-contain" />
                 </div>
-                <div className="flex flex-col">
-                    <span className="text-xs font-black text-slate-100 uppercase tracking-tighter leading-tight">Balcón Colonial</span>
+                <div className="flex flex-col overflow-hidden">
+                    <span className="text-xs font-black text-slate-100 uppercase tracking-tighter leading-tight truncate">
+                        {hotelConfig?.nombre || 'Hotel Balcón Colonial'}
+                    </span>
                     <span className="text-[10px] font-bold text-primary-500 uppercase tracking-widest">Administración</span>
                 </div>
             </div>
@@ -189,11 +195,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
             <div className="p-4 border-t border-slate-800 bg-slate-950 mt-auto space-y-2">
                 <a
-                    href="https://www.hotelbalconplaza.com/login"
+                    href={switchHotelUrl}
                     className="flex w-full items-center space-x-3 px-4 py-3 text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all border border-transparent hover:border-blue-500/20"
                 >
                     <ExternalLink size={20} />
-                    <span className="font-bold text-sm">Ir a Hotel Plaza</span>
+                    <span className="font-bold text-sm">{switchHotelLabel}</span>
                 </a>
 
                 <button
@@ -209,4 +215,3 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 };
 
 export default Sidebar;
-

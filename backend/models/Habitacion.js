@@ -20,4 +20,3 @@ const habitacionSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Habitacion', habitacionSchema);
-

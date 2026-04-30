@@ -9,26 +9,24 @@ const Cliente = require('../models/Cliente');
 const CierreCaja = require('../models/CierreCaja');
 const CategoriaGasto = require('../models/CategoriaGasto');
 const HotelConfig = require('../models/HotelConfig');
+const Mantenimiento = require('../models/Mantenimiento');
 const mongoose = require('mongoose');
 const moment = require('moment-timezone');
 
 // Configuración para la conexión al Hotel Colonial
-const COLONIAL_URI = 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
+const COLONIAL_URI = process.env.COLONIAL_MONGODB_URI || 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
 
 let colonialConn = null;
-
 const getColonialConnection = async () => {
     if (colonialConn && colonialConn.readyState === 1) return colonialConn;
     colonialConn = await mongoose.createConnection(COLONIAL_URI).asPromise();
     return colonialConn;
 };
 
-// PLAZA CONNECTION
-const PLAZA_URI = 'mongodb+srv://adminhotel:hotel2026@cluster0.zsiq9ye.mongodb.net/HotelDB?retryWrites=true&w=majority';
 let plazaConn = null;
-
 const getPlazaConnection = async () => {
     if (plazaConn && plazaConn.readyState === 1) return plazaConn;
+    const PLAZA_URI = process.env.MONGODB_URI || 'mongodb+srv://adminhotel:hotel2026@cluster0.zsiq9ye.mongodb.net/HotelDB?retryWrites=true&w=majority';
     plazaConn = await mongoose.createConnection(PLAZA_URI).asPromise();
     return plazaConn;
 };
@@ -76,6 +74,7 @@ const getPlazaModels = async () => {
         Empresa: conn.model('Empresa', require('../models/Empresa').schema)
     };
 };
+
 
 exports.getReporteVentas = async (req, res) => {
     try {
@@ -140,10 +139,8 @@ exports.getResumenGeneral = async (req, res) => {
         const alertas_stock = await Producto.countDocuments({ $expr: { $lte: ["$stock", "$stockMinimo"] } });
         
         // Calcular límites de hoy en hora local (Colombia -05:00)
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('en-CA', { timeZone: 'America/Bogota' }); // Formato YYYY-MM-DD
-        const hoy = new Date(`${dateStr}T00:00:00-05:00`);
-        const mañana = new Date(`${dateStr}T23:59:59.999-05:00`);
+        const hoy = moment.tz("America/Bogota").startOf('day').toDate();
+        const mañana = moment.tz("America/Bogota").endOf('day').toDate();
 
         const registros_hoy = await Registro.countDocuments({ fechaCreacion: { $gte: hoy, $lte: mañana } });
         
@@ -220,6 +217,87 @@ exports.getResumenGeneral = async (req, res) => {
             fecha: v.fecha
         }));
 
+        // 5. Historial financiero (últimos 7 días)
+        const sieteDiasAtras = moment.tz("America/Bogota").subtract(7, 'days').startOf('day').toDate();
+        const finDeHoy = moment.tz("America/Bogota").endOf('day').toDate();
+        
+        const historial_ingresos = await Registro.aggregate([
+            { $unwind: "$pagos" },
+            { $match: { "pagos.fecha": { $gte: sieteDiasAtras, $lte: finDeHoy } } },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$pagos.fecha", timezone: "-05:00" } },
+                    total: { $sum: "$pagos.monto" }
+                }
+            }
+        ]);
+
+        const historial_ventas = await Venta.aggregate([
+            { $match: { fecha: { $gte: sieteDiasAtras, $lte: finDeHoy } } },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$fecha", timezone: "-05:00" } },
+                    total: { $sum: "$total" }
+                }
+            }
+        ]);
+
+        const historial_egresos = await Gasto.aggregate([
+            { $match: { fecha: { $gte: sieteDiasAtras, $lte: finDeHoy } } },
+            {
+                $lookup: {
+                    from: 'categoriagastos',
+                    localField: 'categoria',
+                    foreignField: '_id',
+                    as: 'cat'
+                }
+            },
+            { $unwind: { path: "$cat", preserveNullAndEmptyArrays: true } },
+            { $match: { $or: [{ "cat.tipo": "Gasto" }, { "cat": { $exists: false } }] } },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$fecha", timezone: "-05:00" } },
+                    total: { $sum: "$monto" }
+                }
+            }
+        ]);
+
+        // Unificar historial por día asegurando que no falte ningún día
+        const chartData = [];
+        for (let i = 6; i >= 0; i--) {
+            const dateStr = moment.tz("America/Bogota").subtract(i, 'days').format('YYYY-MM-DD');
+            const ing = (historial_ingresos.find(h => h._id === dateStr)?.total || 0) + (historial_ventas.find(h => h._id === dateStr)?.total || 0);
+            const egr = historial_egresos.find(h => h._id === dateStr)?.total || 0;
+            chartData.push({ fecha: dateStr, ingresos: ing, egresos: egr });
+        }
+
+        // 6. Top productos vendidos (Simplificado para asegurar que traiga datos)
+        const top_productos = await Venta.aggregate([
+            { $unwind: "$items" },
+            {
+                $group: {
+                    _id: "$items.producto",
+                    nombre: { $first: "$items.productoNombre" },
+                    total: { $sum: "$items.cantidad" }
+                }
+            },
+            { $match: { total: { $gt: 0 } } },
+            { $sort: { total: -1 } },
+            { $limit: 5 }
+        ]);
+
+        // 7. Mantenimientos y Llegadas (Rango corregido para próximos días)
+        const mantenimientos_pendientes = await Mantenimiento.countDocuments({ estado: { $ne: 'Completado' } });
+        const mananaInicio = moment.tz("America/Bogota").add(1, 'day').startOf('day').toDate();
+        const pasadoMananaFin = moment.tz("America/Bogota").add(2, 'days').endOf('day').toDate();
+
+        const llegadas_proximas = await Reserva.find({ 
+            fechaEntrada: { $gte: mananaInicio, $lte: pasadoMananaFin },
+            estado: { $ne: 'cancelado' }
+        }).sort({ fechaEntrada: 1 }).limit(5);
+
+        console.log(`[DASHBOARD] Stats calculadas: Ingresos Hoy: ${ingresos_hoy}, Top Prods: ${top_productos.length}, Historial: ${chartData.length}`);
+
         res.json({
             hab_disponibles,
             hab_ocupadas,
@@ -231,7 +309,20 @@ exports.getResumenGeneral = async (req, res) => {
             recientes: {
                 registros: mapped_registros,
                 ventas: mapped_ventas
-            }
+            },
+            historial: chartData,
+            top_productos: top_productos.map(p => ({
+                id: p._id,
+                nombre: p.nombre || 'Producto sin nombre',
+                total: p.total
+            })),
+            mantenimientos_pendientes,
+            llegadas_proximas: llegadas_proximas.map(r => ({
+                id: r._id,
+                cliente: r.clienteNombre || 'Cliente',
+                fecha: r.fechaEntrada,
+                noches: r.noches
+            }))
         });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -412,11 +503,8 @@ exports.getIngresosHospedaje = async (req, res) => {
 exports.getDetalleIngresos = async (req, res) => {
     try {
         const { inicio, fin } = req.query;
-        let startDate = inicio ? (inicio.includes('T') ? new Date(inicio) : new Date(`${inicio}T00:00:00-05:00`)) : new Date();
-        if (!inicio) startDate.setHours(0,0,0,0);
-        
-        let endDate = fin ? (fin.includes('T') ? new Date(fin) : new Date(`${fin}T23:59:59-05:00`)) : new Date();
-        if (!fin) endDate.setHours(23,59,59,999);
+        let startDate = inicio ? (inicio.includes('T') ? new Date(inicio) : new Date(`${inicio}T00:00:00-05:00`)) : moment.tz("America/Bogota").startOf('day').toDate();
+        let endDate = fin ? (fin.includes('T') ? new Date(fin) : new Date(`${fin}T23:59:59-05:00`)) : moment.tz("America/Bogota").endOf('day').toDate();
 
         // 1. Pagos de Registros (Hospedajes)
         const pagosRegistros = await Registro.find({
@@ -524,11 +612,8 @@ exports.getDetalleIngresos = async (req, res) => {
 exports.getDetalleIngresosConsolidado = async (req, res) => {
     try {
         const { inicio, fin } = req.query;
-        let startDate = inicio ? (inicio.includes('T') ? new Date(inicio) : new Date(`${inicio}T00:00:00-05:00`)) : new Date();
-        if (!inicio) startDate.setHours(0,0,0,0);
-        
-        let endDate = fin ? (fin.includes('T') ? new Date(fin) : new Date(`${fin}T23:59:59-05:00`)) : new Date();
-        if (!fin) endDate.setHours(23,59,59,999);
+        let startDate = inicio ? (inicio.includes('T') ? new Date(inicio) : new Date(`${inicio}T00:00:00-05:00`)) : moment.tz("America/Bogota").startOf('day').toDate();
+        let endDate = fin ? (fin.includes('T') ? new Date(fin) : new Date(`${fin}T23:59:59-05:00`)) : moment.tz("America/Bogota").endOf('day').toDate();
 
         // Helper function to fetch from a set of models
         const fetchFromModels = async (models, hotelLabel) => {
@@ -652,12 +737,8 @@ exports.getDetalleIngresosConsolidado = async (req, res) => {
 exports.getCuadreCaja = async (req, res) => {
     try {
         const { inicio, fin } = req.query;
-        // Map string to exact local boundaries to prevent UTC mismatch
-        let startDate = inicio ? (inicio.includes('T') ? new Date(inicio) : new Date(`${inicio}T00:00:00-05:00`)) : new Date();
-        if (!inicio) startDate.setHours(0,0,0,0);
-        
-        let endDate = fin ? (fin.includes('T') ? new Date(fin) : new Date(`${fin}T23:59:59-05:00`)) : new Date();
-        if (!fin) endDate.setHours(23,59,59,999);
+        let startDate = inicio ? (inicio.includes('T') ? new Date(inicio) : new Date(`${inicio}T00:00:00-05:00`)) : moment.tz("America/Bogota").startOf('day').toDate();
+        let endDate = fin ? (fin.includes('T') ? new Date(fin) : new Date(`${fin}T23:59:59-05:00`)) : moment.tz("America/Bogota").endOf('day').toDate();
 
         // 1. Pagos de Registros (Hospedajes)
         const pagosRegistros = await Registro.find({
@@ -834,10 +915,10 @@ exports.getReporteHuespedes = async (req, res) => {
         const totalHuespedes = report[0]?.totalHuespedes || 0;
         
         // Calcular número de días para el promedio
-        const start = inicio ? new Date(`${inicio}T00:00:00`) : new Date();
-        const end = fin ? new Date(`${fin}T00:00:00`) : new Date();
+        const start = inicio ? moment.tz(inicio, "America/Bogota").startOf('day').toDate() : moment.tz("America/Bogota").startOf('day').toDate();
+        const end = fin ? moment.tz(fin, "America/Bogota").endOf('day').toDate() : moment.tz("America/Bogota").endOf('day').toDate();
         const diffTime = Math.abs(end - start);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
         const promedioHuespedes = diffDays > 0 ? (totalHuespedes / diffDays) : totalHuespedes;
 
@@ -860,7 +941,6 @@ exports.getIngresosCalendario = async (req, res) => {
         const year = parseInt(anio);
         const month = parseInt(mes);
         
-        // Consultar rango ampliado para cubrir días grises del calendario
         const startOfMonth = moment.tz([year, month - 1, 1], "America/Bogota").startOf('month');
         const endOfMonth = moment.tz([year, month - 1, 1], "America/Bogota").endOf('month');
         
@@ -876,28 +956,104 @@ exports.getIngresosCalendario = async (req, res) => {
 
         const dailyData = {};
 
-        const addToDay = (date, amount) => {
+        const addToDay = (date, amount, source = 'otros') => {
             if (!date) return;
             const dayKey = moment(date).tz("America/Bogota").format('YYYY-MM-DD');
-            if (!dailyData[dayKey]) dailyData[dayKey] = { ingresos: 0, egresos: 0, balance: 0 };
-            if (amount > 0) dailyData[dayKey].ingresos += amount;
-            else dailyData[dayKey].egresos += Math.abs(amount);
+            if (!dailyData[dayKey]) {
+                dailyData[dayKey] = { 
+                    ingresos: 0, 
+                    egresos: 0, 
+                    balance: 0,
+                    fuentes: { hospedaje: 0, ventas: 0, otros: 0 }
+                };
+            }
+            if (amount > 0) {
+                dailyData[dayKey].ingresos += amount;
+                if (source === 'hospedaje') dailyData[dayKey].fuentes.hospedaje += amount;
+                else if (source === 'ventas') dailyData[dayKey].fuentes.ventas += amount;
+                else dailyData[dayKey].fuentes.otros += amount;
+            } else {
+                dailyData[dayKey].egresos += Math.abs(amount);
+            }
             dailyData[dayKey].balance += amount;
         };
 
         registros.forEach(reg => reg.pagos.forEach(p => {
-            if (p.fecha >= startDate && p.fecha <= endDate) addToDay(p.fecha, p.monto);
+            if (p.fecha >= startDate && p.fecha <= endDate) addToDay(p.fecha, p.monto, 'hospedaje');
         }));
         reservas.forEach(res => res.abonos.forEach(a => {
-            if (a.fecha >= startDate && a.fecha <= endDate) addToDay(a.fecha, a.monto);
+            if (a.fecha >= startDate && a.fecha <= endDate) addToDay(a.fecha, a.monto, 'hospedaje');
         }));
-        ventas.forEach(v => addToDay(v.fecha, v.total));
+        ventas.forEach(v => addToDay(v.fecha, v.total, 'ventas'));
         gastos.forEach(g => {
             const esIngreso = g.categoria?.tipo === 'Ingreso';
-            addToDay(g.fecha, esIngreso ? g.monto : -g.monto);
+            addToDay(g.fecha, esIngreso ? g.monto : -g.monto, esIngreso ? 'otros' : null);
         });
 
         res.json(dailyData);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// 1b. Detalle de un día específico para el calendario
+exports.getDetalleDiaCalendario = async (req, res) => {
+    try {
+        const { fecha } = req.query; // YYYY-MM-DD
+        const startDate = moment.tz(fecha, "America/Bogota").startOf('day').toDate();
+        const endDate = moment.tz(fecha, "America/Bogota").endOf('day').toDate();
+
+        const [registros, reservas, ventas, gastos] = await Promise.all([
+            Registro.find({ "pagos.fecha": { $gte: startDate, $lte: endDate } }).populate('habitacion', 'numero'),
+            Reserva.find({ "abonos.fecha": { $gte: startDate, $lte: endDate } }),
+            Venta.find({ fecha: { $gte: startDate, $lte: endDate } }).populate('items.producto', 'nombre'),
+            Gasto.find({ fecha: { $gte: startDate, $lte: endDate } }).populate('categoria')
+        ]);
+
+        const items = [];
+
+        registros.forEach(reg => reg.pagos.forEach(p => {
+            if (p.fecha >= startDate && p.fecha <= endDate) {
+                items.push({
+                    tipo: 'HOSPEDAJE',
+                    monto: p.monto,
+                    descripcion: `Pago Hab ${reg.habitacion?.numero || '-'} - ${reg.nombre_cliente || 'Cliente'}`,
+                    medio: p.medio || 'EFECTIVO'
+                });
+            }
+        }));
+
+        reservas.forEach(res => res.abonos.forEach(a => {
+            if (a.fecha >= startDate && a.fecha <= endDate) {
+                items.push({
+                    tipo: 'RESERVA',
+                    monto: a.monto,
+                    descripcion: `Abono Reserva ${res.codigoReserva || ''} - ${res.nombre_cliente}`,
+                    medio: a.medio_pago || 'EFECTIVO'
+                });
+            }
+        }));
+
+        ventas.forEach(v => {
+            items.push({
+                tipo: 'VENTA',
+                monto: v.total,
+                descripcion: `Venta POS - ${v.items?.length || 0} productos`,
+                medio: v.medioPago || 'EFECTIVO'
+            });
+        });
+
+        gastos.forEach(g => {
+            const esIngreso = g.categoria?.tipo === 'Ingreso';
+            items.push({
+                tipo: esIngreso ? 'INGRESO' : 'GASTO',
+                monto: esIngreso ? g.monto : -g.monto,
+                descripcion: `${g.categoria?.nombre}: ${g.descripcion}`,
+                medio: g.medioPago || 'EFECTIVO'
+            });
+        });
+
+        res.json(items.sort((a, b) => Math.abs(b.monto) - Math.abs(a.monto)));
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -907,8 +1063,8 @@ exports.getIngresosCalendario = async (req, res) => {
 exports.getRentabilidadHabitaciones = async (req, res) => {
     try {
         const { inicio, fin } = req.query;
-        const startDate = inicio ? moment.tz(`${inicio}T00:00:00`, "America/Bogota").toDate() : moment().subtract(30, 'days').startOf('day').toDate();
-        const endDate = fin ? moment.tz(`${fin}T23:59:59`, "America/Bogota").toDate() : moment().endOf('day').toDate();
+        const startDate = inicio ? moment.tz(inicio, "America/Bogota").startOf('day').toDate() : moment.tz("America/Bogota").subtract(30, 'days').startOf('day').toDate();
+        const endDate = fin ? moment.tz(fin, "America/Bogota").endOf('day').toDate() : moment.tz("America/Bogota").endOf('day').toDate();
 
         // Calcular das del periodo para promedio diario
         const diffDays = Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)));
@@ -928,11 +1084,13 @@ exports.getRentabilidadHabitaciones = async (req, res) => {
         const ventas = await Venta.find({ registro: { $in: registroIds } });
 
         const stats = habitaciones.map(hab => {
-            const regsHab = registros.filter(r => r.habitacion.toString() === hab._id.toString());
+            const regsHab = registros.filter(r => r.habitacion && r.habitacion.toString() === hab._id.toString());
             let ingresosHospedaje = 0;
             let ingresosVentas = 0;
+            let nochesOcupadas = 0;
 
             regsHab.forEach(r => {
+                // Cálculo de ingresos en el periodo
                 r.pagos.forEach(p => {
                     if (p.fecha >= startDate && p.fecha <= endDate) ingresosHospedaje += p.monto;
                 });
@@ -940,6 +1098,12 @@ exports.getRentabilidadHabitaciones = async (req, res) => {
                 ventasReg.forEach(v => {
                     if (v.fecha >= startDate && v.fecha <= endDate) ingresosVentas += v.total;
                 });
+
+                // Cálculo de ocupación en el periodo (noches reales dentro del rango)
+                const start = Math.max(moment(r.fechaEntrada).valueOf(), moment(startDate).valueOf());
+                const end = Math.min(moment(r.fechaSalida || new Date()).valueOf(), moment(endDate).valueOf());
+                const nights = Math.max(0, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
+                nochesOcupadas += nights;
             });
 
             return {
@@ -950,7 +1114,9 @@ exports.getRentabilidadHabitaciones = async (req, res) => {
                 ingresosVentas,
                 total: ingresosHospedaje + ingresosVentas,
                 promedioDia: (ingresosHospedaje + ingresosVentas) / diffDays,
-                numReservas: regsHab.length
+                numReservas: regsHab.length,
+                nochesOcupadas,
+                porcentajeOcupacion: Math.min(100, Math.round((nochesOcupadas / diffDays) * 100))
             };
         });
 
@@ -1020,8 +1186,8 @@ exports.getIngresosCalendarioConsolidado = async (req, res) => {
 exports.getRentabilidadConsolidada = async (req, res) => {
     try {
         const { inicio, fin } = req.query;
-        const startDate = inicio ? moment.tz(`${inicio}T00:00:00`, "America/Bogota").toDate() : moment().subtract(30, 'days').startOf('day').toDate();
-        const endDate = fin ? moment.tz(`${fin}T23:59:59`, "America/Bogota").toDate() : moment().endOf('day').toDate();
+        const startDate = inicio ? moment.tz(inicio, "America/Bogota").startOf('day').toDate() : moment.tz("America/Bogota").subtract(30, 'days').startOf('day').toDate();
+        const endDate = fin ? moment.tz(fin, "America/Bogota").endOf('day').toDate() : moment.tz("America/Bogota").endOf('day').toDate();
 
         const diffDays = Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)));
 
@@ -1041,10 +1207,15 @@ exports.getRentabilidadConsolidada = async (req, res) => {
             return habitaciones.map(hab => {
                 const regsHab = registros.filter(r => r.habitacion && r.habitacion.toString() === hab._id.toString());
                 let total = 0;
+                let nochesOcupadas = 0;
                 regsHab.forEach(r => {
                     r.pagos.forEach(p => { if (p.fecha >= startDate && p.fecha <= endDate) total += p.monto; });
                     const ventasReg = ventas.filter(v => v.registro?.toString() === r._id.toString());
                     ventasReg.forEach(v => { if (v.fecha >= startDate && v.fecha <= endDate) total += v.total; });
+
+                    const start = Math.max(moment(r.fechaEntrada).valueOf(), moment(startDate).valueOf());
+                    const end = Math.min(moment(r.fechaSalida || new Date()).valueOf(), moment(endDate).valueOf());
+                    nochesOcupadas += Math.max(0, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
                 });
                 return {
                     hotel: hotelLabel,
@@ -1054,7 +1225,9 @@ exports.getRentabilidadConsolidada = async (req, res) => {
                     ingresosVentas: ventas.filter(v => regsHab.some(r => r._id.toString() === v.registro?.toString())).reduce((vSum, v) => v.fecha >= startDate && v.fecha <= endDate ? vSum + v.total : vSum, 0),
                     total,
                     promedioDia: total / diffDays,
-                    numReservas: regsHab.length
+                    numReservas: regsHab.length,
+                    nochesOcupadas,
+                    porcentajeOcupacion: Math.min(100, Math.round((nochesOcupadas / diffDays) * 100))
                 };
             });
         };
@@ -1082,7 +1255,7 @@ exports.getMapaHabitacionesConsolidado = async (req, res) => {
                 Venta.find({ registro: { $exists: true } }).lean(),
                 Reserva.find({ 
                     estado: 'Pendiente',
-                    fecha_entrada: { $gte: moment().startOf('day').toDate() }
+                    fecha_entrada: { $gte: moment.tz("America/Bogota").startOf('day').toDate() }
                 }).sort({ fecha_entrada: 1 }).lean()
             ]);
 
@@ -1182,9 +1355,9 @@ exports.getMapaHabitacionesConsolidado = async (req, res) => {
 exports.getStatsConsolidadas = async (req, res) => {
     try {
         const { inicio, fin } = req.query;
-        const startDate = inicio ? moment.tz(`${inicio}T00:00:00`, "America/Bogota").toDate() : moment().subtract(30, 'days').startOf('day').toDate();
-        const endDate = fin ? moment.tz(`${fin}T23:59:59`, "America/Bogota").toDate() : moment().endOf('day').toDate();
-        const next7Days = moment().add(7, 'days').endOf('day').toDate();
+        const startDate = inicio ? moment.tz(inicio, "America/Bogota").startOf('day').toDate() : moment.tz("America/Bogota").subtract(30, 'days').startOf('day').toDate();
+        const endDate = fin ? moment.tz(fin, "America/Bogota").endOf('day').toDate() : moment.tz("America/Bogota").endOf('day').toDate();
+        const next7Days = moment.tz("America/Bogota").add(7, 'days').endOf('day').toDate();
 
         const fetchHotelStats = async (models, hotelLabel) => {
             const { Registro, Venta, Habitacion, Producto, Reserva, Cliente, HotelConfig: HotelConfigModel } = models;
@@ -1193,7 +1366,7 @@ exports.getStatsConsolidadas = async (req, res) => {
             const lowStock = await Producto.find({ $expr: { $lte: ["$stock", "$stockMinimo"] } }).lean();
             const longStayNoPayment = await Registro.find({ 
                 estado: 'activo',
-                fechaEntrada: { $lte: moment().subtract(3, 'days').toDate() }
+                fechaEntrada: { $lte: moment.tz("America/Bogota").subtract(3, 'days').toDate() }
             }).lean();
             // Filtrar los que de verdad no tienen pagos significativos (ej: pagos sum < total*0.1 o algo simple)
             const alertsLongStay = longStayNoPayment.filter(r => {
@@ -1203,7 +1376,7 @@ exports.getStatsConsolidadas = async (req, res) => {
 
             const lateCheckouts = await Registro.find({
                 estado: 'activo',
-                fechaSalida: { $lt: new Date() }
+                fechaSalida: { $lt: moment.tz("America/Bogota").toDate() }
             }).populate('habitacion', 'numero')
               .populate({ path: 'cliente', populate: { path: 'empresa_id' } })
               .lean();
@@ -1234,13 +1407,13 @@ exports.getStatsConsolidadas = async (req, res) => {
             // 3. Pronóstico
             const reservasFuturas = await Reserva.find({
                 estado: 'Pendiente',
-                fecha_entrada: { $gte: new Date(), $lte: next7Days }
+                fecha_entrada: { $gte: moment.tz("America/Bogota").toDate(), $lte: next7Days }
             }).lean();
             const forecastReservas = reservasFuturas.reduce((sum, r) => sum + (r.valor_total || 0), 0);
             
             const checkoutsProximos = await Registro.find({
                 estado: 'activo',
-                fechaSalida: { $gte: new Date(), $lte: next7Days }
+                fechaSalida: { $gte: moment.tz("America/Bogota").toDate(), $lte: next7Days }
             }).lean();
             const forecastCheckouts = checkoutsProximos.reduce((sum, r) => {
                 const totalPagado = (r.pagos || []).reduce((s, p) => s + p.monto, 0);
@@ -1326,9 +1499,7 @@ exports.getStatsConsolidadas = async (req, res) => {
             };
         };
 
-        const plazaModels = await getPlazaModels();
-        const plaza = await fetchHotelStats(plazaModels, 'Plaza');
-        
+        const plaza = await fetchHotelStats({ Registro, Venta, Habitacion, Producto, Reserva, Cliente, HotelConfig: HotelConfig }, 'Plaza');
         const colonialModels = await getColonialModels();
         const colonial = await fetchHotelStats(colonialModels, 'Colonial');
 
@@ -1373,7 +1544,7 @@ exports.getStatsConsolidadas = async (req, res) => {
             .slice(0, 10);
         
         // Fetch clients from both DBs
-        const plazaClients = await plazaModels.Cliente.find({ _id: { $in: topClientIds } }).lean();
+        const plazaClients = await Cliente.find({ _id: { $in: topClientIds } }).lean();
         const colonialClients = await colonialModels.Cliente.find({ _id: { $in: topClientIds } }).lean();
         const allClientsInfo = [...plazaClients, ...colonialClients];
 
@@ -1418,5 +1589,4 @@ exports.getStatsConsolidadas = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
-
 

@@ -246,8 +246,8 @@ const Cotizaciones = () => {
                             <div className="border-l-2 border-slate-100 pl-6">
                                 <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">{viewingCotizacion.hotelSnapshot.nombre}</h2>
                                 <p className="text-slate-500 font-bold text-xs tracking-widest uppercase">Nit: {viewingCotizacion.hotelSnapshot.nit}</p>
-                                <a href={`https://${hotelConfig?.sitioWeb || "www.hotelbalconcolonial.com"}`} target="_blank" rel="noreferrer" className="text-blue-600 font-black text-[10px] hover:underline mt-1 block print:text-slate-800">
-                                    {hotelConfig?.sitioWeb || "www.hotelbalconcolonial.com"}
+                                <a href={`https://${hotelConfig?.sitioWeb || "www.hotelbalconplaza.com"}`} target="_blank" rel="noreferrer" className="text-blue-600 font-black text-[10px] hover:underline mt-1 block print:text-slate-800">
+                                    {hotelConfig?.sitioWeb || "www.hotelbalconplaza.com"}
                                 </a>
                                 <p className="text-slate-400 font-bold text-[10px] mt-2 italic">
                                     Fecha: {format(new Date(viewingCotizacion.fecha), "dd 'de' MMMM, yyyy", { locale: es })}
@@ -692,4 +692,3 @@ const Cotizaciones = () => {
 };
 
 export default Cotizaciones;
-

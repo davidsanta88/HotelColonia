@@ -64,4 +64,3 @@ router.delete('/:abonoId', async (req, res) => {
 });
 
 module.exports = router;
-

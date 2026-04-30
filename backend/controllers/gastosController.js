@@ -53,14 +53,12 @@ const gastosController = {
             let finalFecha = new Date();
             if (fecha_gasto) {
                 // If the provided date is today (local), use the actual current moment instead of forcing time
-                const now = new Date();
-                const todayStr = now.toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
+                const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
                 if (fecha_gasto === todayStr) {
-                    finalFecha = now;
+                    finalFecha = new Date();
                 } else {
-                    // For specific dates, we use 00:00:01 to ensure it's at the start of that day
-                    // This prevents "future" timestamps from skipping morning closures
-                    finalFecha = new Date(`${fecha_gasto}T00:00:01-05:00`);
+                    // For specific dates, we use 12:00 PM to avoid boundary issues
+                    finalFecha = new Date(`${fecha_gasto}T12:00:00-05:00`);
                 }
             }
 
@@ -146,4 +144,3 @@ const gastosController = {
 };
 
 module.exports = gastosController;
-

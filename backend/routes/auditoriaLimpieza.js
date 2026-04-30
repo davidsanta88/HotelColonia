@@ -7,4 +7,3 @@ router.post('/', auditoriaLimpiezaController.createAuditoria);
 router.delete('/:id', auditoriaLimpiezaController.deleteAuditoria);
 
 module.exports = router;
-

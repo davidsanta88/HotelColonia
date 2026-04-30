@@ -3,7 +3,7 @@ import api from '../services/api';
 import Swal from 'sweetalert2';
 import { 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
-    LineChart, Line, AreaChart, Area
+    LineChart, Line, AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
 import { 
     TrendingUp, 
@@ -36,7 +36,9 @@ import {
     Clock,
     CheckCircle,
     Info,
-    FileText
+    FileText,
+    PieChart as PieChartIcon,
+    BarChart3
 } from 'lucide-react';
 import { format, subDays, startOfMonth, differenceInDays, parseISO, addDays } from 'date-fns';
 
@@ -92,19 +94,14 @@ const ComparativaHoteles = () => {
         </div>
     );
 
-    // Prepare chart data by merging labels from both hotels
     const allLabels = Array.from(new Set([
         ...(data?.plaza?.history?.map(p => p.label) || []),
         ...(data?.colonial?.history?.map(c => c.label) || [])
     ])).sort((a, b) => {
-        // Sort labels correctly (DD/MM or Month names)
         const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        
         if (months.includes(a) && months.includes(b)) {
             return months.indexOf(a) - months.indexOf(b);
         }
-        
-        // DD/MM sorting
         try {
             const [da, ma] = a.split('/').map(Number);
             const [db, mb] = b.split('/').map(Number);
@@ -136,7 +133,6 @@ const ComparativaHoteles = () => {
     const plazaExpenses = data?.plaza?.history?.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
     const colonialExpenses = data?.colonial?.history?.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
 
-    // Totales Consolidados
     const totalGlobalIngresos = totalPlaza + totalColonial;
     const totalGlobalEgresos = plazaExpenses + colonialExpenses;
     const totalGlobalTienda = shopPlaza + shopColonial;
@@ -147,7 +143,6 @@ const ComparativaHoteles = () => {
     const totalGlobalMargen = totalGlobalIngresos - totalGlobalEgresos;
     const globalMargenPercent = totalGlobalIngresos > 0 ? (totalGlobalMargen / totalGlobalIngresos) * 100 : 0;
     
-    // Cálculo de Promedio Diario
     const diffDays = Math.max(1, differenceInDays(parseISO(dates.fin), parseISO(dates.inicio)) + 1);
     const globalDailyAvg = totalGlobalIngresos / diffDays;
     const globalExpensesAvg = totalGlobalEgresos / diffDays;
@@ -164,17 +159,17 @@ const ComparativaHoteles = () => {
     const globalFreePercent = globalTotalHabitaciones > 0 ? (globalDisponibles / globalTotalHabitaciones) * 100 : 0;
     const globalAseoPercent = globalTotalHabitaciones > 0 ? (globalAseo / globalTotalHabitaciones) * 100 : 0;
     
-    // Totales de Caja Consolidados
-    const globalCashEfectivo = (data?.plaza?.cash?.efectivo || 0) + (data?.colonial?.cash?.efectivo || 0);
-    const globalCashNequi = (data?.plaza?.cash?.nequi || 0) + (data?.colonial?.cash?.nequi || 0);
-    const globalCashBancolombia = (data?.plaza?.cash?.bancolombia || 0) + (data?.colonial?.cash?.bancolombia || 0);
-    const globalCashTotal = (data?.plaza?.cash?.efectivo || 0) + (data?.colonial?.cash?.efectivo || 0);
+    const incomeMixData = [
+        { name: 'Hotel Plaza', value: totalPlaza, color: '#2563eb' },
+        { name: 'Hotel Colonial', value: totalColonial, color: '#6366f1' }
+    ];
+
+    const globalCashTotal = (data?.plaza?.cash?.efectivo || 0) + (data?.colonial?.cash?.efectivo || 0) + (data?.plaza?.cash?.nequi || 0) + (data?.colonial?.cash?.nequi || 0) + (data?.plaza?.cash?.bancolombia || 0) + (data?.colonial?.cash?.bancolombia || 0);
     const globalCashBase = (data?.plaza?.cash?.base || 0) + (data?.colonial?.cash?.base || 0);
     const globalCashTotalConBase = globalCashTotal + globalCashBase;
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">
-            {/* Header */}
             <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     <div>
@@ -188,7 +183,7 @@ const ComparativaHoteles = () => {
                     </div>
                     
                     <button 
-                        onClick={() => navigate('/caja-diaria-consolidada')}
+                        onClick={() => window.location.href = '/caja-diaria-consolidada'}
                         className="flex items-center justify-center gap-3 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 w-full md:w-auto"
                     >
                         <FileText size={18} />
@@ -196,7 +191,6 @@ const ComparativaHoteles = () => {
                     </button>
                     
                     <div className="flex flex-col sm:flex-row gap-3">
-                        {/* Períodos rápidos */}
                         <div className="flex gap-1 bg-slate-100 p-1 rounded-2xl">
                             {PERIODOS.map((p, i) => (
                                 <button
@@ -208,7 +202,6 @@ const ComparativaHoteles = () => {
                                 </button>
                             ))}
                         </div>
-                        {/* Fechas personalizadas */}
                         <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2">
                             <Calendar size={14} className="text-slate-400" />
                             <input type="date" className="bg-transparent text-[10px] font-bold border-none focus:ring-0 text-slate-700 p-0 w-24"
@@ -224,8 +217,76 @@ const ComparativaHoteles = () => {
                 </div>
             </div>
 
+            {/* 0. SECCIÓN DE LIQUIDEZ MAESTRA (NUEVO) */}
+            <div className="bg-gradient-to-r from-indigo-700 via-indigo-600 to-blue-600 p-10 rounded-[3rem] text-white shadow-2xl shadow-indigo-200 relative overflow-hidden group">
+                {/* Decoración de fondo premium */}
+                <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl group-hover:scale-110 transition-transform duration-[2000ms]" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-3xl" />
+                
+                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-12">
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-white/20 backdrop-blur-xl rounded-[1.5rem] shadow-inner border border-white/10">
+                                <ShieldCheck size={32} className="text-white drop-shadow-sm" />
+                            </div>
+                            <div>
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-100/80">Liquidez Consolidada</span>
+                                <h3 className="text-xl font-black tracking-tight text-white/90">Total en Caja (+Base) Cadena</h3>
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <h2 className="text-6xl md:text-7xl font-black tracking-tighter drop-shadow-2xl">
+                                ${new Intl.NumberFormat().format(globalCashTotalConBase)}
+                            </h2>
+                            <div className="flex items-center gap-3 text-indigo-100/60 font-bold">
+                                <div className="flex -space-x-2">
+                                    <div className="w-6 h-6 rounded-full bg-blue-500 border-2 border-indigo-600 flex items-center justify-center text-[8px] font-black">PZ</div>
+                                    <div className="w-6 h-6 rounded-full bg-indigo-400 border-2 border-indigo-600 flex items-center justify-center text-[8px] font-black">CL</div>
+                                </div>
+                                <span className="text-xs uppercase tracking-widest">Suma de todas las cajas y bases</span>
+                            </div>
+                        </div>
+                    </div>
 
-            {/* Consolidado General */}
+                    <div className="flex-1 max-w-xl bg-white/5 backdrop-blur-md rounded-[2.5rem] p-8 border border-white/10 shadow-inner">
+                        <div className="space-y-6">
+                            <div className="flex justify-between items-end">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-1">Distribución Geográfica</span>
+                                    <span className="text-sm font-black">Plaza vs Colonial</span>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-2xl font-black tracking-tighter">
+                                        {(( ( (data?.plaza?.cash?.efectivo || 0) + (data?.plaza?.cash?.base || 0) + (data?.plaza?.cash?.nequi || 0) + (data?.plaza?.cash?.bancolombia || 0) ) / (globalCashTotalConBase || 1)) * 100).toFixed(0)}%
+                                    </span>
+                                    <span className="text-[10px] font-black text-indigo-200 ml-2 uppercase">Plaza</span>
+                                </div>
+                            </div>
+
+                            <div className="relative h-4 w-full bg-indigo-900/40 rounded-full overflow-hidden border border-white/5">
+                                <div 
+                                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-white to-blue-200 rounded-full shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-1000 ease-out" 
+                                    style={{ width: `${( ( (data?.plaza?.cash?.efectivo || 0) + (data?.plaza?.cash?.base || 0) + (data?.plaza?.cash?.nequi || 0) + (data?.plaza?.cash?.bancolombia || 0) ) / (globalCashTotalConBase || 1)) * 100}%` }} 
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-4 bg-white/5 rounded-2xl border border-white/5 group-hover:bg-white/10 transition-colors">
+                                    <p className="text-[9px] font-black text-indigo-200 uppercase tracking-widest mb-1">Hotel Plaza</p>
+                                    <p className="text-lg font-black">${new Intl.NumberFormat().format( (data?.plaza?.cash?.efectivo || 0) + (data?.plaza?.cash?.base || 0) + (data?.plaza?.cash?.nequi || 0) + (data?.plaza?.cash?.bancolombia || 0) )}</p>
+                                </div>
+                                <div className="p-4 bg-white/5 rounded-2xl border border-white/5 group-hover:bg-white/10 transition-colors">
+                                    <p className="text-[9px] font-black text-indigo-200 uppercase tracking-widest mb-1">Hotel Colonial</p>
+                                    <p className="text-lg font-black">${new Intl.NumberFormat().format( (data?.colonial?.cash?.efectivo || 0) + (data?.colonial?.cash?.base || 0) + (data?.colonial?.cash?.nequi || 0) + (data?.colonial?.cash?.bancolombia || 0) )}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Consolidado General (Restaurado) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* 1. Ingresos Globales */}
                 <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 p-8 rounded-[2.5rem] text-white shadow-xl shadow-emerald-100">
@@ -360,25 +421,113 @@ const ComparativaHoteles = () => {
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* 7. Total en Caja (+Base) Global */}
-                <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 p-8 rounded-[2.5rem] text-white shadow-2xl shadow-indigo-200/50 border border-indigo-400/20 relative overflow-hidden">
-                    {/* Decoración */}
-                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
-                    
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2 relative z-10">Total en Caja (+Base)</p>
-                    <div className="flex items-center justify-between relative z-10">
-                        <h4 className="text-4xl font-black tracking-tighter drop-shadow-sm">
-                            ${new Intl.NumberFormat().format(globalCashTotalConBase)}
-                        </h4>
-                        <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm shadow-inner">
-                            <Lock size={28} />
+            {/* --- SECCIÓN INTELIGENTE: PULSO DE LA CADENA --- */}
+            <div className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-sm">
+                <div className="flex items-center gap-4 mb-10">
+                    <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
+                        <Activity size={24} />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Pulso de la Cadena</h3>
+                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Análisis Comparativo Directo</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
+                                <BarChart3 size={16} /> Rendimiento de Ventas
+                            </h4>
+                            <div className="flex gap-4">
+                                <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase">
+                                    <div className="w-2 h-2 rounded-full bg-[#2563eb]" /> Plaza
+                                </div>
+                                <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase">
+                                    <div className="w-2 h-2 rounded-full bg-[#6366f1]" /> Colonial
+                                </div>
+                            </div>
+                        </div>
+                        <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={[
+                                    { name: 'Total Ingresos', plaza: totalPlaza, colonial: totalColonial },
+                                    { name: 'Ventas Tienda', plaza: shopPlaza, colonial: shopColonial },
+                                    { name: 'Gastos', plaza: plazaExpenses, colonial: colonialExpenses }
+                                ]}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8'}} />
+                                    <YAxis hide />
+                                    <Tooltip 
+                                        cursor={{fill: '#f8fafc'}}
+                                        contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
+                                        formatter={(val) => `$${new Intl.NumberFormat().format(val)}`}
+                                    />
+                                    <Bar dataKey="plaza" fill="#2563eb" radius={[8, 8, 0, 0]} barSize={35} />
+                                    <Bar dataKey="colonial" fill="#6366f1" radius={[8, 8, 0, 0]} barSize={35} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                        <div>
+                            <h4 className="text-sm font-black text-slate-700 uppercase tracking-widest flex items-center gap-2 mb-6">
+                                <PieChartIcon size={16} /> Mix de Ingresos
+                            </h4>
+                            <div className="h-[200px] relative">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={incomeMixData}
+                                            innerRadius={60}
+                                            outerRadius={80}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                        >
+                                            {incomeMixData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip formatter={(val) => `$${new Intl.NumberFormat().format(val)}`} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase">Ingresos</span>
+                                    <span className="text-lg font-black text-slate-900 tracking-tighter">
+                                        {((totalPlaza / (totalGlobalIngresos || 1)) * 100).toFixed(0)}% <span className="text-[9px] text-primary-600">PZ</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col justify-center space-y-8">
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-end">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ocupación Plaza</span>
+                                    <span className="text-sm font-black text-blue-600">{((data?.plaza?.rooms?.ocupadas / (data?.plaza?.rooms?.total || 1)) * 100).toFixed(1)}%</span>
+                                </div>
+                                <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-50">
+                                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${(data?.plaza?.rooms?.ocupadas / (data?.plaza?.rooms?.total || 1)) * 100}%` }} />
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-end">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ocupación Colonial</span>
+                                    <span className="text-sm font-black text-indigo-600">{((data?.colonial?.rooms?.ocupadas / (data?.colonial?.rooms?.total || 1)) * 100).toFixed(1)}%</span>
+                                </div>
+                                <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-50">
+                                    <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${(data?.colonial?.rooms?.ocupadas / (data?.colonial?.rooms?.total || 1)) * 100}%` }} />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Main KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <HotelCard 
                     hotelName="Hotel Balcón Plaza"
@@ -1059,4 +1208,3 @@ const HotelCard = ({ hotelName, income, expenses, dailyAvg, expensesAvg, profitA
 };
 
 export default ComparativaHoteles;
-

@@ -124,4 +124,3 @@ const useCashAlert = () => {
 };
 
 export default useCashAlert;
-

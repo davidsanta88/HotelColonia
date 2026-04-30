@@ -16,4 +16,3 @@ const checkinDigitalSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('CheckinDigital', checkinDigitalSchema);
-

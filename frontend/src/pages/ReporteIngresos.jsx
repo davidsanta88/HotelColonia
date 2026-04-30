@@ -515,4 +515,3 @@ const ReporteIngresos = () => {
 };
 
 export default ReporteIngresos;
-

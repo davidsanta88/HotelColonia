@@ -116,6 +116,48 @@ const DocumentosHotel = () => {
         }
     };
 
+    const handleDownload = async (docId, filename) => {
+        if (!docId) return;
+        
+        try {
+            // Mostrar un pequeño aviso de descarga
+            const toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+            });
+            
+            toast.fire({
+                icon: 'info',
+                title: 'Procesando descarga segura...'
+            });
+
+            // Usar el nuevo endpoint de proxy en el backend
+            const response = await api.get(`/documentos-hotel/download/${docId}`, {
+                responseType: 'blob'
+            });
+            
+            const blob = new Blob([response.data], { type: response.headers['content-type'] });
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            
+            // Asegurar que tenga la extensión correcta
+            const safeFileName = filename.toLowerCase().endsWith('.pdf') ? filename : `${filename}.pdf`;
+            
+            link.download = safeFileName;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (error) {
+            console.error('Download error:', error);
+            Swal.fire('Error', 'No se pudo procesar la descarga desde el servidor. Intente de nuevo.', 'error');
+        }
+    };
+
     const getTipoLabel = (tipo) => {
         const labels = {
             'CEDULA': 'Cédula de Ciudadanía',
@@ -172,15 +214,13 @@ const DocumentosHotel = () => {
                                         <FileCheck size={24} />
                                     </div>
                                     <div className="flex gap-1">
-                                        <a 
-                                            href={doc.url} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
+                                        <button 
+                                            onClick={() => handleDownload(doc._id, doc.nombre)} 
                                             className="p-2 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors"
-                                            title="Ver / Descargar"
+                                            title="Descargar"
                                         >
                                             <Download size={18} />
-                                        </a>
+                                        </button>
                                         <button 
                                             onClick={() => handleDelete(doc._id)}
                                             className="p-2 hover:bg-rose-50 text-rose-600 rounded-lg transition-colors"
@@ -234,7 +274,7 @@ const DocumentosHotel = () => {
                                         type="text" 
                                         name="nombre"
                                         required
-                                        placeholder="Ej: RUT Hotel Colonial 2026"
+                                        placeholder="Ej: RUT Hotel Balcón Plaza 2026"
                                         className="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-rose-500/20 transition-all"
                                         value={formData.nombre}
                                         onChange={handleInputChange}

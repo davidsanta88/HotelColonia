@@ -78,4 +78,3 @@ const VisitorMap = ({ markers = [] }) => {
 };
 
 export default VisitorMap;
-

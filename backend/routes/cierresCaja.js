@@ -9,4 +9,3 @@ router.put('/:id', verifyToken, cierreCajaController.updateCierre);
 router.delete('/:id', verifyToken, cierreCajaController.deleteCierre);
 
 module.exports = router;
-

@@ -7,4 +7,3 @@ const tipoHabitacionSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('TipoHabitacion', tipoHabitacionSchema);
-

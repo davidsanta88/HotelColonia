@@ -25,4 +25,3 @@ export const usePermissions = (screenCode) => {
         canDelete: !!permission?.d
     };
 };
-

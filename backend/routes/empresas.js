@@ -10,4 +10,3 @@ router.put('/:id', verifyToken, empresasController.updateEmpresa);
 router.delete('/:id', verifyToken, empresasController.deleteEmpresa);
 
 module.exports = router;
-

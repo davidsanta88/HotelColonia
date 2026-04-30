@@ -168,4 +168,3 @@ const TiposHabitacion = () => {
 };
 
 export default TiposHabitacion;
-

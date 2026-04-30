@@ -78,4 +78,3 @@ const solicitudesController = {
 };
 
 module.exports = solicitudesController;
-

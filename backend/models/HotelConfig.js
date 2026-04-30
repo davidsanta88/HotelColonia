@@ -24,11 +24,11 @@ const HotelConfigSchema = new mongoose.Schema({
     correo: {
         type: String,
         required: true,
-        default: 'balconcolonialhotel@gmail.com'
+        default: 'reservas@hotelbalconplaza.com'
     },
     sitioWeb: {
         type: String,
-        default: 'www.hotelbalconcolonial.com'
+        default: 'www.hotelbalconplaza.com'
     },
     politica: {
         type: String,
@@ -58,11 +58,19 @@ const HotelConfigSchema = new mongoose.Schema({
     },
     adminCorreo: {
         type: String,
-        default: 'balconcolonialhotel@gmail.com'
+        default: 'administracion@hotelbalconplaza.com'
     },
     firmaUrl: {
         type: String,
         default: null
+    },
+    logoUrl: {
+        type: String,
+        default: '/logo.jpg'
+    },
+    backgroundUrl: {
+        type: String,
+        default: '/hotel_noche.jpg'
     },
     checklistAuditoria: {
         type: [String],
@@ -83,4 +91,3 @@ const HotelConfigSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model('HotelConfig', HotelConfigSchema);
-

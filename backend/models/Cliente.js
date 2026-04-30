@@ -18,4 +18,3 @@ const clienteSchema = new mongoose.Schema({
 });
 
 module.exports = sharedConn.model('Cliente', clienteSchema);
-

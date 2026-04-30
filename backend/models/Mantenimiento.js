@@ -13,4 +13,3 @@ const mantenimientoSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Mantenimiento', mantenimientoSchema);
-

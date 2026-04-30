@@ -16,6 +16,7 @@ router.get('/detalle-ingresos', verifyToken, checkPermission('reporte_ingresos',
 router.get('/detalle-ingresos-consolidado', verifyToken, checkPermission('reporte_ingresos_consolidado', 'v'), reportesController.getDetalleIngresosConsolidado);
 router.get('/huespedes', verifyToken, checkPermission('reportes', 'v'), reportesController.getReporteHuespedes);
 router.get('/ingresos-calendario', verifyToken, checkPermission('reportes', 'v'), reportesController.getIngresosCalendario);
+router.get('/detalle-dia-calendario', verifyToken, checkPermission('reportes', 'v'), reportesController.getDetalleDiaCalendario);
 router.get('/ingresos-calendario-consolidado', verifyToken, checkPermission('calendario_ingresos', 'v'), reportesController.getIngresosCalendarioConsolidado);
 router.get('/rentabilidad-habitaciones', verifyToken, checkPermission('reportes', 'v'), reportesController.getRentabilidadHabitaciones);
 router.get('/rentabilidad-habitaciones-consolidado', verifyToken, checkPermission('rentabilidad', 'v'), reportesController.getRentabilidadConsolidada);
@@ -23,4 +24,3 @@ router.get('/mapa-habitaciones-consolidado', verifyToken, checkPermission('mapa_
 router.get('/stats-consolidado', verifyToken, checkPermission('dashboard', 'v'), reportesController.getStatsConsolidadas);
 
 module.exports = router;
-

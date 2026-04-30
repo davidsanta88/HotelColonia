@@ -18,4 +18,3 @@ router.post('/setup-admin', authController.setupInitialAdmin);
 router.get('/me', verifyToken, authController.getMe);
 
 module.exports = router;
-

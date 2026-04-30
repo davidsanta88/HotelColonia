@@ -734,4 +734,3 @@ const KpiCard = ({ title, value, sub, icon, color, trend }) => {
 };
 
 export default Reports;
-

@@ -9,4 +9,3 @@ router.put('/:id', verifyToken, mantenimientoController.updateMantenimiento);
 router.delete('/:id', verifyToken, mantenimientoController.deleteMantenimiento);
 
 module.exports = router;
-

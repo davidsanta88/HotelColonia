@@ -13,4 +13,3 @@ router.put('/', [verifyToken, isAdmin], hotelConfigController.updateConfig);
 router.post('/upload-firma', [verifyToken, isAdmin, upload.single('firma')], hotelConfigController.uploadFirma);
 
 module.exports = router;
-

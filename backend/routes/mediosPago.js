@@ -9,4 +9,3 @@ router.put('/:id', [verifyToken, isAdmin], mediosPagoController.updateMedioPago)
 router.delete('/:id', [verifyToken, isAdmin], mediosPagoController.deleteMedioPago);
 
 module.exports = router;
-

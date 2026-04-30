@@ -53,4 +53,3 @@ export const getImageUrl = (url, baseUrl = '') => {
     // Otherwise, prepend the base URL
     return `${baseUrl}${url}`;
 };
-

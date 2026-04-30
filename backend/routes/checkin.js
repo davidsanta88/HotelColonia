@@ -12,4 +12,3 @@ router.put('/:id', verifyToken, checkinController.updateCheckinStatus);
 router.delete('/:id', verifyToken, checkinController.deleteCheckin);
 
 module.exports = router;
-

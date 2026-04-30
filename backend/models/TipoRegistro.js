@@ -7,4 +7,3 @@ const tipoRegistroSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('TipoRegistro', tipoRegistroSchema);
-

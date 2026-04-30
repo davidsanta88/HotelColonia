@@ -374,4 +374,3 @@ const DetalleMovimientoModal = ({ isOpen, onClose, transaccion }) => {
 };
 
 export default DetalleMovimientoModal;
-

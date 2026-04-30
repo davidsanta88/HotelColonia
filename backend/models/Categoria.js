@@ -7,4 +7,3 @@ const categoriaSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Categoria', categoriaSchema);
-

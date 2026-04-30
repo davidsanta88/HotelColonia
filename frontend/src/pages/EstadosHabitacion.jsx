@@ -169,4 +169,3 @@ const EstadosHabitacion = () => {
 };
 
 export default EstadosHabitacion;
-
