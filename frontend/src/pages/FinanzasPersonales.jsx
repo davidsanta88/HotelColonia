@@ -199,14 +199,14 @@ const FinanzasPersonales = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 border-l-8 border-l-emerald-500">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Ingresos</p>
-                    <p className="text-3xl font-black text-emerald-600">${new Intl.NumberFormat().format(resumen.ingresos)}</p>
+                    <p className="text-3xl font-black text-emerald-600">${new Intl.NumberFormat('es-CO').format(resumen.ingresos)}</p>
                     <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 w-fit px-3 py-1 rounded-full uppercase tracking-tighter">
                         <TrendingUp size={12} /> Entradas de dinero
                     </div>
                 </div>
                 <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 border-l-8 border-l-rose-500">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Gastos</p>
-                    <p className="text-3xl font-black text-rose-600">${new Intl.NumberFormat().format(resumen.gastos)}</p>
+                    <p className="text-3xl font-black text-rose-600">${new Intl.NumberFormat('es-CO').format(resumen.gastos)}</p>
                     <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-rose-600 bg-rose-50 w-fit px-3 py-1 rounded-full uppercase tracking-tighter">
                         <TrendingDown size={12} /> Salidas de dinero
                     </div>
@@ -214,7 +214,7 @@ const FinanzasPersonales = () => {
                 <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 border-l-8 border-l-primary-500">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Balance Neto</p>
                     <p className={`text-3xl font-black ${resumen.balance >= 0 ? 'text-primary-600' : 'text-rose-600'}`}>
-                        ${new Intl.NumberFormat().format(resumen.balance)}
+                        ${new Intl.NumberFormat('es-CO').format(resumen.balance)}
                     </p>
                     <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-primary-600 bg-primary-50 w-fit px-3 py-1 rounded-full uppercase tracking-tighter">
                         <DollarSign size={12} /> Saldo disponible
@@ -311,7 +311,7 @@ const FinanzasPersonales = () => {
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <p className={`text-sm font-black ${item.tipo === 'ingreso' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                            {item.tipo === 'ingreso' ? '+' : '-'}${new Intl.NumberFormat().format(item.monto)}
+                                            {item.tipo === 'ingreso' ? '+' : '-'}${new Intl.NumberFormat('es-CO').format(item.monto)}
                                         </p>
                                         <button 
                                             onClick={() => handleDeleteRecord(item._id)}
