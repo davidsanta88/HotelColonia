@@ -18,7 +18,7 @@ const personalFinanceSchema = new mongoose.Schema({
     },
     descripcion: {
         type: String,
-        required: true
+        default: ''
     },
     fecha: {
         type: Date,

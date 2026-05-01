@@ -87,7 +87,10 @@ const FinanzasPersonales = () => {
             setFormData({ ...formData, monto: '', descripcion: '' });
             fetchData();
         } catch (error) {
-            Swal.fire('Error', 'No se pudo guardar el registro', 'error');
+            console.error('Error saving record:', error);
+            const msg = error.response?.data?.mensaje || 'No se pudo guardar el registro';
+            const details = error.response?.data?.error || '';
+            Swal.fire('Error', `${msg}${details ? `: ${details}` : ''}`, 'error');
         }
     };
 
