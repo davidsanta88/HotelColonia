@@ -395,13 +395,19 @@ async function getCashBalance(models) {
         let cash = 0;
         let nequi = 0;
         let bancolombia = 0;
+        let otros = 0;
 
         const processMedio = (medio, monto) => {
-            const m = (medio || '').toUpperCase();
-            if (m.includes('NEQUI')) nequi += monto;
-            else if (m.includes('BANCOLOMBIA') || m.includes('TRANS')) bancolombia += monto;
-            else if (m.includes('EFECTIVO') || m === '') cash += monto;
-            else cash += monto; // Default to cash for others if not specified
+            let m = (medio || 'EFECTIVO').toUpperCase().trim();
+            if (m.includes('BANCOLOMBIA') || m === 'TRANSFERENCIA') m = 'TRANSFERENCIA BANCOLOMBIA';
+            else if (m.includes('NEQUI')) m = 'NEQUI';
+            else if (m.includes('EFECTIVO') || m === 'CASH') m = 'EFECTIVO';
+            else m = 'OTROS';
+
+            if (m === 'NEQUI') nequi += monto;
+            else if (m === 'TRANSFERENCIA BANCOLOMBIA') bancolombia += monto;
+            else if (m === 'EFECTIVO') cash += monto;
+            else otros += monto;
         };
 
         pagosRegistros.forEach(reg => {
@@ -434,7 +440,8 @@ async function getCashBalance(models) {
             efectivo: cash,
             nequi: nequi,
             bancolombia: bancolombia,
-            total: cash + nequi + bancolombia,
+            otros: otros,
+            total: cash + nequi + bancolombia + otros,
             base: base,
             ultimaFecha: startDate
         };

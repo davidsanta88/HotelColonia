@@ -166,7 +166,7 @@ const ComparativaHoteles = () => {
         { name: 'Hotel Colonial', value: totalColonial, color: '#6366f1' }
     ];
 
-    const globalCashTotal = (data?.plaza?.cash?.efectivo || 0) + (data?.colonial?.cash?.efectivo || 0) + (data?.plaza?.cash?.nequi || 0) + (data?.colonial?.cash?.nequi || 0) + (data?.plaza?.cash?.bancolombia || 0) + (data?.colonial?.cash?.bancolombia || 0);
+    const globalCashTotal = (data?.plaza?.cash?.efectivo || 0) + (data?.colonial?.cash?.efectivo || 0);
     const globalCashBase = (data?.plaza?.cash?.base || 0) + (data?.colonial?.cash?.base || 0);
     const globalCashTotalConBase = globalCashTotal + globalCashBase;
 
@@ -252,11 +252,11 @@ const ComparativaHoteles = () => {
                         <div className="grid grid-cols-2 gap-4 pt-4">
                             <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
                                 <p className="text-[9px] font-black text-indigo-200 uppercase tracking-widest mb-1">Hotel Plaza</p>
-                                <p className="text-xl font-black">${new Intl.NumberFormat().format( (data?.plaza?.cash?.efectivo || 0) + (data?.plaza?.cash?.base || 0) + (data?.plaza?.cash?.nequi || 0) + (data?.plaza?.cash?.bancolombia || 0) )}</p>
+                                <p className="text-xl font-black">${new Intl.NumberFormat().format( (data?.plaza?.cash?.efectivo || 0) + (data?.plaza?.cash?.base || 0) )}</p>
                             </div>
                             <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
                                 <p className="text-[9px] font-black text-indigo-200 uppercase tracking-widest mb-1">Hotel Colonial</p>
-                                <p className="text-xl font-black">${new Intl.NumberFormat().format( (data?.colonial?.cash?.efectivo || 0) + (data?.colonial?.cash?.base || 0) + (data?.colonial?.cash?.nequi || 0) + (data?.colonial?.cash?.bancolombia || 0) )}</p>
+                                <p className="text-xl font-black">${new Intl.NumberFormat().format( (data?.colonial?.cash?.efectivo || 0) + (data?.colonial?.cash?.base || 0) )}</p>
                             </div>
                         </div>
                     </div>
