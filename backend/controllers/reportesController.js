@@ -896,12 +896,12 @@ exports.getCuadreCaja = async (req, res) => {
             });
         });
 
-        // Estandarizar nombres de medios de pago según pedido del usuario
+        // Estandarizar nombres de medios de pago
         transacciones = transacciones.map(t => {
-            let medio = t.medioPago;
+            let medio = (t.medioPago || 'EFECTIVO').toUpperCase().trim();
             if (medio.includes('BANCOLOMBIA') || medio === 'TRANSFERENCIA') medio = 'TRANSFERENCIA BANCOLOMBIA';
-            if (medio.includes('NEQUI')) medio = 'NEQUI';
-            if (medio.includes('EFECTIVO') || medio === 'CASH') medio = 'EFECTIVO';
+            else if (medio.includes('NEQUI')) medio = 'NEQUI';
+            else if (medio.includes('EFECTIVO') || medio === 'CASH') medio = 'EFECTIVO';
             return { ...t, medioPago: medio };
         });
 
@@ -920,20 +920,22 @@ exports.getCuadreCaja = async (req, res) => {
         };
 
         transacciones.forEach(t => {
-            if (t.monto > 0) {
-                resumen.ingresos_totales += t.monto;
-                if (t.medioPago === 'NEQUI') resumen.total_nequi += t.monto;
-                else if (t.medioPago === 'TRANSFERENCIA BANCOLOMBIA') resumen.total_bancolombia += t.monto;
-                else if (t.medioPago === 'EFECTIVO') resumen.total_efectivo += t.monto;
-                else resumen.total_otros += t.monto;
-            } else {
-                resumen.egresos_totales += Math.abs(t.monto);
-                // Los gastos restan del efectivo por defecto si no se especifica? 
-                // En realidad dependen del medio de pago del gasto.
-                if (t.medioPago === 'NEQUI') resumen.total_nequi += t.monto;
-                else if (t.medioPago === 'TRANSFERENCIA BANCOLOMBIA') resumen.total_bancolombia += t.monto;
-                else if (t.medioPago === 'EFECTIVO') resumen.total_efectivo += t.monto;
-                else resumen.total_otros += t.monto;
+            const monto = t.monto || 0;
+            if (monto > 0) {
+                resumen.ingresos_totales += monto;
+                if (t.medioPago === 'NEQUI') resumen.total_nequi += monto;
+                else if (t.medioPago === 'TRANSFERENCIA BANCOLOMBIA') resumen.total_bancolombia += monto;
+                else if (t.medioPago === 'EFECTIVO') resumen.total_efectivo += monto;
+                else resumen.total_otros += monto;
+            } else if (monto < 0) {
+                const absMonto = Math.abs(monto);
+                resumen.egresos_totales += absMonto;
+                
+                // Solo restar del efectivo si el egreso fue en efectivo
+                if (t.medioPago === 'NEQUI') resumen.total_nequi += monto;
+                else if (t.medioPago === 'TRANSFERENCIA BANCOLOMBIA') resumen.total_bancolombia += monto;
+                else if (t.medioPago === 'EFECTIVO') resumen.total_efectivo += monto;
+                else resumen.total_otros += monto;
             }
         });
 
