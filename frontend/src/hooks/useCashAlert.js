@@ -2,8 +2,10 @@ import { useEffect, useContext, useState } from 'react';
 import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
 
 const useCashAlert = () => {
+    const navigate = useNavigate();
     const { user } = useContext(AuthContext);
     const [hasAlerted, setHasAlerted] = useState(false);
 
@@ -106,7 +108,7 @@ const useCashAlert = () => {
                         footer: '<span class="text-[10px] text-slate-400 font-black uppercase tracking-widest text-center w-full">Seguridad Balcón Hoteles - Monitoreo en Tiempo Real</span>'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            window.location.href = '/cuadre-caja';
+                            navigate('/cuadre-caja');
                         }
                     });
                 }

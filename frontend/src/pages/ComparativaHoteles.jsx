@@ -41,6 +41,7 @@ import {
     BarChart3
 } from 'lucide-react';
 import { format, subDays, startOfMonth, differenceInDays, parseISO, addDays } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const PERIODOS = [
     { label: 'Hoy', getDates: () => ({ inicio: format(new Date(), 'yyyy-MM-dd'), fin: format(new Date(), 'yyyy-MM-dd') }) },
@@ -51,6 +52,7 @@ const PERIODOS = [
 ];
 
 const ComparativaHoteles = () => {
+    const navigate = useNavigate();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [periodoActivo, setPeriodoActivo] = useState(3);
@@ -183,7 +185,7 @@ const ComparativaHoteles = () => {
                     </div>
                     
                     <button 
-                        onClick={() => window.location.href = '/caja-diaria-consolidada'}
+                        onClick={() => navigate('/caja-diaria-consolidada')}
                         className="flex items-center justify-center gap-3 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 w-full md:w-auto"
                     >
                         <FileText size={18} />

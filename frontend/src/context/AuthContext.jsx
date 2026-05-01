@@ -29,22 +29,29 @@ export const AuthProvider = ({ children }) => {
                 // Check basically expiration
                 if (decoded.exp * 1000 < Date.now()) {
                     logout();
+                    setLoading(false);
                 } else {
                     const savedUser = JSON.parse(userData);
+                    setUser(savedUser); // Set immediately to prevent PrivateRoute redirect
+                    
                     api.get('/auth/me').then(res => {
                         const updatedUser = { ...savedUser, ...res.data };
                         localStorage.setItem('user', JSON.stringify(updatedUser));
                         setUser(updatedUser);
                     }).catch(e => {
                         console.error("Refresh token error", e);
-                        setUser(savedUser);
+                        // Keep savedUser if refresh fails but token is not expired
+                    }).finally(() => {
+                        setLoading(false);
                     });
                 }
             } catch (err) {
                 logout();
+                setLoading(false);
             }
+        } else {
+            setLoading(false);
         }
-        setLoading(false);
     }, []);
 
     const login = async (email, password) => {
