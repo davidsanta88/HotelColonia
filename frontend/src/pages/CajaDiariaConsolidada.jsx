@@ -412,56 +412,67 @@ const CajaDiariaConsolidada = () => {
                     <table className="w-full text-left border-separate border-spacing-0">
                         <thead>
                             <tr className="bg-slate-50/50">
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Día / Mes</th>
+                                <th rowSpan="2" className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 border-r border-slate-100">Día / Mes</th>
                                 
                                 {(viewMode === 'all' || viewMode === 'plaza') && (
+                                    <th colSpan={detailedView ? 5 : 4} className="px-6 py-3 text-[10px] font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 bg-blue-50/30 text-center border-r border-slate-100">Hotel Balcón Plaza</th>
+                                )}
+
+                                {(viewMode === 'all' || viewMode === 'colonial') && (
+                                    <th colSpan={detailedView ? 5 : 4} className="px-6 py-3 text-[10px] font-black text-orange-600 uppercase tracking-widest border-b border-slate-100 bg-orange-50/30 text-center border-r border-slate-100">Hotel Balcón Colonial</th>
+                                )}
+
+                                {viewMode === 'all' && (
+                                    <th colSpan="4" className="px-6 py-3 text-[10px] font-black text-indigo-600 uppercase tracking-widest border-b border-slate-100 bg-indigo-50/30 text-center">Consolidado Total</th>
+                                )}
+                            </tr>
+                            <tr className="bg-slate-50/20">
+                                {(viewMode === 'all' || viewMode === 'plaza') && (
                                     <>
-                                        <th className="px-6 py-5 text-[10px] font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 bg-blue-50/30 text-center">Plaza</th>
+                                        <th className="px-6 py-3 text-[9px] font-black text-blue-400 uppercase border-b border-slate-100 bg-blue-50/10">Ingresos</th>
                                         {detailedView && (
                                             <>
-                                                <th className="px-4 py-5 text-[9px] font-black text-blue-400 uppercase border-b border-slate-100 bg-blue-50/10">Hosp.</th>
-                                                <th className="px-4 py-5 text-[9px] font-black text-blue-400 uppercase border-b border-slate-100 bg-blue-50/10">Tienda</th>
-                                                <th className="px-4 py-5 text-[9px] font-black text-blue-400 uppercase border-b border-slate-100 bg-blue-50/10">Ocup.</th>
+                                                <th className="px-4 py-3 text-[9px] font-black text-blue-400 uppercase border-b border-slate-100 bg-blue-50/10">Hosp.</th>
+                                                <th className="px-4 py-3 text-[9px] font-black text-blue-400 uppercase border-b border-slate-100 bg-blue-50/10">Tienda</th>
+                                                <th className="px-4 py-3 text-[9px] font-black text-blue-400 uppercase border-b border-slate-100 bg-blue-50/10 text-center">Ocup.</th>
                                             </>
                                         )}
                                         {!detailedView && (
                                             <>
-                                                <th className="px-6 py-5 text-[10px] font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 bg-blue-50/30">Ingresos</th>
-                                                <th className="px-6 py-5 text-[10px] font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 bg-blue-50/30">Egresos</th>
-                                                <th className="px-6 py-5 text-[10px] font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 bg-blue-50/30">Neto</th>
+                                                <th className="px-6 py-3 text-[9px] font-black text-blue-400 uppercase border-b border-slate-100 bg-blue-50/10">Egresos</th>
+                                                <th className="px-6 py-3 text-[9px] font-black text-blue-400 uppercase border-b border-slate-100 bg-blue-50/10">Neto</th>
                                             </>
                                         )}
-                                        <th className="px-6 py-5 text-[10px] font-black text-blue-600 uppercase tracking-widest border-b border-slate-100 bg-blue-50/30 text-center">% Rent</th>
+                                        <th className="px-6 py-3 text-[9px] font-black text-blue-400 uppercase border-b border-slate-100 bg-blue-50/10 text-center">% Rent</th>
                                     </>
                                 )}
 
                                 {(viewMode === 'all' || viewMode === 'colonial') && (
                                     <>
-                                        <th className="px-6 py-5 text-[10px] font-black text-orange-600 uppercase tracking-widest border-b border-slate-100 bg-orange-50/30 text-center">Colonial</th>
+                                        <th className="px-6 py-3 text-[9px] font-black text-orange-400 uppercase border-b border-slate-100 bg-orange-50/10 border-l border-slate-100">Ingresos</th>
                                         {detailedView && (
                                             <>
-                                                <th className="px-4 py-5 text-[9px] font-black text-orange-400 uppercase border-b border-slate-100 bg-orange-50/10">Hosp.</th>
-                                                <th className="px-4 py-5 text-[9px] font-black text-orange-400 uppercase border-b border-slate-100 bg-orange-50/10">Tienda</th>
-                                                <th className="px-4 py-5 text-[9px] font-black text-orange-400 uppercase border-b border-slate-100 bg-orange-50/10">Ocup.</th>
+                                                <th className="px-4 py-3 text-[9px] font-black text-orange-400 uppercase border-b border-slate-100 bg-orange-50/10">Hosp.</th>
+                                                <th className="px-4 py-3 text-[9px] font-black text-orange-400 uppercase border-b border-slate-100 bg-orange-50/10">Tienda</th>
+                                                <th className="px-4 py-3 text-[9px] font-black text-orange-400 uppercase border-b border-slate-100 bg-orange-50/10 text-center">Ocup.</th>
                                             </>
                                         )}
                                         {!detailedView && (
                                             <>
-                                                <th className="px-6 py-5 text-[10px] font-black text-orange-600 uppercase tracking-widest border-b border-slate-100 bg-orange-50/30">Ingresos</th>
-                                                <th className="px-6 py-5 text-[10px] font-black text-orange-600 uppercase tracking-widest border-b border-slate-100 bg-orange-50/30">Egresos</th>
-                                                <th className="px-6 py-5 text-[10px] font-black text-orange-600 uppercase tracking-widest border-b border-slate-100 bg-orange-50/30">Neto</th>
+                                                <th className="px-6 py-3 text-[9px] font-black text-orange-400 uppercase border-b border-slate-100 bg-orange-50/10">Egresos</th>
+                                                <th className="px-6 py-3 text-[9px] font-black text-orange-400 uppercase border-b border-slate-100 bg-orange-50/10">Neto</th>
                                             </>
                                         )}
-                                        <th className="px-6 py-5 text-[10px] font-black text-orange-600 uppercase tracking-widest border-b border-slate-100 bg-orange-50/30 text-center">% Rent</th>
+                                        <th className="px-6 py-3 text-[9px] font-black text-orange-400 uppercase border-b border-slate-100 bg-orange-50/10 text-center">% Rent</th>
                                     </>
                                 )}
 
                                 {viewMode === 'all' && (
                                     <>
-                                        <th className="px-6 py-5 text-[10px] font-black text-indigo-600 uppercase tracking-widest border-b border-slate-100 bg-indigo-50/30">Total Ing</th>
-                                        <th className="px-6 py-5 text-[10px] font-black text-indigo-600 uppercase tracking-widest border-b border-slate-100 bg-indigo-50/30">Total Egr</th>
-                                        <th className="px-6 py-5 text-[10px] font-black text-indigo-600 uppercase tracking-widest border-b border-slate-100 bg-indigo-50/30">Saldo Final</th>
-                                        <th className="px-6 py-5 text-[10px] font-black text-indigo-600 uppercase tracking-widest border-b border-slate-100 bg-indigo-50/30 text-center">Rent %</th>
+                                        <th className="px-6 py-3 text-[9px] font-black text-indigo-400 uppercase border-b border-slate-100 bg-indigo-50/10 border-l border-slate-100">Total Ing</th>
+                                        <th className="px-6 py-3 text-[9px] font-black text-indigo-400 uppercase border-b border-slate-100 bg-indigo-50/10">Total Egr</th>
+                                        <th className="px-6 py-3 text-[9px] font-black text-indigo-400 uppercase border-b border-slate-100 bg-indigo-50/10">Neto Final</th>
+                                        <th className="px-6 py-3 text-[9px] font-black text-indigo-400 uppercase border-b border-slate-100 bg-indigo-50/10 text-center">Rent %</th>
                                     </>
                                 )}
                             </tr>
