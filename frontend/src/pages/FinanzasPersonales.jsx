@@ -33,6 +33,19 @@ const FinanzasPersonales = () => {
     const [categories, setCategories] = useState([]);
     const [resumen, setResumen] = useState({ ingresos: 0, gastos: 0, balance: 0 });
     const [metrics, setMetrics] = useState([]);
+    const [config, setConfig] = useState(null);
+
+    useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const res = await api.get('/hotel-config');
+                setConfig(res.data);
+            } catch (error) {
+                console.error('Error fetching hotel config:', error);
+            }
+        };
+        fetchConfig();
+    }, []);
 
     // Formulario Finanzas
     const [formData, setFormData] = useState({
@@ -67,7 +80,8 @@ const FinanzasPersonales = () => {
 
     const handlePinSubmit = (e) => {
         e.preventDefault();
-        if (pin === '123') {
+        const validPin = config?.pinFinanzas || '123';
+        if (pin === validPin) {
             setIsAuthenticated(true);
             fetchData();
         } else {

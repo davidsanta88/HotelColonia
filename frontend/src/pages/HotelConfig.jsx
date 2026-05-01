@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Swal from 'sweetalert2';
-import { Save, Building2, Phone, Mail, MapPin, FileText, Info, CreditCard, Globe, Quote, X, DollarSign, ShieldAlert, TrendingDown } from 'lucide-react';
+import { Save, Building2, Phone, Mail, MapPin, FileText, Info, CreditCard, Globe, Quote, X, DollarSign, ShieldAlert, TrendingDown, Lock } from 'lucide-react';
 
 const HotelConfig = () => {
     const [config, setConfig] = useState({
@@ -14,7 +14,8 @@ const HotelConfig = () => {
         politica: '',
         datosBancarios: '',
         lema: '',
-        checklistAuditoria: []
+        checklistAuditoria: [],
+        pinFinanzas: '123'
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -290,6 +291,29 @@ const HotelConfig = () => {
                             </div>
                             <p className="mt-2 text-[10px] text-amber-600/60 font-medium italic">* Genera alertas si el precio cobrado es menor al recomendado (según # de personas) restando esta tolerancia. Ej: Si es 10% y la hab. vale $80.000, alertará si cobran menos de $72.000.</p>
                         </div>
+                    </div>
+
+                    {/* SEGURIDAD Y PRIVACIDAD */}
+                    <div className="bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-800 hover:shadow-md transition-shadow md:col-span-2">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Lock className="text-white" size={24} />
+                            <h3 className="text-sm font-black text-white uppercase tracking-widest">Seguridad y Privacidad</h3>
+                        </div>
+                        <label className="block text-xs font-black text-slate-400 uppercase mb-2 ml-1">PIN Acceso Finanzas Personales</label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                                <Lock size={18} />
+                            </div>
+                            <input
+                                type="password"
+                                name="pinFinanzas"
+                                value={config.pinFinanzas || ''}
+                                onChange={handleChange}
+                                className="block w-full pl-10 pr-3 py-2.5 border border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-black text-white bg-slate-800"
+                                placeholder="Clave de 3 o 4 dígitos"
+                            />
+                        </div>
+                        <p className="mt-2 text-[10px] text-slate-500 font-medium italic">* Esta clave protege el acceso al módulo de Finanzas Personales. Úsela para mantener su información financiera privada.</p>
                     </div>
 
                     {/* SECCIÓN ADMINISTRADOR (FIRMA) */}

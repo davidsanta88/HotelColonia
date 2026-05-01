@@ -84,6 +84,10 @@ const HotelConfigSchema = new mongoose.Schema({
         type: Number,
         default: 10 // 10% de tolerancia por defecto
     },
+    pinFinanzas: {
+        type: String,
+        default: '123'
+    },
     updatedAt: {
         type: Date,
         default: Date.now
