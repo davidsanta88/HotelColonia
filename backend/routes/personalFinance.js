@@ -3,6 +3,7 @@ const router = express.Router();
 const { 
     getPersonalFinances, 
     createPersonalFinance, 
+    updatePersonalFinance,
     deletePersonalFinance,
     getPersonalCategories,
     createPersonalCategory,
@@ -15,6 +16,7 @@ router.use(verifyToken);
 // Finanzas
 router.get('/', getPersonalFinances);
 router.post('/', createPersonalFinance);
+router.put('/:id', updatePersonalFinance);
 router.delete('/:id', deletePersonalFinance);
 
 // Categorías

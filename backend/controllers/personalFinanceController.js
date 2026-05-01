@@ -92,3 +92,21 @@ exports.deletePersonalFinance = async (req, res) => {
         res.status(500).json({ mensaje: 'Error al eliminar', error: error.message });
     }
 };
+
+exports.updatePersonalFinance = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { tipo, categoria_id, monto, descripcion, fecha } = req.body;
+        
+        const updated = await PersonalFinance.findOneAndUpdate(
+            { _id: id, usuario_id: req.userId },
+            { tipo, categoria_id, monto, descripcion, fecha },
+            { new: true }
+        );
+        
+        if (!updated) return res.status(404).json({ mensaje: 'Registro no encontrado' });
+        res.json(updated);
+    } catch (error) {
+        res.status(400).json({ mensaje: 'Error al actualizar', error: error.message });
+    }
+};

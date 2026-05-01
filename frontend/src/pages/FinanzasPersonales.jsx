@@ -14,7 +14,8 @@ import {
     DollarSign,
     X,
     CheckCircle2,
-    ClipboardList
+    ClipboardList,
+    Edit2
 } from 'lucide-react';
 import { 
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip, 
@@ -34,6 +35,8 @@ const FinanzasPersonales = () => {
     const [resumen, setResumen] = useState({ ingresos: 0, gastos: 0, balance: 0 });
     const [metrics, setMetrics] = useState([]);
     const [config, setConfig] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
         const fetchConfig = async () => {
@@ -96,9 +99,22 @@ const FinanzasPersonales = () => {
             return Swal.fire('Atención', 'Complete los campos obligatorios', 'warning');
         }
         try {
-            await api.post('/personal-finance', formData);
-            Swal.fire('Éxito', 'Registro guardado', 'success');
-            setFormData({ ...formData, monto: '', descripcion: '' });
+            if (isEditing) {
+                await api.put(`/personal-finance/${editingId}`, formData);
+                Swal.fire('Éxito', 'Registro actualizado', 'success');
+            } else {
+                await api.post('/personal-finance', formData);
+                Swal.fire('Éxito', 'Registro guardado', 'success');
+            }
+            setFormData({ 
+                tipo: 'gasto',
+                categoria_id: '',
+                monto: '', 
+                descripcion: '',
+                fecha: new Date().toISOString().split('T')[0]
+            });
+            setIsEditing(false);
+            setEditingId(null);
             fetchData();
         } catch (error) {
             console.error('Error saving record:', error);
@@ -106,6 +122,31 @@ const FinanzasPersonales = () => {
             const details = error.response?.data?.error || '';
             Swal.fire('Error', `${msg}${details ? `: ${details}` : ''}`, 'error');
         }
+    };
+
+    const handleEditClick = (item) => {
+        setIsEditing(true);
+        setEditingId(item._id);
+        setFormData({
+            tipo: item.tipo,
+            categoria_id: item.categoria_id?._id || '',
+            monto: item.monto,
+            descripcion: item.descripcion,
+            fecha: new Date(item.fecha).toISOString().split('T')[0]
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        setEditingId(null);
+        setFormData({ 
+            tipo: 'gasto',
+            categoria_id: '',
+            monto: '', 
+            descripcion: '',
+            fecha: new Date().toISOString().split('T')[0]
+        });
     };
 
     const handleDeleteRecord = async (id) => {
@@ -240,8 +281,19 @@ const FinanzasPersonales = () => {
                 {/* Form & List */}
                 <div className="space-y-6">
                     <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-                        <h3 className="text-lg font-black text-slate-900 mb-6 uppercase tracking-tight flex items-center gap-2">
-                            <PlusCircle size={20} className="text-primary-500" /> Nuevo Registro
+                        <h3 className="text-lg font-black text-slate-900 mb-6 uppercase tracking-tight flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                {isEditing ? <Edit2 size={20} className="text-amber-500" /> : <PlusCircle size={20} className="text-primary-500" />}
+                                {isEditing ? 'Editar Registro' : 'Nuevo Registro'}
+                            </div>
+                            {isEditing && (
+                                <button 
+                                    onClick={handleCancelEdit}
+                                    className="text-[10px] bg-slate-100 text-slate-500 px-3 py-1 rounded-full hover:bg-slate-200 transition-all"
+                                >
+                                    Cancelar
+                                </button>
+                            )}
                         </h3>
                         <form onSubmit={handleAddRecord} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1">
@@ -298,8 +350,8 @@ const FinanzasPersonales = () => {
                                 />
                             </div>
                             <div className="md:col-span-2 pt-2">
-                                <button className="w-full py-4 bg-primary-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-primary-700 transition-all shadow-lg active:scale-95">
-                                    Guardar Registro
+                                <button className={`w-full py-4 ${isEditing ? 'bg-amber-500 hover:bg-amber-600' : 'bg-primary-600 hover:bg-primary-700'} text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-95`}>
+                                    {isEditing ? 'Actualizar Registro' : 'Guardar Registro'}
                                 </button>
                             </div>
                         </form>
@@ -327,12 +379,20 @@ const FinanzasPersonales = () => {
                                         <p className={`text-sm font-black ${item.tipo === 'ingreso' ? 'text-emerald-600' : 'text-rose-600'}`}>
                                             {item.tipo === 'ingreso' ? '+' : '-'}${new Intl.NumberFormat('es-CO').format(item.monto)}
                                         </p>
-                                        <button 
-                                            onClick={() => handleDeleteRecord(item._id)}
-                                            className="p-2 text-slate-300 hover:text-rose-600 transition-colors opacity-0 group-hover:opacity-100"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        <div className="flex items-center gap-1">
+                                            <button 
+                                                onClick={() => handleEditClick(item)}
+                                                className="p-2 text-slate-300 hover:text-amber-500 transition-colors opacity-0 group-hover:opacity-100"
+                                            >
+                                                <Edit2 size={16} />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDeleteRecord(item._id)}
+                                                className="p-2 text-slate-300 hover:text-rose-600 transition-colors opacity-0 group-hover:opacity-100"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
