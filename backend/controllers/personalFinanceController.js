@@ -1,5 +1,6 @@
 const PersonalFinance = require('../models/PersonalFinance');
 const PersonalCategory = require('../models/PersonalCategory');
+const PersonalGoal = require('../models/PersonalGoal');
 
 // --- Categorías ---
 exports.getPersonalCategories = async (req, res) => {
@@ -108,5 +109,69 @@ exports.updatePersonalFinance = async (req, res) => {
         res.json(updated);
     } catch (error) {
         res.status(400).json({ mensaje: 'Error al actualizar', error: error.message });
+    }
+};
+
+// --- Metas de Ahorro ---
+exports.getPersonalGoals = async (req, res) => {
+    try {
+        const goals = await PersonalGoal.find({ usuario_id: req.userId }).sort({ createdAt: -1 });
+        res.json(goals);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener metas', error: error.message });
+    }
+};
+
+exports.createPersonalGoal = async (req, res) => {
+    try {
+        const { nombre, montoObjetivo, fechaLimite, color } = req.body;
+        const newGoal = new PersonalGoal({
+            nombre, montoObjetivo, fechaLimite, color, usuario_id: req.userId
+        });
+        await newGoal.save();
+        res.status(201).json(newGoal);
+    } catch (error) {
+        res.status(400).json({ mensaje: 'Error al crear meta', error: error.message });
+    }
+};
+
+exports.updatePersonalGoal = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updated = await PersonalGoal.findOneAndUpdate(
+            { _id: id, usuario_id: req.userId },
+            req.body,
+            { new: true }
+        );
+        res.json(updated);
+    } catch (error) {
+        res.status(400).json({ mensaje: 'Error al actualizar meta', error: error.message });
+    }
+};
+
+exports.deletePersonalGoal = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await PersonalGoal.deleteOne({ _id: id, usuario_id: req.userId });
+        res.json({ mensaje: 'Meta eliminada' });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al eliminar meta', error: error.message });
+    }
+};
+
+exports.contributeToGoal = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { monto } = req.body;
+        
+        const goal = await PersonalGoal.findOne({ _id: id, usuario_id: req.userId });
+        if (!goal) return res.status(404).json({ mensaje: 'Meta no encontrada' });
+        
+        goal.montoActual += parseFloat(monto);
+        await goal.save();
+        
+        res.json(goal);
+    } catch (error) {
+        res.status(400).json({ mensaje: 'Error al registrar abono', error: error.message });
     }
 };

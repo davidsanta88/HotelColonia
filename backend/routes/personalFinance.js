@@ -7,7 +7,12 @@ const {
     deletePersonalFinance,
     getPersonalCategories,
     createPersonalCategory,
-    deletePersonalCategory
+    deletePersonalCategory,
+    getPersonalGoals,
+    createPersonalGoal,
+    updatePersonalGoal,
+    deletePersonalGoal,
+    contributeToGoal
 } = require('../controllers/personalFinanceController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -23,5 +28,12 @@ router.delete('/:id', deletePersonalFinance);
 router.get('/categories', getPersonalCategories);
 router.post('/categories', createPersonalCategory);
 router.delete('/categories/:id', deletePersonalCategory);
+
+// Metas
+router.get('/goals', getPersonalGoals);
+router.post('/goals', createPersonalGoal);
+router.put('/goals/:id', updatePersonalGoal);
+router.delete('/goals/:id', deletePersonalGoal);
+router.post('/goals/:id/contribute', contributeToGoal);
 
 module.exports = router;

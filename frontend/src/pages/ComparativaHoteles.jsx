@@ -274,7 +274,7 @@ const ComparativaHoteles = () => {
                             <h2 className="text-7xl font-black tracking-tighter text-indigo-600">
                                 {globalOccupancyPercent.toFixed(1)}%
                             </h2>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Capacidad Total</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Capacidad Total ({globalOcupadas} de {globalTotalHabitaciones})</span>
                         </div>
                     </div>
 

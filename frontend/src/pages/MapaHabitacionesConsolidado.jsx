@@ -400,7 +400,7 @@ const MapaHabitacionesConsolidado = () => {
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-4">Ocupación Grupal</p>
                         <div className="flex items-end gap-2 mb-6">
                             <span className="text-5xl font-black text-indigo-600 leading-none">{stats.ocupacionTotal}%</span>
-                            <span className="text-xs font-bold text-gray-400 mb-1 uppercase">Capacidad Total</span>
+                            <span className="text-xs font-bold text-gray-400 mb-1 uppercase">Capacidad Total ({stats.ocupadas} de {stats.total})</span>
                         </div>
                     </div>
                     <div className="space-y-4">
