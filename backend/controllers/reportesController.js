@@ -13,8 +13,9 @@ const Mantenimiento = require('../models/Mantenimiento');
 const mongoose = require('mongoose');
 const moment = require('moment-timezone');
 
-// Configuración para la conexión al Hotel Colonial
+// Configuración para las conexiones entre hoteles
 const COLONIAL_URI = process.env.COLONIAL_MONGODB_URI || 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
+const PLAZA_URI = process.env.PLAZA_MONGODB_URI || 'mongodb+srv://adminhotel:hotel2026@cluster0.zsiq9ye.mongodb.net/HotelDB?retryWrites=true&w=majority';
 
 let colonialConn = null;
 const getColonialConnection = async () => {
@@ -26,8 +27,6 @@ const getColonialConnection = async () => {
 let plazaConn = null;
 const getPlazaConnection = async () => {
     if (plazaConn && plazaConn.readyState === 1) return plazaConn;
-    // En Plaza, MONGODB_URI es el local. Usamos PLAZA_MONGODB_URI como override si existe.
-    const PLAZA_URI = process.env.PLAZA_MONGODB_URI || process.env.MONGODB_URI || 'mongodb+srv://adminhotel:hotel2026@cluster0.zsiq9ye.mongodb.net/HotelDB?retryWrites=true&w=majority';
     plazaConn = await mongoose.createConnection(PLAZA_URI).asPromise();
     return plazaConn;
 };

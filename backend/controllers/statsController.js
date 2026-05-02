@@ -9,11 +9,13 @@ const EstadoHabitacion = require('../models/EstadoHabitacion');
 const Reserva = require('../models/Reserva');
 const Cliente = require('../models/Cliente');
 
-// Configuración para la conexión al Hotel Colonial
+// Configuración para las conexiones entre hoteles
 const COLONIAL_URI = process.env.COLONIAL_MONGODB_URI || 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
+const PLAZA_URI = process.env.PLAZA_MONGODB_URI || 'mongodb+srv://adminhotel:hotel2026@cluster0.zsiq9ye.mongodb.net/HotelDB?retryWrites=true&w=majority';
 
-// Variable para mantener la conexión
+// Variables para mantener las conexiones
 let colonialConn = null;
+let plazaConn = null;
 
 const getColonialConnection = async () => {
     if (colonialConn && colonialConn.readyState === 1) return colonialConn;
@@ -21,9 +23,31 @@ const getColonialConnection = async () => {
     return colonialConn;
 };
 
-// Modelos para la conexión Colonial (usando los mismos esquemas)
+const getPlazaConnection = async () => {
+    if (plazaConn && plazaConn.readyState === 1) return plazaConn;
+    plazaConn = await mongoose.createConnection(PLAZA_URI).asPromise();
+    return plazaConn;
+};
+
+// Modelos para la conexión Colonial
 const getColonialModels = async () => {
     const conn = await getColonialConnection();
+    return {
+        CierreCaja: conn.model('CierreCaja', CierreCaja.schema),
+        Venta: conn.model('Venta', Venta.schema),
+        Registro: conn.model('Registro', Registro.schema),
+        Gasto: conn.model('Gasto', Gasto.schema),
+        CategoriaGasto: conn.model('CategoriaGasto', CategoriaGasto.schema),
+        Habitacion: conn.model('Habitacion', Habitacion.schema),
+        EstadoHabitacion: conn.model('EstadoHabitacion', EstadoHabitacion.schema),
+        Reserva: conn.model('Reserva', Reserva.schema),
+        Cliente: conn.model('Cliente', Cliente.schema)
+    };
+};
+
+// Modelos para la conexión Plaza
+const getPlazaModels = async () => {
+    const conn = await getPlazaConnection();
     return {
         CierreCaja: conn.model('CierreCaja', CierreCaja.schema),
         Venta: conn.model('Venta', Venta.schema),
@@ -41,22 +65,35 @@ exports.getComparativeStats = async (req, res) => {
     try {
         const { inicio, fin } = req.query;
         
-        // Plaza Stats (Current DB)
-        const plazaRooms = await getRoomCounts(Habitacion);
-        const plazaData = await getStatsFromDB({
-            Venta, Registro, Gasto
-        }, inicio, fin, plazaRooms.total);
+        // Determinar qué hotel es local y cuál es remoto
+        const isColonial = process.env.MONGODB_URI?.toLowerCase()?.includes('colonial');
+        
+        let plazaRooms, plazaData, plazaCash;
+        let colonialRooms, colonialData, colonialCash;
 
-        // Cash Balances (From last closure to now)
-        const plazaCash = await getCashBalance({
-            CierreCaja, Venta, Registro, Gasto, Reserva
-        });
+        if (isColonial) {
+            // Local es Colonial
+            colonialRooms = await getRoomCounts(Habitacion);
+            colonialData = await getStatsFromDB({ Venta, Registro, Gasto }, inicio, fin, colonialRooms.total);
+            colonialCash = await getCashBalance({ CierreCaja, Venta, Registro, Gasto, Reserva });
 
-        // Colonial Stats
-        const colonialModels = await getColonialModels();
-        const colonialRooms = await getRoomCounts(colonialModels.Habitacion);
-        const colonialData = await getStatsFromDB(colonialModels, inicio, fin, colonialRooms.total);
-        const colonialCash = await getCashBalance(colonialModels);
+            // Remoto es Plaza
+            const plazaModels = await getPlazaModels();
+            plazaRooms = await getRoomCounts(plazaModels.Habitacion);
+            plazaData = await getStatsFromDB(plazaModels, inicio, fin, plazaRooms.total);
+            plazaCash = await getCashBalance(plazaModels);
+        } else {
+            // Local es Plaza
+            plazaRooms = await getRoomCounts(Habitacion);
+            plazaData = await getStatsFromDB({ Venta, Registro, Gasto }, inicio, fin, plazaRooms.total);
+            plazaCash = await getCashBalance({ CierreCaja, Venta, Registro, Gasto, Reserva });
+
+            // Remoto es Colonial
+            const colonialModels = await getColonialModels();
+            colonialRooms = await getRoomCounts(colonialModels.Habitacion);
+            colonialData = await getStatsFromDB(colonialModels, inicio, fin, colonialRooms.total);
+            colonialCash = await getCashBalance(colonialModels);
+        }
 
         res.json({
             plaza: {
@@ -95,36 +132,50 @@ exports.getConsolidatedReservations = async (req, res) => {
             query.fecha_entrada = { $gte: moment.tz("America/Bogota").startOf('day').toDate() };
         }
 
-        // Fetch Plaza Reservations
-        const plazaReservas = await Reserva.find(query)
-            .populate('cliente', 'nombre documento telefono')
-            .sort({ fecha_entrada: 1 })
-            .lean();
+        // Determinar qué hotel es local
+        const isColonial = process.env.MONGODB_URI?.toLowerCase()?.includes('colonial');
+        let plazaFormatted = [];
+        let colonialFormatted = [];
 
-        const plazaFormatted = plazaReservas.map(r => ({
-            ...r,
-            hotel: 'Hotel Balcón Plaza',
-            hotel_id: 'plaza',
-            cliente_nombre: r.cliente?.nombre || 'Particular',
-            documento: r.cliente?.documento || '-',
-            habitaciones_desc: r.habitaciones?.map(h => h.numero).join(', ') || r.numero || '-'
-        }));
+        if (isColonial) {
+            // Local es Colonial
+            const colonialReservas = await Reserva.find(query).populate('cliente', 'nombre documento telefono').sort({ fecha_entrada: 1 }).lean();
+            colonialFormatted = colonialReservas.map(r => ({
+                ...r, hotel: 'Hotel Balcón Colonial', hotel_id: 'colonial',
+                cliente_nombre: r.cliente?.nombre || 'Particular',
+                documento: r.cliente?.documento || '-',
+                habitaciones_desc: r.habitaciones?.map(h => h.numero).join(', ') || r.numero || '-'
+            }));
 
-        // Fetch Colonial Reservations
-        const colonialModels = await getColonialModels();
-        const colonialReservas = await colonialModels.Reserva.find(query)
-            .populate('cliente', 'nombre documento telefono')
-            .sort({ fecha_entrada: 1 })
-            .lean();
+            // Remoto es Plaza
+            const plazaModels = await getPlazaModels();
+            const plazaReservas = await plazaModels.Reserva.find(query).populate('cliente', 'nombre documento telefono').sort({ fecha_entrada: 1 }).lean();
+            plazaFormatted = plazaReservas.map(r => ({
+                ...r, hotel: 'Hotel Balcón Plaza', hotel_id: 'plaza',
+                cliente_nombre: r.cliente?.nombre || 'Particular',
+                documento: r.cliente?.documento || '-',
+                habitaciones_desc: r.habitaciones?.map(h => h.numero).join(', ') || r.numero || '-'
+            }));
+        } else {
+            // Local es Plaza
+            const plazaReservas = await Reserva.find(query).populate('cliente', 'nombre documento telefono').sort({ fecha_entrada: 1 }).lean();
+            plazaFormatted = plazaReservas.map(r => ({
+                ...r, hotel: 'Hotel Balcón Plaza', hotel_id: 'plaza',
+                cliente_nombre: r.cliente?.nombre || 'Particular',
+                documento: r.cliente?.documento || '-',
+                habitaciones_desc: r.habitaciones?.map(h => h.numero).join(', ') || r.numero || '-'
+            }));
 
-        const colonialFormatted = colonialReservas.map(r => ({
-            ...r,
-            hotel: 'Hotel Balcón Colonial',
-            hotel_id: 'colonial',
-            cliente_nombre: r.cliente?.nombre || 'Particular',
-            documento: r.cliente?.documento || '-',
-            habitaciones_desc: r.habitaciones?.map(h => h.numero).join(', ') || r.numero || '-'
-        }));
+            // Remoto es Colonial
+            const colonialModels = await getColonialModels();
+            const colonialReservas = await colonialModels.Reserva.find(query).populate('cliente', 'nombre documento telefono').sort({ fecha_entrada: 1 }).lean();
+            colonialFormatted = colonialReservas.map(r => ({
+                ...r, hotel: 'Hotel Balcón Colonial', hotel_id: 'colonial',
+                cliente_nombre: r.cliente?.nombre || 'Particular',
+                documento: r.cliente?.documento || '-',
+                habitaciones_desc: r.habitaciones?.map(h => h.numero).join(', ') || r.numero || '-'
+            }));
+        }
 
         // Combine and Sort
         const allReservas = [...plazaFormatted, ...colonialFormatted].sort((a, b) => 

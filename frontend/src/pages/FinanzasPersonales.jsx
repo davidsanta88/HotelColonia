@@ -5,7 +5,7 @@ import {
     Wallet, 
     TrendingUp, 
     TrendingDown, 
-    PieChartIcon, Plus, X, Trash2, 
+    PieChartIcon, Plus, PlusCircle, X, Trash2, 
     Calendar, DollarSign, Edit2, CheckCircle2, ChevronRight, 
     Filter, Download, Settings, ClipboardList, FileText, Lock
 } from 'lucide-react';
