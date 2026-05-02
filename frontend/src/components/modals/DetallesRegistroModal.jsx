@@ -26,8 +26,13 @@ import {
 import Select from 'react-select';
 import { formatCurrency, cleanNumericValue } from '../../utils/format';
 import { generateVoucher } from '../../utils/voucherGenerator';
+import { getWhatsAppLink, WA_TEMPLATES } from '../../utils/whatsapp';
+import { MessageSquare } from 'lucide-react';
+import { AuthContext } from '../../context/AuthContext';
+import { useContext } from 'react';
 
 const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initialEditMode = false }) => {
+    const { hotelConfig } = useContext(AuthContext);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(initialEditMode);
     const [details, setDetails] = useState(null);
@@ -484,6 +489,25 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                 Swal.fire({ title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 await api.put(`/registros/checkout/${registroId}`, { notasSalida: notasCapturadas });
                 Swal.fire('Éxito', 'Check-out realizado. Habitación lista para aseo.', 'success');
+                
+                const hotelName = hotelConfig?.nombre?.toLowerCase()?.includes('colonial') ? 'Colonial' : 'Plaza';
+                const { isConfirmed: sendWA } = await Swal.fire({
+                    title: 'Check-out Exitoso',
+                    text: '¿Deseas enviar un mensaje de agradecimiento por WhatsApp?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, enviar',
+                    cancelButtonText: 'No'
+                });
+
+                if (sendWA) {
+                    const link = getWhatsAppLink(
+                        details?.cliente?.telefono || details?.telefono,
+                        WA_TEMPLATES.CHECKOUT(details?.nombre_cliente || 'Huésped', hotelName)
+                    );
+                    if (link) window.open(link, '_blank');
+                }
+
                 if (onSuccess) onSuccess();
                 onClose();
             } catch (error) {
@@ -499,6 +523,31 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
     const totalGeneral = totalEstancia + totalConsumos;
     const abonado = details?.valor_pagado || 0;
     const saldo = totalGeneral - abonado;
+
+    const hotelName = hotelConfig?.nombre?.toLowerCase()?.includes('colonial') ? 'Colonial' : 'Plaza';
+
+    const handleSendWASummary = () => {
+        const link = getWhatsAppLink(
+            details?.cliente?.telefono || details?.telefono,
+            WA_TEMPLATES.BILL(
+                details?.nombre_cliente || 'Huésped',
+                hotelName,
+                formatCurrency(totalGeneral),
+                formatCurrency(Math.max(0, saldo))
+            )
+        );
+        if (link) window.open(link, '_blank');
+        else Swal.fire('Error', 'El huésped no tiene un teléfono registrado', 'error');
+    };
+
+    const handleWAContact = (huesped) => {
+        const link = getWhatsAppLink(
+            huesped.telefono,
+            WA_TEMPLATES.FAST_CONTACT(huesped.nombre, hotelName)
+        );
+        if (link) window.open(link, '_blank');
+        else Swal.fire('Error', 'Este huésped no tiene un teléfono registrado', 'error');
+    };
 
     return (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] overflow-y-auto h-full w-full flex items-center justify-center z-[100] p-2 md:p-4">
@@ -561,6 +610,14 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                                     >
                                         <Printer size={12} />
                                         <span>PDF</span>
+                                    </button>
+                                    <button 
+                                        onClick={handleSendWASummary}
+                                        className="flex items-center gap-1.5 md:gap-2 bg-emerald-50 text-emerald-600 px-3 md:px-4 py-1 md:py-1.5 rounded-full hover:bg-emerald-100 transition-all border border-emerald-100 font-bold text-[10px] md:text-xs uppercase"
+                                        title="Enviar Resumen por WhatsApp"
+                                    >
+                                        <MessageSquare size={12} />
+                                        <span>WhatsApp</span>
                                     </button>
                                 </div>
                             )}
@@ -708,15 +765,26 @@ const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initial
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    {isEditing && (
-                                                        <button 
-                                                            onClick={() => handleRemoveHuesped(idx)}
-                                                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                                                            title="Eliminar Huésped"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    )}
+                                                    <div className="flex items-center gap-2">
+                                                        {h.telefono && (
+                                                            <button 
+                                                                onClick={() => handleWAContact(h)}
+                                                                className="p-2 text-emerald-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                                                                title="Contactar por WhatsApp"
+                                                            >
+                                                                <MessageSquare size={16} />
+                                                            </button>
+                                                        )}
+                                                        {isEditing && (
+                                                            <button 
+                                                                onClick={() => handleRemoveHuesped(idx)}
+                                                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                                title="Eliminar Huésped"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             ))}
                                             {(isEditing ? editData.huespedes : details?.huespedes)?.length === 0 && (

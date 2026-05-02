@@ -23,8 +23,12 @@ import {
 } from 'lucide-react';
 import Select from 'react-select';
 import { formatCurrency, cleanNumericValue } from '../../utils/format';
+import { getWhatsAppLink, WA_TEMPLATES } from '../../utils/whatsapp';
+import { AuthContext } from '../../context/AuthContext';
+import { useContext } from 'react';
 
 const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, onSuccess }) => {
+    const { hotelConfig } = useContext(AuthContext);
     const [habitaciones, setHabitaciones] = useState([]);
     const [clientes, setClientes] = useState([]);
     const [municipios, setMunicipios] = useState([]);
@@ -310,8 +314,30 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
             console.log('[DEBUG-CHECKIN] Payload enviado:', dataToSave);
             await api.post('/registros', dataToSave);
             
+            
             Swal.close();
-            Swal.fire('Éxito', 'Registro creado correctamente', 'success');
+            const { isConfirmed } = await Swal.fire({
+                title: '¡Registro Exitoso!',
+                text: 'El huésped ha sido ingresado correctamente.',
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonText: 'Enviar WhatsApp de Bienvenida',
+                cancelButtonText: 'Cerrar',
+                confirmButtonColor: '#10b981',
+            });
+
+            if (isConfirmed) {
+                const titular = huespedesList[0];
+                const hotelName = hotelConfig?.nombre?.toLowerCase()?.includes('colonial') ? 'Colonial' : 'Plaza';
+                const hab = habitaciones.find(h => String(h.id || h._id) === String(formData.habitacion_id));
+                
+                const link = getWhatsAppLink(
+                    titular.telefono,
+                    WA_TEMPLATES.WELCOME(titular.nombre, hotelName, hab?.numero || '')
+                );
+                if (link) window.open(link, '_blank');
+            }
+
             onSuccess();
             onClose();
         } catch (error) {

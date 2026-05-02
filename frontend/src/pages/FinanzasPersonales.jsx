@@ -5,23 +5,19 @@ import {
     Wallet, 
     TrendingUp, 
     TrendingDown, 
-    Plus, 
-    Trash2, 
-    PieChart as PieChartIcon, 
-    PlusCircle,
-    Lock,
-    Settings,
-    DollarSign,
-    X,
-    CheckCircle2,
-    ClipboardList,
-    Edit2
+    PieChartIcon, Plus, X, Trash2, 
+    Calendar, DollarSign, Edit2, CheckCircle2, ChevronRight, 
+    Filter, Download, Settings, ClipboardList, FileText, Lock
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { 
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip, 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend 
 } from 'recharts';
 import Swal from 'sweetalert2';
+import moment from 'moment';
 
 const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 
@@ -37,11 +33,26 @@ const FinanzasPersonales = () => {
     const [config, setConfig] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, daily, goals
+    const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, daily, goals, recurring
     const [goals, setGoals] = useState([]);
     const [showGoalModal, setShowGoalModal] = useState(false);
     const [editingGoal, setEditingGoal] = useState(null);
     const [goalForm, setGoalForm] = useState({ nombre: '', montoObjetivo: '', fechaLimite: '', color: '#10b981' });
+    
+    // Recurrentes
+    const [recurrentes, setRecurrentes] = useState([]);
+    const [showRecModal, setShowRecModal] = useState(false);
+    const [isEditingRec, setIsEditingRec] = useState(false);
+    const [editingRecId, setEditingRecId] = useState(null);
+    const [recForm, setRecForm] = useState({ 
+        nombre: '', 
+        monto: '', 
+        tipo: 'gasto', 
+        categoria_id: '', 
+        diaCobro: 1, 
+        descripcion: '', 
+        activo: true 
+    });
 
     useEffect(() => {
         const fetchConfig = async () => {
@@ -66,21 +77,25 @@ const FinanzasPersonales = () => {
 
     // Formulario Categoría
     const [showCatModal, setShowCatModal] = useState(false);
-    const [newCat, setNewCat] = useState({ nombre: '', tipo: 'gasto', color: '#3b82f6' });
+    const [newCat, setNewCat] = useState({ nombre: '', tipo: 'gasto', presupuestoMensual: 0 });
+    const [budgetAnalysis, setBudgetAnalysis] = useState([]);
 
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [finRes, catRes, goalsRes] = await Promise.all([
+            const [finRes, catRes, goalsRes, recRes] = await Promise.all([
                 api.get('/personal-finance'),
                 api.get('/personal-finance/categories'),
-                api.get('/personal-finance/goals')
+                api.get('/personal-finance/goals'),
+                api.get('/personal-finance/recurrentes')
             ]);
             setData(finRes.data.data);
             setResumen(finRes.data.resumen);
             setMetrics(finRes.data.metricasGastos);
+            setBudgetAnalysis(finRes.data.budgetAnalysis || []);
             setCategories(catRes.data);
             setGoals(goalsRes.data);
+            setRecurrentes(recRes.data);
         } catch (error) {
             console.error('Error fetching personal finances:', error);
         } finally {
@@ -180,7 +195,7 @@ const FinanzasPersonales = () => {
         try {
             await api.post('/personal-finance/categories', newCat);
             setShowCatModal(false);
-            setNewCat({ nombre: '', tipo: 'gasto', color: '#3b82f6' });
+            setNewCat({ nombre: '', tipo: 'gasto', presupuestoMensual: 0 });
             fetchData();
         } catch (error) {
             Swal.fire('Error', 'No se pudo crear la categoría', 'error');
@@ -288,6 +303,133 @@ const FinanzasPersonales = () => {
         setShowGoalModal(true);
     };
 
+    // --- Recurrentes Logic ---
+    const handleAddRecurrente = async (e) => {
+        e.preventDefault();
+        try {
+            if (isEditingRec) {
+                await api.put(`/personal-finance/recurrentes/${editingRecId}`, recForm);
+                Swal.fire('Éxito', 'Recurrente actualizado', 'success');
+            } else {
+                await api.post('/personal-finance/recurrentes', recForm);
+                Swal.fire('Éxito', 'Recurrente creado', 'success');
+            }
+            setShowRecModal(false);
+            setRecForm({ nombre: '', monto: '', tipo: 'gasto', categoria_id: '', diaCobro: 1, descripcion: '', activo: true });
+            setIsEditingRec(false);
+            fetchData();
+        } catch (error) {
+            Swal.fire('Error', 'No se pudo guardar el recurrente', 'error');
+        }
+    };
+
+    const handleDeleteRecurrente = async (id) => {
+        const result = await Swal.fire({
+            title: '¿Eliminar recurrente?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar'
+        });
+        if (result.isConfirmed) {
+            try {
+                await api.delete(`/personal-finance/recurrentes/${id}`);
+                fetchData();
+            } catch (error) {
+                Swal.fire('Error', 'No se pudo eliminar', 'error');
+            }
+        }
+    };
+
+    const handleProcessRecurrentes = async () => {
+        const today = new Date();
+        const { value: formValues } = await Swal.fire({
+            title: 'Procesar Gastos Recurrentes',
+            html: `
+                <p class='text-xs mb-4'>Esto registrará automáticamente tus gastos fijos para el mes seleccionado si aún no existen.</p>
+                <div class='flex gap-2'>
+                    <select id='swal-mes' class='swal2-input' style='margin: 0; font-size: 14px;'>
+                        ${[...Array(12).keys()].map(i => `<option value='${i+1}' ${i === today.getMonth() ? 'selected' : ''}>${new Date(0, i).toLocaleString('es-CO', {month: 'long'})}</option>`).join('')}
+                    </select>
+                    <input id='swal-anio' type='number' class='swal2-input' style='margin: 0; font-size: 14px;' value='${today.getFullYear()}'>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Procesar Ahora',
+            preConfirm: () => ({
+                mes: document.getElementById('swal-mes').value,
+                anio: document.getElementById('swal-anio').value
+            })
+        });
+
+        if (formValues) {
+            try {
+                Swal.fire({ title: 'Procesando...', didOpen: () => Swal.showLoading() });
+                const res = await api.post('/personal-finance/recurrentes/process', formValues);
+                Swal.fire('Completado', res.data.mensaje, 'success');
+                fetchData();
+            } catch (error) {
+                Swal.fire('Error', 'No se pudieron procesar los recurrentes', 'error');
+            }
+        }
+    };
+
+    const openEditRec = (rec) => {
+        setIsEditingRec(true);
+        setEditingRecId(rec._id);
+        setRecForm({
+            nombre: rec.nombre,
+            monto: rec.monto,
+            tipo: rec.tipo,
+            categoria_id: rec.categoria_id?._id || rec.categoria_id || '',
+            diaCobro: rec.diaCobro,
+            descripcion: rec.descripcion || '',
+            activo: rec.activo
+        });
+        setShowRecModal(true);
+    };
+
+    const handleExportExcel = () => {
+        const exportData = data.map(item => ({
+            Fecha: moment(item.fecha).format('DD/MM/YYYY'),
+            Tipo: item.tipo === 'ingreso' ? 'INGRESO' : 'GASTO',
+            Categoría: item.categoria_id?.nombre || 'General',
+            Descripción: item.descripcion,
+            Monto: item.monto
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Finanzas");
+        XLSX.writeFile(wb, `Finanzas_Personales_${moment().format('YYYY-MM-DD')}.xlsx`);
+    };
+
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+        doc.setFontSize(20);
+        doc.text("Reporte de Finanzas Personales", 14, 22);
+        doc.setFontSize(10);
+        doc.text(`Generado el: ${moment().format('DD/MM/YYYY HH:mm')}`, 14, 30);
+
+        const tableColumn = ["Fecha", "Tipo", "Categoría", "Descripción", "Monto"];
+        const tableRows = data.map(item => [
+            moment(item.fecha).format('DD/MM/YYYY'),
+            item.tipo.toUpperCase(),
+            item.categoria_id?.nombre || 'General',
+            item.descripcion,
+            new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(item.monto)
+        ]);
+
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 35,
+            theme: 'grid',
+            headStyles: { fillColor: [79, 70, 229] }
+        });
+
+        doc.save(`Finanzas_Personales_${moment().format('YYYY-MM-DD')}.pdf`);
+    };
+
     if (!isAuthenticated) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[70vh] animate-in fade-in zoom-in duration-300">
@@ -354,7 +496,8 @@ const FinanzasPersonales = () => {
                 {[
                     { id: 'dashboard', label: 'Dashboard', icon: PieChartIcon },
                     { id: 'daily', label: 'Reporte Diario', icon: ClipboardList },
-                    { id: 'goals', label: 'Metas (Idea)', icon: TrendingUp },
+                    { id: 'recurring', label: 'Fijos/Recurrentes', icon: Settings },
+                    { id: 'goals', label: 'Metas', icon: TrendingUp },
                 ].map((tab) => (
                     <button
                         key={tab.id}
@@ -525,58 +668,71 @@ const FinanzasPersonales = () => {
 
                         {/* Metrics & Charts */}
                         <div className="space-y-6">
-                            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-                                <h3 className="text-lg font-black text-slate-900 mb-8 uppercase tracking-tight flex items-center gap-2">
-                                    <PieChartIcon size={20} className="text-primary-500" /> Distribución de Gastos
-                                </h3>
-                                <div className="h-[300px]">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Gráfico de Gastos */}
+                                <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col items-center">
+                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Distribución de Gastos</h4>
                                     {metrics.length > 0 ? (
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                    data={metrics}
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius={60}
-                                                    outerRadius={100}
-                                                    paddingAngle={5}
-                                                    dataKey="value"
-                                                >
-                                                    {metrics.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip 
-                                                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: 'bold' }}
-                                                />
-                                                <Legend verticalAlign="bottom" height={36}/>
-                                            </PieChart>
-                                        </ResponsiveContainer>
+                                        <div className="w-full h-64">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={metrics}
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius={60}
+                                                        outerRadius={80}
+                                                        paddingAngle={5}
+                                                        dataKey="value"
+                                                    >
+                                                        {metrics.map((entry, index) => (
+                                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip 
+                                                        contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}
+                                                    />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
                                     ) : (
-                                        <div className="flex items-center justify-center h-full text-slate-300 font-bold uppercase text-[10px] tracking-widest italic">
-                                            No hay datos suficientes para graficar
+                                        <div className="flex flex-col items-center justify-center h-64 text-slate-300">
+                                            <PieChartIcon size={40} className="mb-2 opacity-20" />
+                                            <p className="text-[9px] font-black uppercase tracking-widest">Sin datos este mes</p>
                                         </div>
                                     )}
                                 </div>
-                            </div>
 
-                            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-                                <h3 className="text-lg font-black text-slate-900 mb-8 uppercase tracking-tight flex items-center gap-2">
-                                    <TrendingUp size={20} className="text-emerald-500" /> Comparativa Mensual
-                                </h3>
-                                <div className="h-[250px]">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={[{ name: 'Estado Actual', Ingresos: resumen.ingresos, Gastos: resumen.gastos }]}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                            <XAxis dataKey="name" hide />
-                                            <YAxis fontSize={10} tickFormatter={(val) => `$${val/1000}k`} />
-                                            <Tooltip 
-                                                contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: 'bold' }}
-                                            />
-                                            <Bar dataKey="Ingresos" fill="#10b981" radius={[8, 8, 0, 0]} barSize={40} />
-                                            <Bar dataKey="Gastos" fill="#ef4444" radius={[8, 8, 0, 0]} barSize={40} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
+                                {/* Análisis de Presupuesto */}
+                                <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Presupuesto vs Real (Mes Actual)</h4>
+                                    <div className="space-y-4 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                                        {budgetAnalysis.filter(b => b.tipo === 'gasto' && b.presupuesto > 0).map(b => {
+                                            const percent = Math.min((b.actual / b.presupuesto) * 100, 100);
+                                            const isOver = b.actual > b.presupuesto;
+                                            return (
+                                                <div key={b.id} className="space-y-1.5">
+                                                    <div className="flex justify-between items-end">
+                                                        <span className="text-[9px] font-black text-slate-600 uppercase">{b.nombre}</span>
+                                                        <span className={`text-[9px] font-black ${isOver ? 'text-rose-600' : 'text-slate-400'}`}>
+                                                            ${new Intl.NumberFormat('es-CO').format(b.actual)} / ${new Intl.NumberFormat('es-CO').format(b.presupuesto)}
+                                                        </span>
+                                                    </div>
+                                                    <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
+                                                        <div 
+                                                            className={`h-full transition-all duration-500 rounded-full ${isOver ? 'bg-rose-500' : 'bg-indigo-500'}`}
+                                                            style={{ width: `${percent}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        {budgetAnalysis.filter(b => b.tipo === 'gasto' && b.presupuesto > 0).length === 0 && (
+                                            <div className="flex flex-col items-center justify-center h-48 text-slate-300">
+                                                <p className="text-[9px] font-black uppercase tracking-widest">Configura presupuestos en categorías</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -586,9 +742,27 @@ const FinanzasPersonales = () => {
 
             {activeTab === 'daily' && (
                 <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 animate-in slide-in-from-right-4 duration-300">
-                    <h3 className="text-xl font-black text-slate-900 mb-8 uppercase tracking-tight flex items-center gap-2">
-                        <ClipboardList size={24} className="text-primary-500" /> Reporte Diario Detallado
-                    </h3>
+                    <div className="flex justify-between items-center mb-8">
+                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                            <ClipboardList size={24} className="text-primary-500" /> Reporte Diario Detallado
+                        </h3>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={handleExportExcel}
+                                className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-all"
+                                title="Exportar a Excel"
+                            >
+                                <Download size={20} />
+                            </button>
+                            <button 
+                                onClick={handleExportPDF}
+                                className="p-3 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-all"
+                                title="Exportar a PDF"
+                            >
+                                <FileText size={20} />
+                            </button>
+                        </div>
+                    </div>
                     
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-separate border-spacing-y-4">
@@ -749,6 +923,68 @@ const FinanzasPersonales = () => {
                 </div>
             )}
 
+            {activeTab === 'recurring' && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                    <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-indigo-100 text-indigo-600 rounded-2xl">
+                                <Settings size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Gastos y Entradas Fijas</h3>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Automatiza tus movimientos mensuales</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={handleProcessRecurrentes}
+                                className="px-6 py-3 bg-emerald-100 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-200 transition-all flex items-center gap-2"
+                            >
+                                <CheckCircle2 size={16} /> Procesar Mes
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    setIsEditingRec(false);
+                                    setRecForm({ nombre: '', monto: '', tipo: 'gasto', categoria_id: '', diaCobro: 1, descripcion: '', activo: true });
+                                    setShowRecModal(true);
+                                }}
+                                className="px-6 py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-100"
+                            >
+                                <Plus size={16} /> Nuevo Fijo
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {recurrentes.map(rec => (
+                            <div key={rec._id} className={`bg-white p-6 rounded-[2rem] shadow-sm border ${rec.activo ? 'border-slate-100' : 'border-slate-200 opacity-60 grayscale'} hover:border-indigo-200 transition-all group`}>
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className={`p-3 rounded-2xl ${rec.tipo === 'ingreso' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                                        {rec.tipo === 'ingreso' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                                    </div>
+                                    <div className="flex gap-1">
+                                        <button onClick={() => openEditRec(rec)} className="p-2 text-slate-300 hover:text-indigo-600 transition-colors"><Edit2 size={16} /></button>
+                                        <button onClick={() => handleDeleteRecurrente(rec._id)} className="p-2 text-slate-300 hover:text-rose-600 transition-colors"><Trash2 size={16} /></button>
+                                    </div>
+                                </div>
+                                <h4 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-1">{rec.nombre}</h4>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
+                                    {rec.categoria_id?.nombre || 'General'} • Cobra el día {rec.diaCobro}
+                                </p>
+                                <div className="flex justify-between items-end">
+                                    <p className={`text-2xl font-black ${rec.tipo === 'ingreso' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                        ${new Intl.NumberFormat('es-CO').format(rec.monto)}
+                                    </p>
+                                    <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${rec.activo ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}>
+                                        {rec.activo ? 'Activo' : 'Pausado'}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Goal Modal */}
             {showGoalModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
@@ -815,6 +1051,93 @@ const FinanzasPersonales = () => {
                 </div>
             )}
 
+            {/* Recurring Modal */}
+            {showRecModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+                        <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+                                {isEditingRec ? 'Editar Fijo' : 'Nuevo Fijo'}
+                            </h3>
+                            <button onClick={() => setShowRecModal(false)} className="p-2 text-slate-400 hover:text-slate-900 transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleAddRecurrente} className="p-8 space-y-5">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo</label>
+                                    <select 
+                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
+                                        value={recForm.tipo}
+                                        onChange={(e) => setRecForm({ ...recForm, tipo: e.target.value, categoria_id: '' })}
+                                    >
+                                        <option value="gasto">Gasto</option>
+                                        <option value="ingreso">Ingreso</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Día de Cobro</label>
+                                    <input 
+                                        type="number" min="1" max="31" required
+                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
+                                        value={recForm.diaCobro}
+                                        onChange={(e) => setRecForm({ ...recForm, diaCobro: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre</label>
+                                <input 
+                                    type="text" required placeholder="Ej: Arriendo"
+                                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
+                                    value={recForm.nombre}
+                                    onChange={(e) => setRecForm({ ...recForm, nombre: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Monto ($)</label>
+                                <input 
+                                    type="number" required
+                                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
+                                    value={recForm.monto}
+                                    onChange={(e) => setRecForm({ ...recForm, monto: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoría</label>
+                                <select 
+                                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
+                                    value={recForm.categoria_id}
+                                    onChange={(e) => setRecForm({ ...recForm, categoria_id: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Seleccionar...</option>
+                                    {categories.filter(c => c.tipo === recForm.tipo).map(c => (
+                                        <option key={c._id} value={c._id}>{c.nombre}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-3 py-2">
+                                <input 
+                                    type="checkbox" id="rec-activo"
+                                    className="w-5 h-5 rounded-lg text-indigo-600 focus:ring-indigo-500"
+                                    checked={recForm.activo}
+                                    onChange={(e) => setRecForm({ ...recForm, activo: e.target.checked })}
+                                />
+                                <label htmlFor="rec-activo" className="text-xs font-black text-slate-600 uppercase tracking-tight cursor-pointer">Activo / En funcionamiento</label>
+                            </div>
+                            <button 
+                                type="submit"
+                                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg active:scale-95"
+                            >
+                                {isEditingRec ? 'Actualizar Fijo' : 'Guardar Fijo'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             {/* Category Modal */}
             {showCatModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
@@ -828,28 +1151,37 @@ const FinanzasPersonales = () => {
                         <div className="p-8 space-y-6">
                             <div className="space-y-4">
                                 <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Añadir Nueva Categoría</h4>
-                                <div className="flex gap-2">
+                                <div className="flex flex-col gap-2">
                                     <input 
                                         type="text" 
                                         placeholder="Nombre (ej: Mercado)"
-                                        className="flex-1 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
+                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
                                         value={newCat.nombre}
                                         onChange={(e) => setNewCat({ ...newCat, nombre: e.target.value })}
                                     />
-                                    <select 
-                                        className="p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
-                                        value={newCat.tipo}
-                                        onChange={(e) => setNewCat({ ...newCat, tipo: e.target.value })}
-                                    >
-                                        <option value="gasto">Gasto</option>
-                                        <option value="ingreso">Ingreso</option>
-                                    </select>
-                                    <button 
-                                        onClick={handleAddCategory}
-                                        className="p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all"
-                                    >
-                                        <CheckCircle2 size={20} />
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <select 
+                                            className="flex-1 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
+                                            value={newCat.tipo}
+                                            onChange={(e) => setNewCat({ ...newCat, tipo: e.target.value })}
+                                        >
+                                            <option value="gasto">Gasto</option>
+                                            <option value="ingreso">Ingreso</option>
+                                        </select>
+                                        <input 
+                                            type="number" 
+                                            placeholder="Presupuesto"
+                                            className="flex-1 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
+                                            value={newCat.presupuestoMensual}
+                                            onChange={(e) => setNewCat({ ...newCat, presupuestoMensual: e.target.value })}
+                                        />
+                                        <button 
+                                            onClick={handleAddCategory}
+                                            className="p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-100"
+                                        >
+                                            <CheckCircle2 size={20} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -860,7 +1192,12 @@ const FinanzasPersonales = () => {
                                         <div key={c._id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100/50">
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-2 h-2 rounded-full ${c.tipo === 'ingreso' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                                <span className="text-[11px] font-black text-slate-700 uppercase">{c.nombre}</span>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[11px] font-black text-slate-700 uppercase">{c.nombre}</span>
+                                                    {c.presupuestoMensual > 0 && (
+                                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Meta: ${new Intl.NumberFormat('es-CO').format(c.presupuestoMensual)}</span>
+                                                    )}
+                                                </div>
                                             </div>
                                             <button 
                                                 onClick={() => handleDeleteCategory(c._id)}

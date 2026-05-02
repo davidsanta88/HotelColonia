@@ -12,7 +12,12 @@ const {
     createPersonalGoal,
     updatePersonalGoal,
     deletePersonalGoal,
-    contributeToGoal
+    contributeToGoal,
+    getPersonalRecurrentes,
+    createPersonalRecurrente,
+    updatePersonalRecurrente,
+    deletePersonalRecurrente,
+    processRecurrentes
 } = require('../controllers/personalFinanceController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -35,5 +40,12 @@ router.post('/goals', createPersonalGoal);
 router.put('/goals/:id', updatePersonalGoal);
 router.delete('/goals/:id', deletePersonalGoal);
 router.post('/goals/:id/contribute', contributeToGoal);
+
+// Recurrentes
+router.get('/recurrentes', getPersonalRecurrentes);
+router.post('/recurrentes', createPersonalRecurrente);
+router.put('/recurrentes/:id', updatePersonalRecurrente);
+router.delete('/recurrentes/:id', deletePersonalRecurrente);
+router.post('/recurrentes/process', processRecurrentes);
 
 module.exports = router;

@@ -15,6 +15,10 @@ const personalCategorySchema = new mongoose.Schema({
         type: String,
         default: '#3b82f6'
     },
+    presupuestoMensual: {
+        type: Number,
+        default: 0
+    },
     usuario_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Usuario',
