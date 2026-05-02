@@ -55,6 +55,32 @@ const isAdmin = async (req, res, next) => {
     }
 };
 
+const isAdminOrSupervisor = async (req, res, next) => {
+    try {
+        if (req.userName === 'Administrador') return next();
+
+        const roleName = req.userRoleName ? req.userRoleName.toLowerCase() : '';
+        if (roleName.includes('admin') || roleName.includes('administrador') || roleName.includes('supervisor')) {
+            return next();
+        }
+
+        if (req.userRole) {
+            const Rol = require('../models/Rol');
+            const rol = await Rol.findById(req.userRole);
+            if (rol) {
+                const lowerName = rol.nombre.toLowerCase();
+                if (lowerName.includes('admin') || lowerName.includes('administrador') || lowerName.includes('supervisor')) {
+                    return next();
+                }
+            }
+        }
+
+        res.status(403).json({ message: 'Requiere rol de Administrador o Supervisor' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al verificar permisos' });
+    }
+};
+
 
 const authorize = (allowedRoles) => {
     return (req, res, next) => {
@@ -107,6 +133,7 @@ const checkPermission = (pantalla, accion) => {
 module.exports = {
     verifyToken,
     isAdmin,
+    isAdminOrSupervisor,
     authorize,
     checkPermission
 };
