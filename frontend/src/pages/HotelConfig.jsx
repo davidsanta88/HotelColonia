@@ -361,7 +361,7 @@ const HotelConfig = () => {
                                 <label className="block text-xs font-black text-slate-400 uppercase mb-4 ml-1">Fondo de Pantalla (Login)</label>
                                 <div className="flex flex-col items-center gap-4">
                                     <div className="w-full h-32 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner relative group">
-                                        <img src={config.backgroundUrl || "/hotel_noche.jpg"} alt="Background Preview" className="w-full h-full object-cover" />
+                                        <img src={config.backgroundUrl || "/hotel_colonial_hero.jpg"} alt="Background Preview" className="w-full h-full object-cover" />
                                     </div>
                                     <input
                                         type="file"

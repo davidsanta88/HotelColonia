@@ -78,7 +78,7 @@ const Login = () => {
             
             {/* Fondo con imagen de hotel desenfocada */}
             <div className="absolute inset-0 opacity-40">
-                <img src={hotelInfo.backgroundUrl || "/hotel_noche.jpg"} alt="Background" className="w-full h-full object-cover blur-sm" />
+                <img src={hotelInfo.backgroundUrl || "/hotel_colonial_hero.jpg"} alt="Background" className="w-full h-full object-cover blur-sm" />
                 <div className="absolute inset-0 bg-black/60" />
             </div>
 
