@@ -130,8 +130,8 @@ const ComparativaHoteles = () => {
 
     const totalPlaza = data?.plaza?.history?.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;
     const totalColonial = data?.colonial?.history?.reduce((acc, curr) => acc + curr.ingresos, 0) || 0;
-    const shopPlaza = data?.plaza?.history?.reduce((acc, curr) => acc + (curr.ventasTienda || 0), 0) || 0;
-    const shopColonial = data?.colonial?.history?.reduce((acc, curr) => acc + (curr.ventasTienda || 0), 0) || 0;
+    const shopPlaza = data?.plaza?.history?.reduce((acc, curr) => acc + (curr.tienda || 0), 0) || 0;
+    const shopColonial = data?.colonial?.history?.reduce((acc, curr) => acc + (curr.tienda || 0), 0) || 0;
     const plazaExpenses = data?.plaza?.history?.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
     const colonialExpenses = data?.colonial?.history?.reduce((acc, curr) => acc + curr.egresos, 0) || 0;
 

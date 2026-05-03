@@ -4,6 +4,7 @@ const Venta = require('../models/Venta');
 const Registro = require('../models/Registro');
 const Gasto = require('../models/Gasto');
 const CategoriaGasto = require('../models/CategoriaGasto');
+const Comanda = require('../models/Comanda');
 const Habitacion = require('../models/Habitacion');
 const EstadoHabitacion = require('../models/EstadoHabitacion');
 const Reserva = require('../models/Reserva');
@@ -38,6 +39,7 @@ const getColonialModels = async () => {
         Registro: conn.model('Registro', Registro.schema),
         Gasto: conn.model('Gasto', Gasto.schema),
         CategoriaGasto: conn.model('CategoriaGasto', CategoriaGasto.schema),
+        Comanda: conn.model('Comanda', Comanda.schema),
         Habitacion: conn.model('Habitacion', Habitacion.schema),
         EstadoHabitacion: conn.model('EstadoHabitacion', EstadoHabitacion.schema),
         Reserva: conn.model('Reserva', Reserva.schema),
@@ -54,6 +56,7 @@ const getPlazaModels = async () => {
         Registro: conn.model('Registro', Registro.schema),
         Gasto: conn.model('Gasto', Gasto.schema),
         CategoriaGasto: conn.model('CategoriaGasto', CategoriaGasto.schema),
+        Comanda: conn.model('Comanda', Comanda.schema),
         Habitacion: conn.model('Habitacion', Habitacion.schema),
         EstadoHabitacion: conn.model('EstadoHabitacion', EstadoHabitacion.schema),
         Reserva: conn.model('Reserva', Reserva.schema),
@@ -74,7 +77,7 @@ exports.getComparativeStats = async (req, res) => {
         if (isColonial) {
             // Local es Colonial
             colonialRooms = await getRoomCounts(Habitacion);
-            colonialData = await getStatsFromDB({ Venta, Registro, Gasto }, inicio, fin, colonialRooms.total);
+            colonialData = await getStatsFromDB({ Venta, Registro, Gasto, Comanda }, inicio, fin, colonialRooms.total);
             colonialCash = await getCashBalance({ CierreCaja, Venta, Registro, Gasto, Reserva });
 
             // Remoto es Plaza
@@ -85,7 +88,7 @@ exports.getComparativeStats = async (req, res) => {
         } else {
             // Local es Plaza
             plazaRooms = await getRoomCounts(Habitacion);
-            plazaData = await getStatsFromDB({ Venta, Registro, Gasto }, inicio, fin, plazaRooms.total);
+            plazaData = await getStatsFromDB({ Venta, Registro, Gasto, Comanda }, inicio, fin, plazaRooms.total);
             plazaCash = await getCashBalance({ CierreCaja, Venta, Registro, Gasto, Reserva });
 
             // Remoto es Colonial
@@ -233,7 +236,7 @@ async function getRoomCounts(HabitacionModel) {
 }
 
 async function getStatsFromDB(models, startDateStr, endDateStr, totalRooms = 1) {
-    const { Venta, Registro, Gasto } = models;
+    const { Venta, Registro, Gasto, Comanda } = models;
     
     const moment = require('moment-timezone');
     const startDate = moment.tz(startDateStr, "America/Bogota").startOf('day').toDate();
@@ -249,6 +252,17 @@ async function getStatsFromDB(models, startDateStr, endDateStr, totalRooms = 1) 
         {
             $group: {
                 _id: useMonthly ? { $month: { date: "$fecha", timezone: "America/Bogota" } } : { $dateToString: { format: "%Y-%m-%d", date: "$fecha", timezone: "America/Bogota" } },
+                total: { $sum: "$total" }
+            }
+        }
+    ]);
+
+    // 1b. Aggregation for Comanda (Store/Restaurant sales)
+    const comandaStats = await Comanda.aggregate([
+        { $match: { fechaApertura: { $gte: startDate, $lte: endDate } } },
+        {
+            $group: {
+                _id: useMonthly ? { $month: { date: "$fechaApertura", timezone: "America/Bogota" } } : { $dateToString: { format: "%Y-%m-%d", date: "$fechaApertura", timezone: "America/Bogota" } },
                 total: { $sum: "$total" }
             }
         }
@@ -371,6 +385,7 @@ async function getStatsFromDB(models, startDateStr, endDateStr, totalRooms = 1) 
     };
 
     addToMap(ventaStats, 'tienda');
+    addToMap(comandaStats, 'tienda');
     addToMap(registroStats, 'hospedaje');
     addToMap(gastoStats, 'gastos_mixed');
 

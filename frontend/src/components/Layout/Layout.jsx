@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import NotificationOverlay from '../common/NotificationOverlay';
 import useCashAlert from '../../hooks/useCashAlert';
+import ChatBot from '../ChatBot/ChatBot';
 
 const Layout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -30,6 +31,7 @@ const Layout = () => {
                     <Outlet />
                 </main>
             </div>
+            <ChatBot />
         </div>
     );
 };
