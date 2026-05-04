@@ -2,23 +2,19 @@ const DocumentoHotel = require('../models/DocumentoHotel');
 const cloudinary = require('../config/cloudinary');
 const path = require('path');
 
-const streamUpload = (buffer, isRaw = false, originalName = '') => {
+const streamUpload = (buffer, originalName = '') => {
     return new Promise((resolve, reject) => {
-        const fileExt = path.extname(originalName);
-        const fileName = path.basename(originalName, fileExt).replace(/[^a-zA-Z0-9]/g, '_');
-        
-        const options = { 
-            folder: 'documentos_hotel', 
-            resource_type: isRaw ? 'raw' : 'image',
+        const fileExt = path.extname(originalName).toLowerCase();
+        const fileName = path.basename(originalName, path.extname(originalName)).replace(/[^a-zA-Z0-9]/g, '_');
+
+        // Todos los documentos se suben como 'raw' para servirse como archivo original
+        const options = {
+            folder: 'documentos_hotel',
+            resource_type: 'raw',
             type: 'upload',
-            access_mode: 'public'
+            public_id: `${fileName}_${Date.now()}${fileExt}`
         };
 
-        // Siempre incluimos la extensión en el public_id para asegurar que se sirva correctamente
-        if (originalName) {
-            options.public_id = `${fileName}_${Date.now()}${fileExt}`;
-        }
-        
         const stream = cloudinary.uploader.upload_stream(
             options,
             (error, result) => {
@@ -48,11 +44,7 @@ exports.uploadDocumento = async (req, res) => {
         const { nombre, tipo, observacion, entidad_id } = req.body;
         
         // PDFs se tratan como imágenes en Cloudinary para permitir fl_attachment si se requiere luego
-        const isPDF = req.file.mimetype === 'application/pdf';
-        const isImage = req.file.mimetype.startsWith('image/');
-        const isRaw = !isImage && !isPDF;
-
-        const result = await streamUpload(req.file.buffer, isRaw, req.file.originalname);
+        const result = await streamUpload(req.file.buffer, req.file.originalname);
 
         const nuevoDoc = new DocumentoHotel({
             nombre: nombre || req.file.originalname,
@@ -77,28 +69,13 @@ exports.downloadDocumento = async (req, res) => {
         const doc = await DocumentoHotel.findById(req.params.id);
         if (!doc) return res.status(404).json({ message: 'Documento no encontrado' });
 
+        // Para documentos 'raw' (nuevos), la URL directa funciona sin autenticación
+        // Para documentos 'image' legacy, intentamos con fl_attachment
         let downloadUrl = doc.url;
-
-        if (doc.public_id) {
-            try {
-                downloadUrl = cloudinary.url(doc.public_id, {
-                    resource_type: doc.resource_type || 'image',
-                    sign_url: true,
-                    attachment: true,
-                    secure: true,
-                    type: 'upload'
-                });
-            } catch (e) {
-                console.warn('[DOWNLOAD] Usando URL directa:', e.message);
-                if (!doc.resource_type || doc.resource_type === 'image') {
-                    downloadUrl = doc.url.replace('/upload/', '/upload/fl_attachment/');
-                }
-            }
-        } else if (!doc.resource_type || doc.resource_type === 'image') {
+        if (doc.resource_type === 'image' || (!doc.resource_type && doc.url.includes('/image/'))) {
             downloadUrl = doc.url.replace('/upload/', '/upload/fl_attachment/');
         }
 
-        // Devolver la URL como JSON para que el frontend la abra directamente
         return res.json({ url: downloadUrl, nombre: doc.nombre });
 
     } catch (error) {
