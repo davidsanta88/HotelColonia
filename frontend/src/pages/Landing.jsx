@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Mail, MessageSquare, MapPin, Car, Clock, CheckCircle2, AlertCircle, Loader2, Share2, Phone, ExternalLink } from 'lucide-react';
 import api from '../services/api';
 import Swal from 'sweetalert2';
+// Plaza Version Fix 1.0.1
 
 const SLIDES = [
     {
