@@ -103,7 +103,8 @@ const Landing = () => {
         direccion: 'CRA 4 #11-49',
         telefono: '573162799224',
         correo: 'balconcolonialhotel@gmail.com',
-        sitioWeb: 'www.hotelbalconcolonial.com'
+        sitioWeb: 'www.hotelbalconcolonial.com',
+        logoUrl: '/logo_colonial.png'
     });
     const [aliados, setAliados] = useState([]);
     const [loadingAliados, setLoadingAliados] = useState(true);

@@ -12,7 +12,11 @@ const Login = () => {
     const { user, login } = useContext(AuthContext);
     const navigate = useNavigate();
 
-    const [hotelInfo, setHotelInfo] = useState({ nombre: 'HOTEL BALCÓN PLAZA' });
+    const [hotelInfo, setHotelInfo] = useState({ 
+        nombre: 'HOTEL BALCÓN COLONIAL',
+        logoUrl: '/logo_colonial.png',
+        backgroundUrl: '/hotel_colonial_hero.jpg'
+    });
 
     useEffect(() => {
         if (user) {
