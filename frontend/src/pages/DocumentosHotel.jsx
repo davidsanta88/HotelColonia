@@ -116,47 +116,25 @@ const DocumentosHotel = () => {
         }
     };
 
-    const handleDownload = async (docId, filename) => {
-        if (!docId) return;
-        
-        try {
-            // Mostrar un pequeño aviso de descarga
-            const toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 4000,
-                timerProgressBar: true,
-            });
-            
-            toast.fire({
-                icon: 'info',
-                title: 'Procesando descarga segura...'
-            });
+    const handleDownload = (doc) => {
+        if (!doc?.url) return;
 
-            // Usar el nuevo endpoint de proxy en el backend con token en query como fallback
-            const token = localStorage.getItem('token');
-            const response = await api.get(`/documentos-hotel/download/${docId}?token=${token}`, {
-                responseType: 'blob'
-            });
-            
-            const blob = new Blob([response.data], { type: response.headers['content-type'] });
-            const downloadUrl = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            
-            // Asegurar que tenga la extensión correcta
-            const safeFileName = filename.toLowerCase().endsWith('.pdf') ? filename : `${filename}.pdf`;
-            
-            link.download = safeFileName;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(downloadUrl);
-        } catch (error) {
-            console.error('Download error:', error);
-            Swal.fire('Error', 'No se pudo procesar la descarga desde el servidor. Intente de nuevo.', 'error');
+        let url = doc.url;
+
+        // Para imágenes y PDFs en Cloudinary, agregar fl_attachment fuerza la descarga
+        if (doc.resource_type === 'image' || !doc.resource_type) {
+            url = url.replace('/upload/', '/upload/fl_attachment/');
         }
+        // Para archivos raw (doc, xlsx, etc.), la URL directa ya descarga
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.nombre || 'documento';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
     };
 
     const getTipoLabel = (tipo) => {
@@ -215,8 +193,8 @@ const DocumentosHotel = () => {
                                         <FileCheck size={24} />
                                     </div>
                                     <div className="flex gap-1">
-                                        <button 
-                                            onClick={() => handleDownload(doc._id, doc.nombre)} 
+                                        <button
+                                            onClick={() => handleDownload(doc)}
                                             className="p-2 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors"
                                             title="Descargar"
                                         >
