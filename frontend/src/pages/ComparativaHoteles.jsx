@@ -388,7 +388,7 @@ const ComparativaHoteles = () => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-[10px] font-bold">
                                         <span className="text-slate-400">Progreso Ventas</span>
-                                        <span className="text-blue-600">{plazaVentasProgreso.toFixed(1)}%</span>
+                                        <span className="text-blue-600">${totalPlaza.toLocaleString('es-CO')} &nbsp;·&nbsp; {plazaVentasProgreso.toFixed(1)}%</span>
                                     </div>
                                     <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden">
                                         <div className="h-full bg-blue-600 rounded-full" style={{ width: `${Math.min(100, plazaVentasProgreso)}%` }} />
@@ -397,7 +397,7 @@ const ComparativaHoteles = () => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-[10px] font-bold">
                                         <span className="text-slate-400">Progreso Ganancia</span>
-                                        <span className="text-emerald-500">{plazaGananciaProgreso.toFixed(1)}%</span>
+                                        <span className="text-emerald-500">${(totalPlaza - plazaExpenses).toLocaleString('es-CO')} &nbsp;·&nbsp; {plazaGananciaProgreso.toFixed(1)}%</span>
                                     </div>
                                     <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden">
                                         <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, plazaGananciaProgreso)}%` }} />
@@ -412,7 +412,7 @@ const ComparativaHoteles = () => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-[10px] font-bold">
                                         <span className="text-slate-400">Progreso Ventas</span>
-                                        <span className="text-indigo-600">{colonialVentasProgreso.toFixed(1)}%</span>
+                                        <span className="text-indigo-600">${totalColonial.toLocaleString('es-CO')} &nbsp;·&nbsp; {colonialVentasProgreso.toFixed(1)}%</span>
                                     </div>
                                     <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden">
                                         <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${Math.min(100, colonialVentasProgreso)}%` }} />
@@ -421,7 +421,7 @@ const ComparativaHoteles = () => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-[10px] font-bold">
                                         <span className="text-slate-400">Progreso Ganancia</span>
-                                        <span className="text-emerald-500">{colonialGananciaProgreso.toFixed(1)}%</span>
+                                        <span className="text-emerald-500">${(totalColonial - colonialExpenses).toLocaleString('es-CO')} &nbsp;·&nbsp; {colonialGananciaProgreso.toFixed(1)}%</span>
                                     </div>
                                     <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden">
                                         <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, colonialGananciaProgreso)}%` }} />
