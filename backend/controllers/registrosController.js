@@ -113,12 +113,12 @@ exports.getRegistroById = async (req, res) => {
         // Población manual de cliente y huéspedes
         let clienteObj = null;
         if (registro.cliente) {
-            clienteObj = await Cliente.findById(registro.cliente).populate('empresa_id', 'nombre');
+            clienteObj = await Cliente.findById(registro.cliente).lean();
         }
 
-        const huespedesIds = (registro.huespedes || []).map(h => h.toString());
+        const huespedesIds = (registro.huespedes || []).map(h => h.toString ? h.toString() : String(h));
         const huespedesObjs = huespedesIds.length > 0
-            ? await Cliente.find({ _id: { $in: huespedesIds } })
+            ? await Cliente.find({ _id: { $in: huespedesIds } }).lean()
             : [];
 
         const raw = registro.toObject();
