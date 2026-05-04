@@ -77,63 +77,38 @@ exports.downloadDocumento = async (req, res) => {
         const doc = await DocumentoHotel.findById(req.params.id);
         if (!doc) return res.status(404).json({ message: 'Documento no encontrado' });
 
-        const axios = require('axios');
-        const url = doc.url;
-        
-        console.log(`[DOWNLOAD PROXY] Iniciando descarga para: ${doc.nombre} desde ${url}`);
+        let downloadUrl = doc.url;
 
-        const response = await axios({
-            method: 'get',
-            url: url,
-            responseType: 'stream',
-            timeout: 30000 // 30 segundos de timeout
-        });
-
-        const extension = path.extname(url) || '.pdf';
-        const fileName = doc.nombre.toLowerCase().endsWith(extension.toLowerCase()) ? doc.nombre : `${doc.nombre}${extension}`;
-        const safeFileName = fileName.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-
-        res.setHeader('Content-Disposition', `attachment; filename="${safeFileName}"`);
-        res.setHeader('Content-Type', response.headers['content-type'] || 'application/pdf');
-        
-        response.data.pipe(res);
-        
-        response.data.on('end', () => {
-            console.log(`[DOWNLOAD PROXY] Descarga completada: ${doc.nombre}`);
-        });
-
-        response.data.on('error', (err) => {
-            console.error('[DOWNLOAD PROXY] Error en el stream:', err.message);
-            if (!res.headersSent) {
-                res.status(500).json({ message: 'Error durante la descarga del archivo' });
+        // Generar URL firmada de Cloudinary para garantizar acceso
+        if (doc.public_id) {
+            try {
+                downloadUrl = cloudinary.url(doc.public_id, {
+                    resource_type: doc.resource_type || 'image',
+                    sign_url: true,
+                    attachment: true,
+                    secure: true,
+                    type: 'upload'
+                });
+            } catch (e) {
+                console.warn('[DOWNLOAD] No se pudo firmar URL, usando directa:', e.message);
+                // Fallback: insertar fl_attachment en URL directa para imágenes/PDFs
+                if (!doc.resource_type || doc.resource_type === 'image') {
+                    downloadUrl = doc.url.replace('/upload/', '/upload/fl_attachment/');
+                }
             }
-        });
+        } else if (!doc.resource_type || doc.resource_type === 'image') {
+            downloadUrl = doc.url.replace('/upload/', '/upload/fl_attachment/');
+        }
+
+        console.log(`[DOWNLOAD] Redirigiendo descarga: ${doc.nombre}`);
+        return res.redirect(downloadUrl);
 
     } catch (error) {
-        console.error('[DOWNLOAD PROXY] Error crítico:', error.message);
-        
-        // Manejo específico para errores de Mongoose (ID malformado)
+        console.error('[DOWNLOAD] Error:', error.message);
         if (error.name === 'CastError') {
-            return res.status(400).json({ 
-                message: 'ID de documento malformado', 
-                error: error.message,
-                receivedId: req.params.id 
-            });
+            return res.status(400).json({ message: 'ID de documento inválido' });
         }
-
-        if (error.response) {
-            console.error('[DOWNLOAD PROXY] Detalle error de red:', error.response.status);
-            if (!res.headersSent) {
-                return res.status(error.response.status).json({ 
-                    message: 'Error al obtener el archivo desde el servidor remoto',
-                    status: error.response.status
-                });
-            }
-        }
-        
-        if (!res.headersSent) {
-            res.status(500).json({ message: 'Error interno al procesar la descarga', error: error.message });
-        }
+        res.status(500).json({ message: 'Error al procesar la descarga' });
     }
 };
 

@@ -117,24 +117,10 @@ const DocumentosHotel = () => {
     };
 
     const handleDownload = (doc) => {
-        if (!doc?.url) return;
-
-        let url = doc.url;
-
-        // Para imágenes y PDFs en Cloudinary, agregar fl_attachment fuerza la descarga
-        if (doc.resource_type === 'image' || !doc.resource_type) {
-            url = url.replace('/upload/', '/upload/fl_attachment/');
-        }
-        // Para archivos raw (doc, xlsx, etc.), la URL directa ya descarga
-
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = doc.nombre || 'documento';
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+        if (!doc?._id) return;
+        const token = localStorage.getItem('token');
+        const base = import.meta.env.MODE === 'development' ? 'http://localhost:5001' : '';
+        window.open(`${base}/api/documentos-hotel/download/${doc._id}?token=${token}`, '_blank');
     };
 
     const getTipoLabel = (tipo) => {
