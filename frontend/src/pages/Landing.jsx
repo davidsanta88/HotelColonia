@@ -6,8 +6,9 @@ import Swal from 'sweetalert2';
 
 const SLIDES = [
     {
-        img: '/hotel_noche.jpg',
-        title: 'Hotel Balcón Plaza',
+    {
+        img: '/hotel_colonial_hero.jpg',
+        title: 'Hotel Balcón Colonial',
         sub: 'Tu hogar en Belalcázar, Caldas',
     },
     {
@@ -38,7 +39,7 @@ const SLIDES = [
     {
         img: '/mapa_region.png',
         title: 'Ubicación Estratégica',
-        sub: 'Carrera 4 #11-03, 2do Piso (Plaza Córdoba) | Tel: 321 805 1869',
+        sub: 'Carrera 4 #11-49 | Tel: 316 279 9224',
     },
     {
         img: '/hotel_studio.jpg',
@@ -78,7 +79,7 @@ const SLIDES = [
     {
         img: '/hotel_dia.jpg',
         title: 'Belalcázar nos espera',
-        sub: 'Ubicación privilegiada frente a la Plaza Córdoba',
+        sub: 'Ubicación privilegiada en Belalcázar',
     },
 ];
 
@@ -98,12 +99,12 @@ const Landing = () => {
     const [loading, setLoading] = useState(false);
     const [sent, setSent] = useState(false);
     const [hotelInfo, setHotelInfo] = useState({
-        nombre: 'HOTEL BALCÓN PLAZA',
-        nit: '900.000.000-1',
-        direccion: 'CRA 4 #11-03 2DO PISO (PLAZA CÓRDOBA)',
-        telefono: '573218051869',
-        correo: 'hotelbalconplaza60@gmail.com',
-        sitioWeb: 'www.hotelbalconplaza.com'
+        nombre: 'HOTEL BALCÓN COLONIAL',
+        nit: '1.045.047.432-1',
+        direccion: 'CRA 4 #11-49',
+        telefono: '573162799224',
+        correo: 'balconcolonialhotel@gmail.com',
+        sitioWeb: 'www.hotelbalconcolonial.com'
     });
     const [aliados, setAliados] = useState([]);
     const [loadingAliados, setLoadingAliados] = useState(true);
@@ -271,7 +272,7 @@ const Landing = () => {
                         <img src={hotelInfo.logoUrl || "/logo.jpg"} alt="Logo" className="w-full h-full object-cover" />
                     </div>
                     <div className="text-left">
-                        <p className="text-white font-black text-lg lg:text-xl leading-tight tracking-wider drop-shadow-md">{(hotelInfo.nombre || 'HOTEL BALCÓN PLAZA').toUpperCase()}</p>
+                        <p className="text-white font-black text-lg lg:text-xl leading-tight tracking-wider drop-shadow-md">{(hotelInfo.nombre || 'HOTEL BALCÓN COLONIAL').toUpperCase()}</p>
                         <p className="text-accent-500 text-[8px] lg:text-[10px] font-black tracking-[0.3em] uppercase drop-shadow-sm">{hotelInfo.direccion?.split(',').pop().trim() || 'Colombia'}</p>
                     </div>
                 </div>
