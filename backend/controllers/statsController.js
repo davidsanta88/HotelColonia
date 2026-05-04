@@ -9,6 +9,7 @@ const Habitacion = require('../models/Habitacion');
 const EstadoHabitacion = require('../models/EstadoHabitacion');
 const Reserva = require('../models/Reserva');
 const Cliente = require('../models/Cliente');
+const HotelConfig = require('../models/HotelConfig');
 
 // Configuración para las conexiones entre hoteles
 const COLONIAL_URI = process.env.COLONIAL_MONGODB_URI || 'mongodb+srv://admin:HotelColonial2026@cluster0.d1nbr5v.mongodb.net/HotelColonialDB?retryWrites=true&w=majority';
@@ -43,7 +44,8 @@ const getColonialModels = async () => {
         Habitacion: conn.model('Habitacion', Habitacion.schema),
         EstadoHabitacion: conn.model('EstadoHabitacion', EstadoHabitacion.schema),
         Reserva: conn.model('Reserva', Reserva.schema),
-        Cliente: conn.model('Cliente', Cliente.schema)
+        Cliente: conn.model('Cliente', Cliente.schema),
+        HotelConfig: conn.model('HotelConfig', HotelConfig.schema)
     };
 };
 
@@ -60,7 +62,8 @@ const getPlazaModels = async () => {
         Habitacion: conn.model('Habitacion', Habitacion.schema),
         EstadoHabitacion: conn.model('EstadoHabitacion', EstadoHabitacion.schema),
         Reserva: conn.model('Reserva', Reserva.schema),
-        Cliente: conn.model('Cliente', Cliente.schema)
+        Cliente: conn.model('Cliente', Cliente.schema),
+        HotelConfig: conn.model('HotelConfig', HotelConfig.schema)
     };
 };
 
@@ -102,12 +105,14 @@ exports.getComparativeStats = async (req, res) => {
             plaza: {
                 history: plazaData,
                 rooms: plazaRooms,
-                cash: plazaCash
+                cash: plazaCash,
+                config: isColonial ? await (await getPlazaModels()).HotelConfig.findOne() : await HotelConfig.findOne()
             },
             colonial: {
                 history: colonialData,
                 rooms: colonialRooms,
-                cash: colonialCash
+                cash: colonialCash,
+                config: isColonial ? await HotelConfig.findOne() : await (await getColonialModels()).HotelConfig.findOne()
             }
         });
     } catch (error) {
