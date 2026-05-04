@@ -16,6 +16,13 @@ const cierreCajaSchema = new mongoose.Schema({
         bancolombia: Number,
         efectivo: Number,
         otros: Number
+    },
+    verificacion_bancos: {
+        nequi_real: { type: Number, default: null },
+        bancolombia_real: { type: Number, default: null },
+        diferencia_nequi: { type: Number, default: 0 },
+        diferencia_bancolombia: { type: Number, default: 0 },
+        verificado: { type: Boolean, default: false }
     }
 });
 

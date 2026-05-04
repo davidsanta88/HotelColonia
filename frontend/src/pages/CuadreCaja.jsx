@@ -49,6 +49,8 @@ const CuadreCaja = () => {
     const [cierreNota, setCierreNota] = useState('');
     const [saldoReal, setSaldoReal] = useState('');
     const [efectivoRetirado, setEfectivoRetirado] = useState('');
+    const [nequiReal, setNequiReal] = useState('');
+    const [bancolombiaReal, setBancolombiaReal] = useState('');
     const [editingId, setEditingId] = useState(null);
 
     // Detail Modal States
@@ -140,6 +142,8 @@ const CuadreCaja = () => {
         try {
             const rawSaldoReal = unformatNumber(saldoReal);
             const rawRetirado = unformatNumber(efectivoRetirado);
+            const rawNequiReal = unformatNumber(nequiReal);
+            const rawBancReal = unformatNumber(bancolombiaReal);
             const expectedCashTotal = (data.resumen.total_efectivo || 0) + montoUltimoCierre;
             const payload = {
                 ingresos: data.resumen.ingresos_totales,
@@ -153,6 +157,10 @@ const CuadreCaja = () => {
                     bancolombia: data.resumen.total_bancolombia,
                     efectivo: rawSaldoReal ? parseFloat(rawSaldoReal) : expectedCashTotal,
                     otros: data.resumen.total_otros
+                },
+                verificacion_bancos: {
+                    nequi_real: rawNequiReal ? parseFloat(rawNequiReal) : null,
+                    bancolombia_real: rawBancReal ? parseFloat(rawBancReal) : null
                 }
             };
 
@@ -200,6 +208,8 @@ const CuadreCaja = () => {
         setCierreNota(cierre.nota);
         setSaldoReal(formatNumber(cierre.saldo_real || cierre.saldo_calculado));
         setEfectivoRetirado(formatNumber(cierre.efectivo_retirado || 0));
+        setNequiReal(formatNumber(cierre.verificacion_bancos?.nequi_real || ''));
+        setBancolombiaReal(formatNumber(cierre.verificacion_bancos?.bancolombia_real || ''));
         setShowCierreModal(true);
     };
 
@@ -208,6 +218,8 @@ const CuadreCaja = () => {
         setCierreNota('');
         setSaldoReal('');
         setEfectivoRetirado('');
+        setNequiReal('');
+        setBancolombiaReal('');
     };
 
     const formatNumber = (num) => {
@@ -855,19 +867,22 @@ const CuadreCaja = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-white border-b border-gray-100 text-gray-400">
-                                <th className="p-4 text-[10px] uppercase font-black tracking-widest">Fecha Cierre</th>
-                                <th className="p-4 text-[10px] uppercase font-black tracking-widest">Usuario</th>
-                                <th className="p-4 text-[10px] uppercase font-black tracking-widest w-1/4">Nota</th>
-                                <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Queda en Caja</th>
-                                <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Recogido</th>
-                                <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Total Efectivo</th>
-                                <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Acciones</th>
+                                <th className="p-3 text-[9px] uppercase font-black tracking-widest">Fecha</th>
+                                <th className="p-3 text-[9px] uppercase font-black tracking-widest">Usuario</th>
+                                <th className="p-3 text-[9px] uppercase font-black tracking-widest">Nota</th>
+                                <th className="p-3 text-[9px] uppercase font-black tracking-widest text-right text-purple-500">Nequi</th>
+                                <th className="p-3 text-[9px] uppercase font-black tracking-widest text-right text-yellow-600">Bancolombia</th>
+                                <th className="p-3 text-[9px] uppercase font-black tracking-widest text-right text-blue-600">Queda Caja</th>
+                                <th className="p-3 text-[9px] uppercase font-black tracking-widest text-right text-emerald-600">Recogido</th>
+                                <th className="p-3 text-[9px] uppercase font-black tracking-widest text-right">Total Efectivo</th>
+                                <th className="p-3 text-[9px] uppercase font-black tracking-widest text-center">Bancos ✓</th>
+                                <th className="p-3 text-[9px] uppercase font-black tracking-widest text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50 text-sm">
                             {cierres.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="p-8 text-center text-gray-400">
+                                    <td colSpan="10" className="p-8 text-center text-gray-400">
                                         No hay cierres registrados aún.
                                     </td>
                                 </tr>
@@ -876,42 +891,57 @@ const CuadreCaja = () => {
                                     const quedaEnCaja = c.saldo_real || c.saldo_calculado || 0;
                                     const recogido = c.efectivo_retirado || 0;
                                     const totalEfectivo = quedaEnCaja + recogido;
+                                    const vb = c.verificacion_bancos || {};
+                                    const diffNequi = vb.diferencia_nequi;
+                                    const diffBanc = vb.diferencia_bancolombia;
                                     return (
-                                    <tr key={i} className="hover:bg-gray-50">
-                                        <td className="p-4 font-bold text-slate-700 whitespace-nowrap">
+                                    <tr key={i} className="hover:bg-gray-50 text-sm">
+                                        <td className="p-3 font-bold text-slate-700 whitespace-nowrap text-xs">
                                             {new Date(c.fecha).toLocaleString()}
                                         </td>
-                                        <td className="p-4 text-slate-600 font-medium">
+                                        <td className="p-3 text-slate-600 font-medium text-xs">
                                             {c.usuario_nombre || c.usuario?.nombre}
                                         </td>
-                                        <td className="p-4 text-slate-500 italic text-xs">
+                                        <td className="p-3 text-slate-400 italic text-xs max-w-[150px] truncate">
                                             "{c.nota}"
                                         </td>
-                                        <td className="p-4 text-right font-bold text-blue-700">
+                                        <td className="p-3 text-right text-xs">
+                                            <div className="font-bold text-purple-700">${formatCurrency(c.medios_pago?.nequi || 0)}</div>
+                                            {vb.nequi_real != null && (
+                                                <div className={`text-[9px] font-black ${diffNequi === 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                    Real: ${formatCurrency(vb.nequi_real)} ({diffNequi >= 0 ? '+' : ''}${formatCurrency(diffNequi)})
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="p-3 text-right text-xs">
+                                            <div className="font-bold text-yellow-700">${formatCurrency(c.medios_pago?.bancolombia || 0)}</div>
+                                            {vb.bancolombia_real != null && (
+                                                <div className={`text-[9px] font-black ${diffBanc === 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                    Real: ${formatCurrency(vb.bancolombia_real)} ({diffBanc >= 0 ? '+' : ''}${formatCurrency(diffBanc)})
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="p-3 text-right font-bold text-blue-700 text-xs">
                                             ${formatCurrency(quedaEnCaja)}
                                         </td>
-                                        <td className="p-4 text-right font-bold text-emerald-600">
+                                        <td className="p-3 text-right font-bold text-emerald-600 text-xs">
                                             ${formatCurrency(recogido)}
                                         </td>
-                                        <td className="p-4 text-right font-black text-slate-900 text-base">
+                                        <td className="p-3 text-right font-black text-slate-900">
                                             ${formatCurrency(totalEfectivo)}
                                         </td>
-                                        <td className="p-4 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => handleEditCierreStart(c)}
-                                                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                                                    title="Editar Cierre"
-                                                >
-                                                    <Edit size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteCierre(c._id)}
-                                                    className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="Eliminar Cierre"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+                                        <td className="p-3 text-center">
+                                            {vb.verificado
+                                                ? <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${(diffNequi === 0 && diffBanc === 0) ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                                                    {(diffNequi === 0 && diffBanc === 0) ? '✓ OK' : '⚠ Dif.'}
+                                                  </span>
+                                                : <span className="text-[9px] text-slate-300 font-bold">—</span>
+                                            }
+                                        </td>
+                                        <td className="p-3 text-right">
+                                            <div className="flex justify-end gap-1">
+                                                <button onClick={() => handleEditCierreStart(c)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Editar"><Edit size={14} /></button>
+                                                <button onClick={() => handleDeleteCierre(c._id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar"><Trash2 size={14} /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -982,11 +1012,64 @@ const CuadreCaja = () => {
                                 </div>
                             </div>
                             
+                            {/* Verificación con Bancos */}
+                            <div className="border border-slate-200 rounded-xl overflow-hidden">
+                                <div className="bg-slate-800 px-4 py-2">
+                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Verificación con Bancos (Opcional)</p>
+                                </div>
+                                <div className="p-4 space-y-3">
+                                    {/* Nequi */}
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-1">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Nequi — Sistema</p>
+                                            <p className="text-sm font-black text-slate-700">${formatCurrency(data.resumen?.total_nequi || 0)}</p>
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-[9px] font-black text-purple-500 uppercase mb-1">Nequi — Real (App)</p>
+                                            <input
+                                                type="text" placeholder="0"
+                                                className="w-full border border-purple-200 rounded-lg px-3 py-1.5 text-sm font-black text-purple-700 focus:outline-none focus:border-purple-400"
+                                                value={nequiReal}
+                                                onChange={e => { const v = unformatNumber(e.target.value); if (!isNaN(v)) setNequiReal(formatNumber(v)); }}
+                                            />
+                                        </div>
+                                        {nequiReal && (
+                                            <div className="flex-shrink-0 text-right">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Diferencia</p>
+                                                {(() => { const d = parseFloat(unformatNumber(nequiReal)||0) - (data.resumen?.total_nequi||0); return <p className={`text-sm font-black ${d === 0 ? 'text-emerald-600' : 'text-red-500'}`}>{d >= 0 ? '+' : ''}${formatCurrency(d)}</p>; })()}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* Bancolombia */}
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-1">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Bancolombia — Sistema</p>
+                                            <p className="text-sm font-black text-slate-700">${formatCurrency(data.resumen?.total_bancolombia || 0)}</p>
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-[9px] font-black text-yellow-600 uppercase mb-1">Bancolombia — Real (App)</p>
+                                            <input
+                                                type="text" placeholder="0"
+                                                className="w-full border border-yellow-200 rounded-lg px-3 py-1.5 text-sm font-black text-yellow-700 focus:outline-none focus:border-yellow-400"
+                                                value={bancolombiaReal}
+                                                onChange={e => { const v = unformatNumber(e.target.value); if (!isNaN(v)) setBancolombiaReal(formatNumber(v)); }}
+                                            />
+                                        </div>
+                                        {bancolombiaReal && (
+                                            <div className="flex-shrink-0 text-right">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Diferencia</p>
+                                                {(() => { const d = parseFloat(unformatNumber(bancolombiaReal)||0) - (data.resumen?.total_bancolombia||0); return <p className={`text-sm font-black ${d === 0 ? 'text-emerald-600' : 'text-red-500'}`}>{d >= 0 ? '+' : ''}${formatCurrency(d)}</p>; })()}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Nota / Comentario de Cierre *</label>
-                                <textarea 
+                                <textarea
                                     required
-                                    className="input-field h-32 resize-none text-base p-4 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
+                                    className="input-field h-28 resize-none text-base p-4 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
                                     placeholder="Escribe aquí cualquier observación sobre el cierre de hoy..."
                                     value={cierreNota}
                                     onChange={e => setCierreNota(e.target.value)}
