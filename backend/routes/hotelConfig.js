@@ -11,5 +11,7 @@ const upload = multer({ storage: storage });
 router.get('/', hotelConfigController.getConfig);
 router.put('/', [verifyToken, isAdmin], hotelConfigController.updateConfig);
 router.post('/upload-firma', [verifyToken, isAdmin, upload.single('firma')], hotelConfigController.uploadFirma);
+router.post('/upload-logo', [verifyToken, isAdmin, upload.single('image')], hotelConfigController.uploadLogo);
+router.post('/upload-background', [verifyToken, isAdmin, upload.single('image')], hotelConfigController.uploadBackground);
 
 module.exports = router;

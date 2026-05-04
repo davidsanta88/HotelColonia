@@ -390,7 +390,7 @@ const HotelConfig = () => {
                                             formData.append('image', file);
                                             try {
                                                 Swal.fire({ title: 'Subiendo logo...', didOpen: () => Swal.showLoading() });
-                                                const res = await api.post('/productos/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                                const res = await api.post('/hotel-config/upload-logo', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
                                                 setConfig(prev => ({ ...prev, logoUrl: res.data.imageUrl }));
                                                 Swal.fire('Éxito', 'Logo subido correctamente', 'success');
                                             } catch (err) { Swal.fire('Error', 'No se pudo subir el logo', 'error'); }
@@ -421,7 +421,7 @@ const HotelConfig = () => {
                                             formData.append('image', file);
                                             try {
                                                 Swal.fire({ title: 'Subiendo fondo...', didOpen: () => Swal.showLoading() });
-                                                const res = await api.post('/productos/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                                const res = await api.post('/hotel-config/upload-background', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
                                                 setConfig(prev => ({ ...prev, backgroundUrl: res.data.imageUrl }));
                                                 Swal.fire('Éxito', 'Fondo subido correctamente', 'success');
                                             } catch (err) { Swal.fire('Error', 'No se pudo subir el fondo', 'error'); }
