@@ -69,11 +69,21 @@ exports.downloadDocumento = async (req, res) => {
         const doc = await DocumentoHotel.findById(req.params.id);
         if (!doc) return res.status(404).json({ message: 'Documento no encontrado' });
 
-        // Para documentos 'raw' (nuevos), la URL directa funciona sin autenticación
-        // Para documentos 'image' legacy, intentamos con fl_attachment
-        let downloadUrl = doc.url;
-        if (doc.resource_type === 'image' || (!doc.resource_type && doc.url.includes('/image/'))) {
-            downloadUrl = doc.url.replace('/upload/', '/upload/fl_attachment/');
+        let downloadUrl;
+
+        if (doc.public_id) {
+            const resourceType = doc.resource_type || (doc.url.includes('/raw/') ? 'raw' : 'image');
+            // URL firmada — funciona aunque Cloudinary tenga acceso restringido
+            downloadUrl = cloudinary.url(doc.public_id, {
+                resource_type: resourceType,
+                sign_url: true,
+                attachment: true,
+                secure: true,
+                type: 'upload'
+            });
+        } else {
+            // Fallback para documentos sin public_id
+            downloadUrl = doc.url;
         }
 
         return res.json({ url: downloadUrl, nombre: doc.nombre });
