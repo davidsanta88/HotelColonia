@@ -79,7 +79,6 @@ exports.downloadDocumento = async (req, res) => {
 
         let downloadUrl = doc.url;
 
-        // Generar URL firmada de Cloudinary para garantizar acceso
         if (doc.public_id) {
             try {
                 downloadUrl = cloudinary.url(doc.public_id, {
@@ -90,8 +89,7 @@ exports.downloadDocumento = async (req, res) => {
                     type: 'upload'
                 });
             } catch (e) {
-                console.warn('[DOWNLOAD] No se pudo firmar URL, usando directa:', e.message);
-                // Fallback: insertar fl_attachment en URL directa para imágenes/PDFs
+                console.warn('[DOWNLOAD] Usando URL directa:', e.message);
                 if (!doc.resource_type || doc.resource_type === 'image') {
                     downloadUrl = doc.url.replace('/upload/', '/upload/fl_attachment/');
                 }
@@ -100,8 +98,8 @@ exports.downloadDocumento = async (req, res) => {
             downloadUrl = doc.url.replace('/upload/', '/upload/fl_attachment/');
         }
 
-        console.log(`[DOWNLOAD] Redirigiendo descarga: ${doc.nombre}`);
-        return res.redirect(downloadUrl);
+        // Devolver la URL como JSON para que el frontend la abra directamente
+        return res.json({ url: downloadUrl, nombre: doc.nombre });
 
     } catch (error) {
         console.error('[DOWNLOAD] Error:', error.message);

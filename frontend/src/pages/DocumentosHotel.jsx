@@ -116,11 +116,16 @@ const DocumentosHotel = () => {
         }
     };
 
-    const handleDownload = (doc) => {
+    const handleDownload = async (doc) => {
         if (!doc?._id) return;
-        const token = localStorage.getItem('token');
-        const base = import.meta.env.MODE === 'development' ? 'http://localhost:5001' : '';
-        window.open(`${base}/api/documentos-hotel/download/${doc._id}?token=${token}`, '_blank');
+        try {
+            const res = await api.get(`/documentos-hotel/download/${doc._id}`);
+            const { url } = res.data;
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error('Download error:', error);
+            Swal.fire('Error', 'No se pudo obtener el enlace de descarga.', 'error');
+        }
     };
 
     const getTipoLabel = (tipo) => {
