@@ -764,6 +764,50 @@ const FinanzasPersonales = () => {
                         </div>
                     </div>
                     
+                    {/* Gráficas de Barra - Reporte Diario */}
+                    <div className="grid grid-cols-1 gap-8 mb-10">
+                        <div className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 shadow-sm h-80">
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <TrendingUp size={14} className="text-emerald-500" /> Tendencia Diaria (Ingresos vs Gastos)
+                            </h4>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={[...dailyData].reverse().map(d => ({
+                                        ...d,
+                                        label: moment(d.date).format('DD/MM')
+                                    }))}
+                                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                    <XAxis 
+                                        dataKey="label" 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{ fontSize: 9, fontWeight: 'bold', fill: '#94a3b8' }}
+                                    />
+                                    <YAxis 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{ fontSize: 9, fontWeight: 'bold', fill: '#94a3b8' }}
+                                        tickFormatter={(value) => `$${value / 1000}k`}
+                                    />
+                                    <Tooltip 
+                                        contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '10px', fontWeight: 'bold' }}
+                                        formatter={(value) => [`$${new Intl.NumberFormat('es-CO').format(value)}`, '']}
+                                    />
+                                    <Legend 
+                                        verticalAlign="top" 
+                                        align="right" 
+                                        iconType="circle"
+                                        wrapperStyle={{ fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', paddingBottom: '20px' }}
+                                    />
+                                    <Bar name="Ingresos" dataKey="ingresos" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
+                                    <Bar name="Gastos" dataKey="gastos" fill="#f43f5e" radius={[4, 4, 0, 0]} barSize={20} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                    
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-separate border-spacing-y-4">
                             <thead>
