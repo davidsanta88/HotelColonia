@@ -38,8 +38,7 @@ import {
     Info,
     FileText,
     PieChart as PieChartIcon,
-    BarChart3,
-    Target
+    BarChart3
 } from 'lucide-react';
 import { format, subDays, startOfMonth, differenceInDays, parseISO, addDays } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
