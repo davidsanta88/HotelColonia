@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Swal from 'sweetalert2';
 import { 
@@ -45,10 +45,10 @@ import { useNavigate } from 'react-router-dom';
 
 const PERIODOS = [
     { label: 'Hoy', getDates: () => ({ inicio: format(new Date(), 'yyyy-MM-dd'), fin: format(new Date(), 'yyyy-MM-dd') }) },
-    { label: '7 días', getDates: () => ({ inicio: format(subDays(new Date(), 6), 'yyyy-MM-dd'), fin: format(new Date(), 'yyyy-MM-dd') }) },
-    { label: '30 días', getDates: () => ({ inicio: format(subDays(new Date(), 29), 'yyyy-MM-dd'), fin: format(new Date(), 'yyyy-MM-dd') }) },
+    { label: '7 d├¡as', getDates: () => ({ inicio: format(subDays(new Date(), 6), 'yyyy-MM-dd'), fin: format(new Date(), 'yyyy-MM-dd') }) },
+    { label: '30 d├¡as', getDates: () => ({ inicio: format(subDays(new Date(), 29), 'yyyy-MM-dd'), fin: format(new Date(), 'yyyy-MM-dd') }) },
     { label: 'Este mes', getDates: () => ({ inicio: format(startOfMonth(new Date()), 'yyyy-MM-dd'), fin: format(addDays(new Date(), 1), 'yyyy-MM-dd') }) },
-    { label: '90 días', getDates: () => ({ inicio: format(subDays(new Date(), 89), 'yyyy-MM-dd'), fin: format(new Date(), 'yyyy-MM-dd') }) },
+    { label: '90 d├¡as', getDates: () => ({ inicio: format(subDays(new Date(), 89), 'yyyy-MM-dd'), fin: format(new Date(), 'yyyy-MM-dd') }) },
 ];
 
 const ComparativaHoteles = () => {
@@ -168,7 +168,7 @@ const ComparativaHoteles = () => {
 
     const globalCashTotalConBase = globalCashTotal + globalCashBase;
     
-    // --- CÁLCULOS DE METAS MENSUALES ---
+    // --- C├üLCULOS DE METAS MENSUALES ---
     const plazaMetaVentas = data?.plaza?.config?.metaVentasMensual || 0;
     const plazaMetaGanancia = data?.plaza?.config?.metaGananciaMensual || 0;
     const colonialMetaVentas = data?.colonial?.config?.metaVentasMensual || 0;
@@ -196,7 +196,7 @@ const ComparativaHoteles = () => {
                             </div>
                             Comparativa de Hoteles
                         </h1>
-                        <p className="text-slate-400 text-sm font-medium mt-1 uppercase tracking-wider">Análisis entre Hotel Plaza y Hotel Colonial</p>
+                        <p className="text-slate-400 text-sm font-medium mt-1 uppercase tracking-wider">An├ílisis entre Hotel Plaza y Hotel Colonial</p>
                     </div>
                     
                     <button 
@@ -223,7 +223,7 @@ const ComparativaHoteles = () => {
                             <Calendar size={14} className="text-slate-400" />
                             <input type="date" className="bg-transparent text-[10px] font-bold border-none focus:ring-0 text-slate-700 p-0 w-24"
                                 value={dates.inicio} onChange={e => { setDates({ ...dates, inicio: e.target.value }); setPeriodoActivo(-1); }} />
-                            <span className="text-slate-300">→</span>
+                            <span className="text-slate-300">ÔåÆ</span>
                             <input type="date" className="bg-transparent text-[10px] font-bold border-none focus:ring-0 text-slate-700 p-0 w-24"
                                 value={dates.fin} onChange={e => { setDates({ ...dates, fin: e.target.value }); setPeriodoActivo(-1); }} />
                             <button onClick={fetchComparativeData} className="text-primary-600 hover:text-primary-800 transition" title="Actualizar">
@@ -234,7 +234,7 @@ const ComparativaHoteles = () => {
                 </div>
             </div>
 
-            {/* --- SECCIÓN MAESTRA: MÉTRICAS CLAVE DE LA CADENA --- */}
+            {/* --- SECCI├ôN MAESTRA: M├ëTRICAS CLAVE DE LA CADENA --- */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* 1. LIQUIDEZ CONSOLIDADA (Mejorado) */}
                 <div className="bg-gradient-to-br from-indigo-700 via-indigo-600 to-blue-700 p-10 rounded-[3rem] text-white shadow-2xl shadow-indigo-200 relative overflow-hidden group border border-white/10">
@@ -277,11 +277,11 @@ const ComparativaHoteles = () => {
                     </div>
                 </div>
 
-                {/* 2. OCUPACIÓN GRUPAL (NUEVO - Estilo imagen 1) */}
+                {/* 2. OCUPACI├ôN GRUPAL (NUEVO - Estilo imagen 1) */}
                 <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col justify-between group transition-all hover:shadow-2xl">
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Ocupación Grupal</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Ocupaci├│n Grupal</span>
                             <Users size={20} className="text-primary-500 opacity-20" />
                         </div>
                         
@@ -338,7 +338,7 @@ const ComparativaHoteles = () => {
                 </div>
             </div>
 
-            {/* --- SECCIÓN: SEGUIMIENTO DE METAS MENSUALES --- */}
+            {/* --- SECCI├ôN: SEGUIMIENTO DE METAS MENSUALES --- */}
             <div className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-sm overflow-hidden relative group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
                 
@@ -348,7 +348,7 @@ const ComparativaHoteles = () => {
                     </div>
                     <div>
                         <h3 className="text-2xl font-black text-slate-900 tracking-tight">Seguimiento de Metas Mensuales</h3>
-                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Cumplimiento de objetivos de facturación y utilidad</p>
+                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Cumplimiento de objetivos de facturaci├│n y utilidad</p>
                     </div>
                 </div>
 
@@ -403,7 +403,7 @@ const ComparativaHoteles = () => {
                         {/* Plaza Goals */}
                         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
                             <div className="absolute top-4 right-4 text-[8px] font-black bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full uppercase">Plaza</div>
-                            <h4 className="text-sm font-black text-slate-800 mb-6 uppercase tracking-wider">Hotel Balcón Plaza</h4>
+                            <h4 className="text-sm font-black text-slate-800 mb-6 uppercase tracking-wider">Hotel Balc├│n Plaza</h4>
                             
                             <div className="space-y-6">
                                 <div className="space-y-2">
@@ -430,7 +430,7 @@ const ComparativaHoteles = () => {
                         {/* Colonial Goals */}
                         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
                             <div className="absolute top-4 right-4 text-[8px] font-black bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full uppercase">Colonial</div>
-                            <h4 className="text-sm font-black text-slate-800 mb-6 uppercase tracking-wider">Hotel Balcón Colonial</h4>
+                            <h4 className="text-sm font-black text-slate-800 mb-6 uppercase tracking-wider">Hotel Balc├│n Colonial</h4>
                             
                             <div className="space-y-6">
                                 <div className="space-y-2">
@@ -567,7 +567,7 @@ const ComparativaHoteles = () => {
                     <div className="flex justify-between items-start mb-2">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hab. Ocupadas Totales</p>
                         <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-600">
-                            {globalOccupancyPercent.toFixed(1)}% Ocupación
+                            {globalOccupancyPercent.toFixed(1)}% Ocupaci├│n
                         </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -594,7 +594,7 @@ const ComparativaHoteles = () => {
                 </div>
             </div>
 
-            {/* --- SECCIÓN INTELIGENTE: PULSO DE LA CADENA --- */}
+            {/* --- SECCI├ôN INTELIGENTE: PULSO DE LA CADENA --- */}
             <div className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-sm">
                 <div className="flex items-center gap-4 mb-10">
                     <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
@@ -602,7 +602,7 @@ const ComparativaHoteles = () => {
                     </div>
                     <div>
                         <h3 className="text-2xl font-black text-slate-900 tracking-tight">Pulso de la Cadena</h3>
-                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Análisis Comparativo Directo</p>
+                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">An├ílisis Comparativo Directo</p>
                     </div>
                 </div>
 
@@ -677,7 +677,7 @@ const ComparativaHoteles = () => {
                         <div className="flex flex-col justify-center space-y-8">
                             <div className="space-y-3">
                                 <div className="flex justify-between items-end">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ocupación Plaza</span>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ocupaci├│n Plaza</span>
                                     <span className="text-sm font-black text-blue-600">{((data?.plaza?.rooms?.ocupadas / (data?.plaza?.rooms?.total || 1)) * 100).toFixed(1)}%</span>
                                 </div>
                                 <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-50">
@@ -687,7 +687,7 @@ const ComparativaHoteles = () => {
 
                             <div className="space-y-3">
                                 <div className="flex justify-between items-end">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ocupación Colonial</span>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ocupaci├│n Colonial</span>
                                     <span className="text-sm font-black text-indigo-600">{((data?.colonial?.rooms?.ocupadas / (data?.colonial?.rooms?.total || 1)) * 100).toFixed(1)}%</span>
                                 </div>
                                 <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-50">
@@ -701,7 +701,7 @@ const ComparativaHoteles = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <HotelCard 
-                    hotelName="Hotel Balcón Plaza"
+                    hotelName="Hotel Balc├│n Plaza"
                     income={totalPlaza}
                     expenses={plazaExpenses}
                     dailyAvg={plazaDailyAvg}
@@ -713,7 +713,7 @@ const ComparativaHoteles = () => {
                     color="primary"
                 />
                 <HotelCard 
-                    hotelName="Hotel Balcón Colonial"
+                    hotelName="Hotel Balc├│n Colonial"
                     income={totalColonial}
                     expenses={colonialExpenses}
                     dailyAvg={colonialDailyAvg}
@@ -731,7 +731,7 @@ const ComparativaHoteles = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-10 gap-4">
                     <div>
                         <h3 className="text-2xl font-black text-slate-900 tracking-tight">Comparativa de Ingresos</h3>
-                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Evolución de ingresos por hotel</p>
+                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Evoluci├│n de ingresos por hotel</p>
                     </div>
                 </div>
 
@@ -770,7 +770,7 @@ const ComparativaHoteles = () => {
                 <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm flex flex-col">
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h3 className="text-xl font-black text-slate-900 tracking-tight">Evolución de Margen (Plaza)</h3>
+                            <h3 className="text-xl font-black text-slate-900 tracking-tight">Evoluci├│n de Margen (Plaza)</h3>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Margen Neto por periodo</p>
                         </div>
                         <div className="text-right">
@@ -815,7 +815,7 @@ const ComparativaHoteles = () => {
                 <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm flex flex-col">
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h3 className="text-xl font-black text-slate-900 tracking-tight">Evolución de Margen (Colonial)</h3>
+                            <h3 className="text-xl font-black text-slate-900 tracking-tight">Evoluci├│n de Margen (Colonial)</h3>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Margen Neto por periodo</p>
                         </div>
                         <div className="text-right">
@@ -871,7 +871,7 @@ const ComparativaHoteles = () => {
                             </div>
                             Fidelidad de Clientes Consolidada
                         </h3>
-                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Clientes con más visitas en ambas sedes</p>
+                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Clientes con m├ís visitas en ambas sedes</p>
                     </div>
                     <button className="px-6 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2">
                         Ver Todos los Clientes <Users size={16} />
@@ -905,7 +905,7 @@ const ComparativaHoteles = () => {
                     </div>
                     <div>
                         <h3 className="text-2xl font-black text-slate-900 tracking-tight">Ranking de Procedencia</h3>
-                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">¿De dónde vienen nuestros clientes?</p>
+                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">┬┐De d├│nde vienen nuestros clientes?</p>
                     </div>
                 </div>
 
@@ -927,7 +927,7 @@ const ComparativaHoteles = () => {
                 </div>
             </div>
 
-            {/* Fila de Módulos Inteligentes Consolidados */}
+            {/* Fila de M├│dulos Inteligentes Consolidados */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* 1. Panel de Alertas Globales */}
                 <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col h-[400px]">
@@ -971,7 +971,7 @@ const ComparativaHoteles = () => {
                         )}
                     </div>
                 </div>
-                {/* 2. Pronóstico de Ingresos */}
+                {/* 2. Pron├│stico de Ingresos */}
                 <div className="bg-gradient-to-br from-primary-600 to-primary-800 rounded-[2.5rem] p-8 text-white shadow-xl shadow-primary-100 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform duration-700">
                         <Target size={120} />
@@ -982,8 +982,8 @@ const ComparativaHoteles = () => {
                             <div className="p-3 bg-white/20 rounded-2xl w-fit mb-6 backdrop-blur-md">
                                 <Sparkles size={24} />
                             </div>
-                            <h3 className="text-xl font-black tracking-tight">Pronóstico de Ingresos</h3>
-                            <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mt-1">Próximos 7 días (Reservas + Saldos)</p>
+                            <h3 className="text-xl font-black tracking-tight">Pron├│stico de Ingresos</h3>
+                            <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mt-1">Pr├│ximos 7 d├¡as (Reservas + Saldos)</p>
                         </div>
 
                         <div>
@@ -992,7 +992,7 @@ const ComparativaHoteles = () => {
                             </div>
                             <div className="flex items-center gap-2 text-[10px] font-black bg-white/10 w-fit px-3 py-1.5 rounded-full backdrop-blur-sm">
                                 <TrendingUp size={12} />
-                                ESTIMACIÓN BASADA EN DATOS
+                                ESTIMACI├ôN BASADA EN DATOS
                             </div>
                         </div>
                     </div>
@@ -1006,7 +1006,7 @@ const ComparativaHoteles = () => {
                                 <Trophy size={20} className="text-amber-500" />
                                 Habitaciones Estrella
                             </h3>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Top 5 más rentables</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Top 5 m├ís rentables</p>
                         </div>
                     </div>
 
@@ -1040,7 +1040,7 @@ const ComparativaHoteles = () => {
                 </div>
             </div>
 
-            {/* Sección de Auditoría de Tiempos (Check-outs Vencidos) */}
+            {/* Secci├│n de Auditor├¡a de Tiempos (Check-outs Vencidos) */}
             <div className="mt-8 bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="flex items-center justify-between mb-8">
                     <div>
@@ -1048,9 +1048,9 @@ const ComparativaHoteles = () => {
                             <div className="p-2 bg-rose-100 text-rose-600 rounded-2xl">
                                 <Clock size={24} />
                             </div>
-                            Auditoría de Tiempos (Check-outs Vencidos)
+                            Auditor├¡a de Tiempos (Check-outs Vencidos)
                         </h3>
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">Huéspedes que han superado su hora de salida programada</p>
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">Hu├®spedes que han superado su hora de salida programada</p>
                     </div>
                     <div className="px-4 py-2 bg-rose-50 rounded-2xl border border-rose-100 text-right">
                         <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest leading-none">Vencimientos Hoy</p>
@@ -1065,7 +1065,7 @@ const ComparativaHoteles = () => {
                                 <th className="px-6 py-4">Hotel</th>
                                 <th className="px-6 py-4">Check-out Programado</th>
                                 <th className="px-6 py-4">Hab</th>
-                                <th className="px-6 py-4">Huésped</th>
+                                <th className="px-6 py-4">Hu├®sped</th>
                                 <th className="px-6 py-4">Empresa</th>
                                 <th className="px-6 py-4 text-right">Acciones</th>
                             </tr>
@@ -1130,7 +1130,7 @@ const ComparativaHoteles = () => {
                                     <td colSpan="6" className="px-6 py-12 text-center">
                                         <div className="flex flex-col items-center justify-center text-slate-300 space-y-3">
                                             <CheckCircle size={48} className="opacity-20 text-emerald-500" />
-                                            <p className="text-sm font-black uppercase tracking-widest">Todos los check-outs están al día</p>
+                                            <p className="text-sm font-black uppercase tracking-widest">Todos los check-outs est├ín al d├¡a</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -1140,7 +1140,7 @@ const ComparativaHoteles = () => {
                 </div>
             </div>
 
-            {/* Nueva Sección de Anomalías de Precio - Pantalla Completa abajo */}
+            {/* Nueva Secci├│n de Anomal├¡as de Precio - Pantalla Completa abajo */}
             <div className="mt-8 bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="flex items-center justify-between mb-8">
                     <div>
@@ -1148,7 +1148,7 @@ const ComparativaHoteles = () => {
                             <div className="p-2 bg-orange-100 text-orange-600 rounded-2xl">
                                 <AlertTriangle size={24} />
                             </div>
-                            Auditoría de Anomalías de Precio
+                            Auditor├¡a de Anomal├¡as de Precio
                         </h3>
                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">Reporte detallado de desviaciones vs precios base recomendados</p>
                     </div>
@@ -1167,11 +1167,11 @@ const ComparativaHoteles = () => {
                                 <th className="px-6 py-4">Hotel</th>
                                 <th className="px-6 py-4">Fecha</th>
                                 <th className="px-6 py-4">Hab</th>
-                                <th className="px-6 py-4">Huésped</th>
+                                <th className="px-6 py-4">Hu├®sped</th>
                                 <th className="px-6 py-4">Empresa</th>
                                 <th className="px-6 py-4 text-right">Referencia</th>
                                 <th className="px-6 py-4 text-right">Cobrado</th>
-                                <th className="px-6 py-4 text-center">Desviación</th>
+                                <th className="px-6 py-4 text-center">Desviaci├│n</th>
                                 <th className="px-6 py-4 text-right">Acciones</th>
                             </tr>
                         </thead>
@@ -1225,7 +1225,7 @@ const ComparativaHoteles = () => {
                                                         const targetIsPlaza = alert.hotel.includes('Plaza');
                                                         const isPlazaHost = currentHost.includes('plaza') || currentHost === 'localhost';
                                                         
-                                                        // Si estamos en el mismo hotel, usamos navegación interna (SPA)
+                                                        // Si estamos en el mismo hotel, usamos navegaci├│n interna (SPA)
                                                         // De lo contrario, usamos URL absoluta
                                                         if (targetIsPlaza === isPlazaHost) {
                                                             navigate(`/mapa-habitaciones?search=${details.id}`);
@@ -1248,7 +1248,7 @@ const ComparativaHoteles = () => {
                                     <td colSpan="9" className="px-6 py-12 text-center">
                                         <div className="flex flex-col items-center justify-center text-slate-300 space-y-3">
                                             <ShieldCheck size={48} className="opacity-20" />
-                                            <p className="text-sm font-black uppercase tracking-widest">No se han detectado anomalías de precio en este periodo</p>
+                                            <p className="text-sm font-black uppercase tracking-widest">No se han detectado anomal├¡as de precio en este periodo</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -1282,7 +1282,7 @@ const HotelCard = ({ hotelName, income, expenses, dailyAvg, expensesAvg, profitA
                         <h2 className="text-2xl font-black text-slate-900 tracking-tight">{hotelName}</h2>
                     </div>
                     
-                    {/* Ocupación Badge */}
+                    {/* Ocupaci├│n Badge */}
                     <div className="flex gap-1.5 bg-slate-50 p-2 rounded-2xl border border-slate-100">
                         <div className="flex flex-col items-center px-2.5 border-r border-slate-200">
                             <span className="text-[7px] font-black text-slate-400 uppercase tracking-tighter">Libres</span>
