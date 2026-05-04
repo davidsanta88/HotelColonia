@@ -918,22 +918,30 @@ exports.getCuadreCaja = async (req, res) => {
             balance_final: 0
         };
 
+        const clasificarMedio = (medio) => {
+            if (!medio) return 'otros';
+            const m = medio.toLowerCase().trim();
+            if (m.includes('nequi')) return 'nequi';
+            if (m.includes('bancolombia') || m.includes('transferencia')) return 'bancolombia';
+            if (m.includes('efectivo') || m === 'cash') return 'efectivo';
+            return 'otros';
+        };
+
         transacciones.forEach(t => {
             const monto = t.monto || 0;
+            const tipo = clasificarMedio(t.medioPago);
             if (monto > 0) {
                 resumen.ingresos_totales += monto;
-                if (t.medioPago === 'NEQUI') resumen.total_nequi += monto;
-                else if (t.medioPago === 'TRANSFERENCIA BANCOLOMBIA') resumen.total_bancolombia += monto;
-                else if (t.medioPago === 'EFECTIVO') resumen.total_efectivo += monto;
+                if (tipo === 'nequi') resumen.total_nequi += monto;
+                else if (tipo === 'bancolombia') resumen.total_bancolombia += monto;
+                else if (tipo === 'efectivo') resumen.total_efectivo += monto;
                 else resumen.total_otros += monto;
             } else if (monto < 0) {
                 const absMonto = Math.abs(monto);
                 resumen.egresos_totales += absMonto;
-                
-                // Solo restar del efectivo si el egreso fue en efectivo
-                if (t.medioPago === 'NEQUI') resumen.total_nequi += monto;
-                else if (t.medioPago === 'TRANSFERENCIA BANCOLOMBIA') resumen.total_bancolombia += monto;
-                else if (t.medioPago === 'EFECTIVO') resumen.total_efectivo += monto;
+                if (tipo === 'nequi') resumen.total_nequi += monto;
+                else if (tipo === 'bancolombia') resumen.total_bancolombia += monto;
+                else if (tipo === 'efectivo') resumen.total_efectivo += monto;
                 else resumen.total_otros += monto;
             }
         });
