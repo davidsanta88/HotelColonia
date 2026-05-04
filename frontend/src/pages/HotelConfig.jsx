@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Swal from 'sweetalert2';
-import { Save, Building2, Phone, Mail, MapPin, FileText, Info, CreditCard, Globe, Quote, X, DollarSign, ShieldAlert, TrendingDown, Lock } from 'lucide-react';
+import { Save, Building2, Phone, Mail, MapPin, FileText, Info, CreditCard, Globe, Quote, X, DollarSign, ShieldAlert, TrendingDown, Lock, TrendingUp } from 'lucide-react';
 
 const HotelConfig = () => {
     const [config, setConfig] = useState({
@@ -15,7 +15,9 @@ const HotelConfig = () => {
         datosBancarios: '',
         lema: '',
         checklistAuditoria: [],
-        pinFinanzas: '123'
+        pinFinanzas: '123',
+        metaVentasMensual: 0,
+        metaGananciaMensual: 0
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -314,6 +316,50 @@ const HotelConfig = () => {
                             />
                         </div>
                         <p className="mt-2 text-[10px] text-slate-500 font-medium italic">* Esta clave protege el acceso al módulo de Finanzas Personales. Úsela para mantener su información financiera privada.</p>
+                    </div>
+
+                    {/* METAS MENSUALES */}
+                    <div className="bg-emerald-50 p-6 rounded-2xl shadow-sm border border-emerald-100 hover:shadow-md transition-shadow md:col-span-2">
+                        <div className="flex items-center gap-2 mb-4">
+                            <TrendingUp className="text-emerald-600" size={24} />
+                            <h3 className="text-sm font-black text-emerald-900 uppercase tracking-widest">Metas Mensuales de Rendimiento</h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-xs font-black text-emerald-400 uppercase mb-2 ml-1">Meta de Ventas Mensual</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-400">
+                                        <DollarSign size={18} />
+                                    </div>
+                                    <input
+                                        type="number"
+                                        name="metaVentasMensual"
+                                        value={config.metaVentasMensual || 0}
+                                        onChange={handleChange}
+                                        className="block w-full pl-10 pr-3 py-2.5 border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm font-black text-emerald-700 bg-white"
+                                        placeholder="Ej: 25000000"
+                                    />
+                                </div>
+                                <p className="mt-2 text-[9px] text-emerald-600/60 font-medium italic">* Objetivo de facturación total del mes para este hotel.</p>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-black text-emerald-400 uppercase mb-2 ml-1">Meta de Ganancia Mensual</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-400">
+                                        <TrendingUp size={18} />
+                                    </div>
+                                    <input
+                                        type="number"
+                                        name="metaGananciaMensual"
+                                        value={config.metaGananciaMensual || 0}
+                                        onChange={handleChange}
+                                        className="block w-full pl-10 pr-3 py-2.5 border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm font-black text-emerald-700 bg-white"
+                                        placeholder="Ej: 5000000"
+                                    />
+                                </div>
+                                <p className="mt-2 text-[9px] text-emerald-600/60 font-medium italic">* Objetivo de utilidad neta (Ingresos - Egresos) del mes.</p>
+                            </div>
+                        </div>
                     </div>
 
                     {/* SECCIÓN ADMINISTRADOR (FIRMA) */}

@@ -88,6 +88,14 @@ const HotelConfigSchema = new mongoose.Schema({
         type: String,
         default: '123'
     },
+    metaVentasMensual: {
+        type: Number,
+        default: 0
+    },
+    metaGananciaMensual: {
+        type: Number,
+        default: 0
+    },
     updatedAt: {
         type: Date,
         default: Date.now

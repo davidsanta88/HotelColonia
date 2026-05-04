@@ -166,9 +166,24 @@ const ComparativaHoteles = () => {
         { name: 'Hotel Colonial', value: totalColonial, color: '#6366f1' }
     ];
 
-    const globalCashTotal = (data?.plaza?.cash?.efectivo || 0) + (data?.colonial?.cash?.efectivo || 0);
-    const globalCashBase = (data?.plaza?.cash?.base || 0) + (data?.colonial?.cash?.base || 0);
     const globalCashTotalConBase = globalCashTotal + globalCashBase;
+    
+    // --- CÁLCULOS DE METAS MENSUALES ---
+    const plazaMetaVentas = data?.plaza?.config?.metaVentasMensual || 0;
+    const plazaMetaGanancia = data?.plaza?.config?.metaGananciaMensual || 0;
+    const colonialMetaVentas = data?.colonial?.config?.metaVentasMensual || 0;
+    const colonialMetaGanancia = data?.colonial?.config?.metaGananciaMensual || 0;
+
+    const totalMetaVentas = plazaMetaVentas + colonialMetaVentas;
+    const totalMetaGanancia = plazaMetaGanancia + colonialMetaGanancia;
+
+    const plazaVentasProgreso = plazaMetaVentas > 0 ? (totalPlaza / plazaMetaVentas) * 100 : 0;
+    const plazaGananciaProgreso = plazaMetaGanancia > 0 ? ((totalPlaza - plazaExpenses) / plazaMetaGanancia) * 100 : 0;
+    const colonialVentasProgreso = colonialMetaVentas > 0 ? (totalColonial / colonialMetaVentas) * 100 : 0;
+    const colonialGananciaProgreso = colonialMetaGanancia > 0 ? ((totalColonial - colonialExpenses) / colonialMetaGanancia) * 100 : 0;
+
+    const globalVentasProgreso = totalMetaVentas > 0 ? (totalGlobalIngresos / totalMetaVentas) * 100 : 0;
+    const globalGananciaProgreso = totalMetaGanancia > 0 ? (totalGlobalMargen / totalMetaGanancia) * 100 : 0;
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">
@@ -318,6 +333,124 @@ const ComparativaHoteles = () => {
                                     className="h-full bg-slate-600 rounded-full shadow-[0_0_10px_rgba(71,85,105,0.3)] transition-all duration-1000 ease-out" 
                                     style={{ width: `${(data?.colonial?.rooms?.ocupadas / (data?.colonial?.rooms?.total || 1)) * 100}%` }} 
                                 />
+                            </div>
+                        </div>
+                </div>
+            </div>
+
+            {/* --- SECCIÓN: SEGUIMIENTO DE METAS MENSUALES --- */}
+            <div className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-sm overflow-hidden relative group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+                
+                <div className="flex items-center gap-4 mb-10">
+                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
+                        <Target size={24} />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Seguimiento de Metas Mensuales</h3>
+                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Cumplimiento de objetivos de facturación y utilidad</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    {/* Metas Consolidadas (Chain) */}
+                    <div className="lg:col-span-1 bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 flex flex-col justify-center">
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6 block text-center">Consolidado Cadena</span>
+                        
+                        <div className="space-y-8">
+                            {/* Ventas Global */}
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-end">
+                                    <div className="flex flex-col">
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cumplimiento Ventas</span>
+                                        <span className="text-xs font-black text-slate-800">${new Intl.NumberFormat().format(totalGlobalIngresos)} / ${new Intl.NumberFormat().format(totalMetaVentas)}</span>
+                                    </div>
+                                    <span className={`text-sm font-black ${globalVentasProgreso >= 100 ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                        {globalVentasProgreso.toFixed(1)}%
+                                    </span>
+                                </div>
+                                <div className="w-full h-3 bg-white rounded-full overflow-hidden border border-slate-200">
+                                    <div 
+                                        className={`h-full transition-all duration-1000 ${globalVentasProgreso >= 100 ? 'bg-emerald-500' : 'bg-blue-600'}`} 
+                                        style={{ width: `${Math.min(100, globalVentasProgreso)}%` }} 
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Ganancia Global */}
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-end">
+                                    <div className="flex flex-col">
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cumplimiento Ganancia</span>
+                                        <span className="text-xs font-black text-slate-800">${new Intl.NumberFormat().format(totalGlobalMargen)} / ${new Intl.NumberFormat().format(totalMetaGanancia)}</span>
+                                    </div>
+                                    <span className={`text-sm font-black ${globalGananciaProgreso >= 100 ? 'text-emerald-600' : 'text-indigo-600'}`}>
+                                        {globalGananciaProgreso.toFixed(1)}%
+                                    </span>
+                                </div>
+                                <div className="w-full h-3 bg-white rounded-full overflow-hidden border border-slate-200">
+                                    <div 
+                                        className={`h-full transition-all duration-1000 ${globalGananciaProgreso >= 100 ? 'bg-emerald-500' : 'bg-indigo-600'}`} 
+                                        style={{ width: `${Math.min(100, globalGananciaProgreso)}%` }} 
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Metas Individuales */}
+                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Plaza Goals */}
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
+                            <div className="absolute top-4 right-4 text-[8px] font-black bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full uppercase">Plaza</div>
+                            <h4 className="text-sm font-black text-slate-800 mb-6 uppercase tracking-wider">Hotel Balcón Plaza</h4>
+                            
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-[10px] font-bold">
+                                        <span className="text-slate-400">Progreso Ventas</span>
+                                        <span className="text-blue-600">{plazaVentasProgreso.toFixed(1)}%</span>
+                                    </div>
+                                    <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden">
+                                        <div className="h-full bg-blue-600 rounded-full" style={{ width: `${Math.min(100, plazaVentasProgreso)}%` }} />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-[10px] font-bold">
+                                        <span className="text-slate-400">Progreso Ganancia</span>
+                                        <span className="text-emerald-500">{plazaGananciaProgreso.toFixed(1)}%</span>
+                                    </div>
+                                    <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden">
+                                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, plazaGananciaProgreso)}%` }} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Colonial Goals */}
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
+                            <div className="absolute top-4 right-4 text-[8px] font-black bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full uppercase">Colonial</div>
+                            <h4 className="text-sm font-black text-slate-800 mb-6 uppercase tracking-wider">Hotel Balcón Colonial</h4>
+                            
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-[10px] font-bold">
+                                        <span className="text-slate-400">Progreso Ventas</span>
+                                        <span className="text-indigo-600">{colonialVentasProgreso.toFixed(1)}%</span>
+                                    </div>
+                                    <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden">
+                                        <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${Math.min(100, colonialVentasProgreso)}%` }} />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-[10px] font-bold">
+                                        <span className="text-slate-400">Progreso Ganancia</span>
+                                        <span className="text-emerald-500">{colonialGananciaProgreso.toFixed(1)}%</span>
+                                    </div>
+                                    <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden">
+                                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, colonialGananciaProgreso)}%` }} />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
