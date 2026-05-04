@@ -547,19 +547,22 @@ exports.getCierresConsolidado = async (req, res) => {
         const totalPlaza = plazaCierres.reduce((sum, c) => sum + calcTotal(c), 0);
         const totalColonial = colonialCierres.reduce((sum, c) => sum + calcTotal(c), 0);
 
+        const mapCierre = (c) => ({
+            _id: c._id, fecha: c.fecha, nota: c.nota,
+            saldo_calculado: c.saldo_calculado,
+            saldo_real: c.saldo_real || 0,
+            efectivo_retirado: c.efectivo_retirado || 0,
+            total_efectivo: calcTotal(c),
+            usuario_nombre: c.usuario_nombre,
+            nequi: c.medios_pago?.nequi || 0,
+            bancolombia: c.medios_pago?.bancolombia || 0,
+            otros: c.medios_pago?.otros || 0,
+            verificacion_bancos: c.verificacion_bancos || null
+        });
+
         res.json({
-            plaza: plazaCierres.map(c => ({
-                _id: c._id, fecha: c.fecha, nota: c.nota,
-                saldo_calculado: c.saldo_calculado, saldo_real: c.saldo_real || 0,
-                efectivo_retirado: c.efectivo_retirado || 0,
-                total_efectivo: calcTotal(c), usuario_nombre: c.usuario_nombre
-            })),
-            colonial: colonialCierres.map(c => ({
-                _id: c._id, fecha: c.fecha, nota: c.nota,
-                saldo_calculado: c.saldo_calculado, saldo_real: c.saldo_real || 0,
-                efectivo_retirado: c.efectivo_retirado || 0,
-                total_efectivo: calcTotal(c), usuario_nombre: c.usuario_nombre
-            })),
+            plaza: plazaCierres.map(mapCierre),
+            colonial: colonialCierres.map(mapCierre),
             totales: { plaza: totalPlaza, colonial: totalColonial, global: totalPlaza + totalColonial }
         });
     } catch (err) {

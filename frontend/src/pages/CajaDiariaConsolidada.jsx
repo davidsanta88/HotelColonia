@@ -618,8 +618,10 @@ const CajaDiariaConsolidada = () => {
                                 <th className="px-4 py-3">Hotel</th>
                                 <th className="px-4 py-3">Fecha</th>
                                 <th className="px-4 py-3">Usuario</th>
-                                <th className="px-4 py-3 text-right">Queda en Caja</th>
-                                <th className="px-4 py-3 text-right">Recogido</th>
+                                <th className="px-4 py-3 text-right text-purple-500">Nequi</th>
+                                <th className="px-4 py-3 text-right text-yellow-600">Bancolombia</th>
+                                <th className="px-4 py-3 text-right text-blue-600">Queda Caja</th>
+                                <th className="px-4 py-3 text-right text-emerald-600">Recogido</th>
                                 <th className="px-4 py-3 text-right">Total Efectivo</th>
                                 <th className="px-4 py-3">Nota</th>
                             </tr>
@@ -631,7 +633,7 @@ const CajaDiariaConsolidada = () => {
                             ]
                                 .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
                                 .map((c, i) => (
-                                <tr key={i} className="hover:bg-slate-50">
+                                <tr key={i} className="hover:bg-slate-50 text-xs">
                                     <td className="px-4 py-3">
                                         <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${c.hotel === 'Plaza' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
                                             {c.hotel}
@@ -641,14 +643,16 @@ const CajaDiariaConsolidada = () => {
                                         {new Date(c.fecha).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                     </td>
                                     <td className="px-4 py-3 text-slate-500">{c.usuario_nombre}</td>
+                                    <td className="px-4 py-3 text-right font-bold text-purple-700">${formatCurrency(c.nequi || 0)}</td>
+                                    <td className="px-4 py-3 text-right font-bold text-yellow-700">${formatCurrency(c.bancolombia || 0)}</td>
                                     <td className="px-4 py-3 text-right font-bold text-blue-600">${formatCurrency(c.saldo_real)}</td>
                                     <td className="px-4 py-3 text-right font-bold text-emerald-600">${formatCurrency(c.efectivo_retirado)}</td>
-                                    <td className="px-4 py-3 text-right font-black text-slate-900">${formatCurrency(c.total_efectivo)}</td>
-                                    <td className="px-4 py-3 text-slate-400 italic text-xs max-w-xs truncate">"{c.nota}"</td>
+                                    <td className="px-4 py-3 text-right font-black text-slate-900 text-sm">${formatCurrency(c.total_efectivo)}</td>
+                                    <td className="px-4 py-3 text-slate-400 italic max-w-xs truncate">"{c.nota}"</td>
                                 </tr>
                             ))}
                             {cierresData.plaza.length === 0 && cierresData.colonial.length === 0 && (
-                                <tr><td colSpan="7" className="px-4 py-8 text-center text-slate-400">No hay cierres en este período.</td></tr>
+                                <tr><td colSpan="9" className="px-4 py-8 text-center text-slate-400">No hay cierres en este período.</td></tr>
                             )}
                         </tbody>
                     </table>
