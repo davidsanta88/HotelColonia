@@ -61,17 +61,36 @@ exports.updateConfig = async (req, res) => {
 exports.uploadFirma = async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ message: 'No se subió ningún archivo' });
-        
+
         const result = await streamUpload(req.file.buffer);
         let config = await HotelConfig.findOne();
         if (!config) config = new HotelConfig({});
-        
+
         config.firmaUrl = result.secure_url;
         await config.save();
-        
+
         res.status(200).json({ firmaUrl: config.firmaUrl });
     } catch (error) {
         console.error('Error al subir firma:', error);
         res.status(500).json({ message: 'Error al subir la firma' });
+    }
+};
+
+// Subir Logo
+exports.uploadLogo = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: 'No se subió ningún archivo' });
+
+        const result = await streamUpload(req.file.buffer);
+        let config = await HotelConfig.findOne();
+        if (!config) config = new HotelConfig({});
+
+        config.logoUrl = result.secure_url;
+        await config.save();
+
+        res.status(200).json({ imageUrl: config.logoUrl });
+    } catch (error) {
+        console.error('Error al subir logo:', error);
+        res.status(500).json({ message: 'Error al subir el logo' });
     }
 };
