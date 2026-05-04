@@ -106,19 +106,24 @@ exports.getRegistroById = async (req, res) => {
         const { id } = req.params;
         const registro = await Registro.findById(id)
             .populate('habitacion')
-            .populate('huespedes')
             .populate('tipo_registro');
-        
+
         if (!registro) return res.status(404).json({ message: 'Registro no encontrado' });
 
-        // Población manual de cliente (desde sharedConn)
+        // Población manual de cliente y huéspedes
         let clienteObj = null;
         if (registro.cliente) {
             clienteObj = await Cliente.findById(registro.cliente).populate('empresa_id', 'nombre');
         }
-        
+
+        const huespedesIds = (registro.huespedes || []).map(h => h.toString());
+        const huespedesObjs = huespedesIds.length > 0
+            ? await Cliente.find({ _id: { $in: huespedesIds } })
+            : [];
+
         const raw = registro.toObject();
         raw.cliente = clienteObj;
+        raw.huespedes = huespedesObjs;
 
         const mapped = {
             ...raw,
@@ -127,14 +132,17 @@ exports.getRegistroById = async (req, res) => {
             fecha_salida: raw.fecha_salida || raw.fechaSalida || raw.fechaEntrada || raw.fechaCreacion,
             fecha_salida_real: raw.fechaSalidaReal,
             nombre_cliente: raw.nombre_cliente || (clienteObj ? clienteObj.nombre : 'Sín Nombre'),
+            documento_cliente: raw.documento_cliente || (clienteObj ? clienteObj.documento : '-'),
+            telefono_cliente: raw.telefono_cliente || (clienteObj ? clienteObj.telefono : ''),
             numero_habitacion: raw.numero_habitacion || (raw.habitacion ? raw.habitacion.numero : '?'),
             notas: raw.notas || raw.observaciones || '',
             notasSalida: raw.notasSalida || '',
             valor_pagado: (raw.pagos || []).reduce((acc, p) => acc + (p.monto || 0), 0)
         };
-        
+
         res.json(mapped);
     } catch (err) {
+        console.error('[GET REGISTRO BY ID ERROR]', err);
         res.status(500).json({ message: err.message });
     }
 };
