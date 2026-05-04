@@ -48,6 +48,7 @@ const CuadreCaja = () => {
     const [showCierreModal, setShowCierreModal] = useState(false);
     const [cierreNota, setCierreNota] = useState('');
     const [saldoReal, setSaldoReal] = useState('');
+    const [efectivoRetirado, setEfectivoRetirado] = useState('');
     const [editingId, setEditingId] = useState(null);
 
     // Detail Modal States
@@ -138,12 +139,14 @@ const CuadreCaja = () => {
         e.preventDefault();
         try {
             const rawSaldoReal = unformatNumber(saldoReal);
+            const rawRetirado = unformatNumber(efectivoRetirado);
             const expectedCashTotal = (data.resumen.total_efectivo || 0) + montoUltimoCierre;
             const payload = {
                 ingresos: data.resumen.ingresos_totales,
                 egresos: data.resumen.egresos_totales,
                 saldo_calculado: data.resumen.balance_final + montoUltimoCierre,
                 saldo_real: rawSaldoReal ? parseFloat(rawSaldoReal) : (editingId ? undefined : expectedCashTotal),
+                efectivo_retirado: rawRetirado ? parseFloat(rawRetirado) : 0,
                 nota: cierreNota,
                 medios_pago: {
                     nequi: data.resumen.total_nequi,
@@ -196,6 +199,7 @@ const CuadreCaja = () => {
         setEditingId(cierre._id);
         setCierreNota(cierre.nota);
         setSaldoReal(formatNumber(cierre.saldo_real || cierre.saldo_calculado));
+        setEfectivoRetirado(formatNumber(cierre.efectivo_retirado || 0));
         setShowCierreModal(true);
     };
 
@@ -203,6 +207,7 @@ const CuadreCaja = () => {
         setEditingId(null);
         setCierreNota('');
         setSaldoReal('');
+        setEfectivoRetirado('');
     };
 
     const formatNumber = (num) => {
@@ -852,43 +857,55 @@ const CuadreCaja = () => {
                             <tr className="bg-white border-b border-gray-100 text-gray-400">
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest">Fecha Cierre</th>
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest">Usuario</th>
-                                <th className="p-4 text-[10px] uppercase font-black tracking-widest w-1/3">Nota / Observación</th>
-                                <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Saldo Final</th>
+                                <th className="p-4 text-[10px] uppercase font-black tracking-widest w-1/4">Nota</th>
+                                <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Queda en Caja</th>
+                                <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Recogido</th>
+                                <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Total Efectivo</th>
                                 <th className="p-4 text-[10px] uppercase font-black tracking-widest text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50 text-sm">
                             {cierres.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="p-8 text-center text-gray-400">
+                                    <td colSpan="7" className="p-8 text-center text-gray-400">
                                         No hay cierres registrados aún.
                                     </td>
                                 </tr>
                             ) : (
-                                paginatedCierres.map((c, i) => (
+                                paginatedCierres.map((c, i) => {
+                                    const quedaEnCaja = c.saldo_real || c.saldo_calculado || 0;
+                                    const recogido = c.efectivo_retirado || 0;
+                                    const totalEfectivo = quedaEnCaja + recogido;
+                                    return (
                                     <tr key={i} className="hover:bg-gray-50">
-                                        <td className="p-4 font-bold text-slate-700">
+                                        <td className="p-4 font-bold text-slate-700 whitespace-nowrap">
                                             {new Date(c.fecha).toLocaleString()}
                                         </td>
                                         <td className="p-4 text-slate-600 font-medium">
                                             {c.usuario_nombre || c.usuario?.nombre}
                                         </td>
-                                        <td className="p-4 text-slate-500 italic">
+                                        <td className="p-4 text-slate-500 italic text-xs">
                                             "{c.nota}"
                                         </td>
+                                        <td className="p-4 text-right font-bold text-blue-700">
+                                            ${formatCurrency(quedaEnCaja)}
+                                        </td>
+                                        <td className="p-4 text-right font-bold text-emerald-600">
+                                            ${formatCurrency(recogido)}
+                                        </td>
                                         <td className="p-4 text-right font-black text-slate-900 text-base">
-                                            ${formatCurrency(c.saldo_real || c.saldo_calculado)}
+                                            ${formatCurrency(totalEfectivo)}
                                         </td>
                                         <td className="p-4 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <button 
+                                                <button
                                                     onClick={() => handleEditCierreStart(c)}
                                                     className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
                                                     title="Editar Cierre"
                                                 >
                                                     <Edit size={16} />
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => handleDeleteCierre(c._id)}
                                                     className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
                                                     title="Eliminar Cierre"
@@ -898,7 +915,8 @@ const CuadreCaja = () => {
                                             </div>
                                         </td>
                                     </tr>
-                                ))
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>
@@ -926,20 +944,41 @@ const CuadreCaja = () => {
                             </p>
                         </div>
                         <form onSubmit={handleCierreSubmit} className="p-6 space-y-5">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-3">
                                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Efectivo en Sistema (Base + Hoy)</p>
-                                    <p className="text-lg font-black text-slate-900">${formatCurrency(totalEfectivoConBase)}</p>
+                                    <p className="text-xl font-black text-slate-900">${formatCurrency(totalEfectivoConBase)}</p>
                                 </div>
-                                <div className="p-4 bg-primary-50 rounded-xl border border-primary-100">
-                                    <p className="text-[10px] font-black text-primary-400 uppercase tracking-tighter">Monto Físico (Opcional)</p>
-                                    <input 
-                                        type="text"
-                                        placeholder="0"
-                                        className="w-full bg-transparent border-none p-0 focus:ring-0 text-lg font-black text-primary-700 placeholder:text-primary-200"
-                                        value={saldoReal}
-                                        onChange={handleSaldoRealChange}
-                                    />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-tighter">Queda en Caja</p>
+                                        <input
+                                            type="text"
+                                            placeholder="0"
+                                            className="w-full bg-transparent border-none p-0 focus:ring-0 text-lg font-black text-blue-700 placeholder:text-blue-200"
+                                            value={saldoReal}
+                                            onChange={handleSaldoRealChange}
+                                        />
+                                    </div>
+                                    <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter">Efectivo Recogido</p>
+                                        <input
+                                            type="text"
+                                            placeholder="0"
+                                            className="w-full bg-transparent border-none p-0 focus:ring-0 text-lg font-black text-emerald-700 placeholder:text-emerald-200"
+                                            value={efectivoRetirado}
+                                            onChange={e => {
+                                                const v = unformatNumber(e.target.value);
+                                                if (!isNaN(v)) setEfectivoRetirado(formatNumber(v));
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="p-4 bg-slate-900 rounded-xl flex justify-between items-center">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Total Efectivo del Día</p>
+                                    <p className="text-xl font-black text-white">
+                                        ${formatCurrency((parseFloat(unformatNumber(saldoReal) || 0)) + (parseFloat(unformatNumber(efectivoRetirado) || 0)))}
+                                    </p>
                                 </div>
                             </div>
                             

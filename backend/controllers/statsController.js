@@ -522,4 +522,50 @@ async function getCashBalance(models) {
     }
 }
 
+exports.getCierresConsolidado = async (req, res) => {
+    try {
+        const { inicio, fin } = req.query;
+        const desde = inicio ? new Date(inicio) : new Date(new Date().setDate(1));
+        const hasta = fin ? new Date(fin + 'T23:59:59') : new Date();
+
+        const isColonial = process.env.MONGODB_URI?.toLowerCase()?.includes('colonial');
+
+        let plazaCierres = [], colonialCierres = [];
+
+        if (isColonial) {
+            colonialCierres = await CierreCaja.find({ fecha: { $gte: desde, $lte: hasta } }).sort({ fecha: -1 });
+            const plazaModels = await getPlazaModels();
+            plazaCierres = await plazaModels.CierreCaja.find({ fecha: { $gte: desde, $lte: hasta } }).sort({ fecha: -1 });
+        } else {
+            plazaCierres = await CierreCaja.find({ fecha: { $gte: desde, $lte: hasta } }).sort({ fecha: -1 });
+            const colonialModels = await getColonialModels();
+            colonialCierres = await colonialModels.CierreCaja.find({ fecha: { $gte: desde, $lte: hasta } }).sort({ fecha: -1 });
+        }
+
+        const calcTotal = (c) => (c.saldo_real || 0) + (c.efectivo_retirado || 0);
+
+        const totalPlaza = plazaCierres.reduce((sum, c) => sum + calcTotal(c), 0);
+        const totalColonial = colonialCierres.reduce((sum, c) => sum + calcTotal(c), 0);
+
+        res.json({
+            plaza: plazaCierres.map(c => ({
+                _id: c._id, fecha: c.fecha, nota: c.nota,
+                saldo_calculado: c.saldo_calculado, saldo_real: c.saldo_real || 0,
+                efectivo_retirado: c.efectivo_retirado || 0,
+                total_efectivo: calcTotal(c), usuario_nombre: c.usuario_nombre
+            })),
+            colonial: colonialCierres.map(c => ({
+                _id: c._id, fecha: c.fecha, nota: c.nota,
+                saldo_calculado: c.saldo_calculado, saldo_real: c.saldo_real || 0,
+                efectivo_retirado: c.efectivo_retirado || 0,
+                total_efectivo: calcTotal(c), usuario_nombre: c.usuario_nombre
+            })),
+            totales: { plaza: totalPlaza, colonial: totalColonial, global: totalPlaza + totalColonial }
+        });
+    } catch (err) {
+        console.error('[CIERRES CONSOLIDADO ERROR]', err);
+        res.status(500).json({ message: err.message });
+    }
+};
+
 module.exports = exports;

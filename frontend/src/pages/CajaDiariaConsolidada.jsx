@@ -43,8 +43,9 @@ const CajaDiariaConsolidada = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState({ plaza: { history: [] }, colonial: { history: [] } });
-    const [viewMode, setViewMode] = useState('all'); // 'all', 'plaza', 'colonial'
+    const [viewMode, setViewMode] = useState('all');
     const [detailedView, setDetailedView] = useState(false);
+    const [cierresData, setCierresData] = useState({ plaza: [], colonial: [], totales: { plaza: 0, colonial: 0, global: 0 } });
 
     const [filtros, setFiltros] = useState({
         inicio: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
@@ -54,8 +55,12 @@ const CajaDiariaConsolidada = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const res = await api.get(`/stats/comparative?inicio=${filtros.inicio}&fin=${filtros.fin}`);
-            setData(res.data);
+            const [resStats, resCierres] = await Promise.all([
+                api.get(`/stats/comparative?inicio=${filtros.inicio}&fin=${filtros.fin}`),
+                api.get(`/stats/cierres-consolidado?inicio=${filtros.inicio}&fin=${filtros.fin}`)
+            ]);
+            setData(resStats.data);
+            setCierresData(resCierres.data);
         } catch (error) {
             console.error('Error fetching comparative stats:', error);
         } finally {
@@ -588,6 +593,62 @@ const CajaDiariaConsolidada = () => {
                                         )}
                                     </tr>
                                 </>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Cierres Consolidados */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                    <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
+                        <Activity size={16} className="text-indigo-500" /> Cierres de Caja Consolidados
+                    </h3>
+                    <div className="flex gap-4 text-xs font-black">
+                        <span className="text-blue-600">Plaza: ${formatCurrency(cierresData.totales?.plaza || 0)}</span>
+                        <span className="text-orange-500">Colonial: ${formatCurrency(cierresData.totales?.colonial || 0)}</span>
+                        <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Total: ${formatCurrency(cierresData.totales?.global || 0)}</span>
+                    </div>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                        <thead>
+                            <tr className="bg-slate-50 text-slate-400 text-[10px] uppercase font-black tracking-widest">
+                                <th className="px-4 py-3">Hotel</th>
+                                <th className="px-4 py-3">Fecha</th>
+                                <th className="px-4 py-3">Usuario</th>
+                                <th className="px-4 py-3 text-right">Queda en Caja</th>
+                                <th className="px-4 py-3 text-right">Recogido</th>
+                                <th className="px-4 py-3 text-right">Total Efectivo</th>
+                                <th className="px-4 py-3">Nota</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {[
+                                ...cierresData.plaza.map(c => ({ ...c, hotel: 'Plaza' })),
+                                ...cierresData.colonial.map(c => ({ ...c, hotel: 'Colonial' }))
+                            ]
+                                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+                                .map((c, i) => (
+                                <tr key={i} className="hover:bg-slate-50">
+                                    <td className="px-4 py-3">
+                                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${c.hotel === 'Plaza' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
+                                            {c.hotel}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 font-bold text-slate-700 whitespace-nowrap">
+                                        {new Date(c.fecha).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                    </td>
+                                    <td className="px-4 py-3 text-slate-500">{c.usuario_nombre}</td>
+                                    <td className="px-4 py-3 text-right font-bold text-blue-600">${formatCurrency(c.saldo_real)}</td>
+                                    <td className="px-4 py-3 text-right font-bold text-emerald-600">${formatCurrency(c.efectivo_retirado)}</td>
+                                    <td className="px-4 py-3 text-right font-black text-slate-900">${formatCurrency(c.total_efectivo)}</td>
+                                    <td className="px-4 py-3 text-slate-400 italic text-xs max-w-xs truncate">"{c.nota}"</td>
+                                </tr>
+                            ))}
+                            {cierresData.plaza.length === 0 && cierresData.colonial.length === 0 && (
+                                <tr><td colSpan="7" className="px-4 py-8 text-center text-slate-400">No hay cierres en este período.</td></tr>
                             )}
                         </tbody>
                     </table>

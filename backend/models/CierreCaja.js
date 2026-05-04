@@ -5,7 +5,8 @@ const cierreCajaSchema = new mongoose.Schema({
     ingresos: { type: Number, required: true },
     egresos: { type: Number, required: true },
     saldo_calculado: { type: Number, required: true },
-    saldo_real: { type: Number }, // Opcional, por si quieren ingresar monto fisico
+    saldo_real: { type: Number },       // Efectivo físico que queda en caja
+    efectivo_retirado: { type: Number, default: 0 }, // Efectivo recogido/retirado del día
     diferencia: { type: Number },
     nota: { type: String, required: true },
     usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' },

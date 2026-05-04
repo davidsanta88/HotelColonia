@@ -7,5 +7,6 @@ const { verifyToken } = require('../middleware/auth');
 // Se protege con verifyToken para que solo usuarios autenticados puedan verla
 router.get('/comparative', verifyToken, statsController.getComparativeStats);
 router.get('/consolidated-reservations', verifyToken, statsController.getConsolidatedReservations);
+router.get('/cierres-consolidado', verifyToken, statsController.getCierresConsolidado);
 
 module.exports = router;

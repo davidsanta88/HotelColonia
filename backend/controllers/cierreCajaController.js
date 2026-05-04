@@ -2,19 +2,21 @@ const CierreCaja = require('../models/CierreCaja');
 
 exports.createCierre = async (req, res) => {
     try {
-        const { ingresos, egresos, saldo_calculado, saldo_real, nota, medios_pago } = req.body;
-        
+        const { ingresos, egresos, saldo_calculado, saldo_real, efectivo_retirado, nota, medios_pago } = req.body;
+
         const diferencia = saldo_real ? saldo_real - saldo_calculado : 0;
+        const retirado = efectivo_retirado ? parseFloat(efectivo_retirado) : 0;
 
         const newCierre = new CierreCaja({
             ingresos,
             egresos,
             saldo_calculado,
             saldo_real,
+            efectivo_retirado: retirado,
             diferencia,
             nota,
             usuario: req.userId,
-            usuario_nombre: req.userName || 'Sistema', // Corrected from req.usuarioNombre
+            usuario_nombre: req.userName || 'Sistema',
             medios_pago: medios_pago || { nequi: 0, bancolombia: 0, efectivo: 0, otros: 0 }
         });
 
@@ -40,17 +42,20 @@ exports.getAllCierres = async (req, res) => {
 
 exports.updateCierre = async (req, res) => {
     try {
-        const { nota, saldo_real } = req.body;
+        const { nota, saldo_real, efectivo_retirado } = req.body;
         const cierre = await CierreCaja.findById(req.params.id);
-        
+
         if (!cierre) return res.status(404).json({ message: 'Cierre no encontrado' });
-        
+
         if (nota) cierre.nota = nota;
         if (saldo_real !== undefined) {
             cierre.saldo_real = saldo_real;
             cierre.diferencia = saldo_real - cierre.saldo_calculado;
         }
-        
+        if (efectivo_retirado !== undefined) {
+            cierre.efectivo_retirado = parseFloat(efectivo_retirado) || 0;
+        }
+
         await cierre.save();
         res.json(cierre);
     } catch (err) {
