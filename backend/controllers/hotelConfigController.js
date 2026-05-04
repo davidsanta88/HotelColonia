@@ -94,3 +94,22 @@ exports.uploadLogo = async (req, res) => {
         res.status(500).json({ message: 'Error al subir el logo' });
     }
 };
+
+// Subir Fondo de Login
+exports.uploadBackground = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: 'No se subió ningún archivo' });
+
+        const result = await streamUpload(req.file.buffer);
+        let config = await HotelConfig.findOne();
+        if (!config) config = new HotelConfig({});
+
+        config.backgroundUrl = result.secure_url;
+        await config.save();
+
+        res.status(200).json({ imageUrl: config.backgroundUrl });
+    } catch (error) {
+        console.error('Error al subir fondo:', error);
+        res.status(500).json({ message: 'Error al subir el fondo' });
+    }
+};
