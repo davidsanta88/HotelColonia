@@ -6,7 +6,6 @@ import Swal from 'sweetalert2';
 
 const SLIDES = [
     {
-    {
         img: '/hotel_colonial_hero.jpg',
         title: 'Hotel Balcón Colonial',
         sub: 'Tu hogar en Belalcázar, Caldas',
