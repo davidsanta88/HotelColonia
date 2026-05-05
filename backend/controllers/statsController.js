@@ -67,38 +67,72 @@ const getPlazaModels = async () => {
     };
 };
 
+async function getSaldoPendiente(RegistroModel) {
+    try {
+        const result = await RegistroModel.aggregate([
+            { $match: { estado: 'activo' } },
+            {
+                $addFields: {
+                    saldo: {
+                        $subtract: [
+                            { $ifNull: ['$total', 0] },
+                            { $sum: '$pagos.monto' }
+                        ]
+                    }
+                }
+            },
+            { $match: { saldo: { $gt: 0 } } },
+            {
+                $group: {
+                    _id: null,
+                    totalSaldo: { $sum: '$saldo' },
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+        return { total: result[0]?.totalSaldo || 0, count: result[0]?.count || 0 };
+    } catch (error) {
+        console.error('Error getting saldo pendiente:', error);
+        return { total: 0, count: 0 };
+    }
+}
+
 exports.getComparativeStats = async (req, res) => {
     try {
         const { inicio, fin } = req.query;
-        
+
         // Determinar qué hotel es local y cuál es remoto
         const isColonial = process.env.MONGODB_URI?.toLowerCase()?.includes('colonial');
-        
-        let plazaRooms, plazaData, plazaCash;
-        let colonialRooms, colonialData, colonialCash;
+
+        let plazaRooms, plazaData, plazaCash, plazaSaldo;
+        let colonialRooms, colonialData, colonialCash, colonialSaldo;
 
         if (isColonial) {
             // Local es Colonial
             colonialRooms = await getRoomCounts(Habitacion);
             colonialData = await getStatsFromDB({ Venta, Registro, Gasto, Comanda }, inicio, fin, colonialRooms.total);
             colonialCash = await getCashBalance({ CierreCaja, Venta, Registro, Gasto, Reserva });
+            colonialSaldo = await getSaldoPendiente(Registro);
 
             // Remoto es Plaza
             const plazaModels = await getPlazaModels();
             plazaRooms = await getRoomCounts(plazaModels.Habitacion);
             plazaData = await getStatsFromDB(plazaModels, inicio, fin, plazaRooms.total);
             plazaCash = await getCashBalance(plazaModels);
+            plazaSaldo = await getSaldoPendiente(plazaModels.Registro);
         } else {
             // Local es Plaza
             plazaRooms = await getRoomCounts(Habitacion);
             plazaData = await getStatsFromDB({ Venta, Registro, Gasto, Comanda }, inicio, fin, plazaRooms.total);
             plazaCash = await getCashBalance({ CierreCaja, Venta, Registro, Gasto, Reserva });
+            plazaSaldo = await getSaldoPendiente(Registro);
 
             // Remoto es Colonial
             const colonialModels = await getColonialModels();
             colonialRooms = await getRoomCounts(colonialModels.Habitacion);
             colonialData = await getStatsFromDB(colonialModels, inicio, fin, colonialRooms.total);
             colonialCash = await getCashBalance(colonialModels);
+            colonialSaldo = await getSaldoPendiente(colonialModels.Registro);
         }
 
         res.json({
@@ -106,12 +140,14 @@ exports.getComparativeStats = async (req, res) => {
                 history: plazaData,
                 rooms: plazaRooms,
                 cash: plazaCash,
+                saldoPendiente: plazaSaldo,
                 config: isColonial ? await (await getPlazaModels()).HotelConfig.findOne() : await HotelConfig.findOne()
             },
             colonial: {
                 history: colonialData,
                 rooms: colonialRooms,
                 cash: colonialCash,
+                saldoPendiente: colonialSaldo,
                 config: isColonial ? await HotelConfig.findOne() : await (await getColonialModels()).HotelConfig.findOne()
             }
         });

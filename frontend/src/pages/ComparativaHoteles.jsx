@@ -6,11 +6,11 @@ import {
     LineChart, Line, AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
 import { 
-    TrendingUp, 
-    ArrowUpRight, 
-    ArrowDownRight, 
-    Hotel, 
-    DollarSign, 
+    TrendingUp,
+    ArrowUpRight,
+    ArrowDownRight,
+    Hotel,
+    DollarSign,
     Calendar,
     RefreshCw,
     Loader2,
@@ -22,6 +22,7 @@ import {
     Trophy,
     Sparkles,
     AlertTriangle,
+    AlertCircle,
     Eye,
     MapPin,
     Zap,
@@ -169,6 +170,13 @@ const ComparativaHoteles = () => {
     const globalCashTotal = (data?.plaza?.cash?.efectivo || 0) + (data?.colonial?.cash?.efectivo || 0);
     const globalCashBase = (data?.plaza?.cash?.base || 0) + (data?.colonial?.cash?.base || 0);
     const globalCashTotalConBase = globalCashTotal + globalCashBase;
+
+    // Saldo pendiente por cobrar
+    const plazaSaldoPendiente = data?.plaza?.saldoPendiente?.total || 0;
+    const plazaSaldoCount = data?.plaza?.saldoPendiente?.count || 0;
+    const colonialSaldoPendiente = data?.colonial?.saldoPendiente?.total || 0;
+    const colonialSaldoCount = data?.colonial?.saldoPendiente?.count || 0;
+    const totalSaldoPendiente = plazaSaldoPendiente + colonialSaldoPendiente;
 
     // Metas mensuales
     const plazaMetaVentas = data?.plaza?.config?.metaVentasMensual || 0;
@@ -337,6 +345,31 @@ const ComparativaHoteles = () => {
                     </div>
                 </div>
             </div>
+
+            {/* --- BANNER: SALDO PENDIENTE POR COBRAR --- */}
+            {totalSaldoPendiente > 0 && (
+                <div className="bg-red-600 rounded-2xl px-6 py-4 flex flex-wrap items-center justify-between gap-4 shadow-md shadow-red-200">
+                    <div className="flex items-center gap-3">
+                        <AlertCircle size={22} className="text-white flex-shrink-0" />
+                        <div>
+                            <span className="text-white font-black text-sm uppercase tracking-wide">Saldo Pendiente por Cobrar</span>
+                            <div className="flex flex-wrap gap-5 mt-0.5">
+                                {plazaSaldoPendiente > 0 && (
+                                    <span className="text-red-100 text-xs font-bold">
+                                        Plaza: ${new Intl.NumberFormat().format(plazaSaldoPendiente)} · {plazaSaldoCount} habitación{plazaSaldoCount !== 1 ? 'es' : ''}
+                                    </span>
+                                )}
+                                {colonialSaldoPendiente > 0 && (
+                                    <span className="text-red-100 text-xs font-bold">
+                                        Colonial: ${new Intl.NumberFormat().format(colonialSaldoPendiente)} · {colonialSaldoCount} habitación{colonialSaldoCount !== 1 ? 'es' : ''}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="text-white font-black text-2xl">${new Intl.NumberFormat().format(totalSaldoPendiente)}</div>
+                </div>
+            )}
 
             {/* --- SECCIÓN: SEGUIMIENTO DE METAS MENSUALES --- */}
             <div className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-sm overflow-hidden relative">
