@@ -17,6 +17,15 @@ export const AuthProvider = ({ children }) => {
                 if (res.data?.nombre) {
                     document.title = res.data.nombre;
                 }
+                if (res.data?.logo) {
+                    let link = document.querySelector("link[rel~='icon']");
+                    if (!link) {
+                        link = document.createElement('link');
+                        link.rel = 'icon';
+                        document.head.appendChild(link);
+                    }
+                    link.href = res.data.logo;
+                }
             } catch (err) {
                 console.error("Error al cargar config global:", err);
             }
