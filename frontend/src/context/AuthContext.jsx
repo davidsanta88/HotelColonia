@@ -14,6 +14,9 @@ export const AuthProvider = ({ children }) => {
             try {
                 const res = await api.get('/hotel-config');
                 setHotelConfig(res.data);
+                if (res.data?.nombre) {
+                    document.title = res.data.nombre;
+                }
             } catch (err) {
                 console.error("Error al cargar config global:", err);
             }
