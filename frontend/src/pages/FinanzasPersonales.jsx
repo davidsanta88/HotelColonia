@@ -18,6 +18,7 @@ import {
 } from 'recharts';
 import Swal from 'sweetalert2';
 import moment from 'moment';
+import Select from 'react-select';
 
 const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 
@@ -575,16 +576,19 @@ const FinanzasPersonales = () => {
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoría</label>
-                                        <select 
-                                            className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
-                                            value={formData.categoria_id}
-                                            onChange={(e) => setFormData({ ...formData, categoria_id: e.target.value })}
-                                        >
-                                            <option value="">Seleccionar...</option>
-                                            {categories.filter(c => c.tipo === formData.tipo).map(c => (
-                                                <option key={c._id} value={c._id}>{c.nombre}</option>
-                                            ))}
-                                        </select>
+                                        <Select
+                                            placeholder="Buscar categoría..."
+                                            noOptionsMessage={() => 'No hay categorías'}
+                                            value={categories.filter(c => c.tipo === formData.tipo).map(c => ({ value: c._id, label: c.nombre })).find(o => o.value === formData.categoria_id) || null}
+                                            onChange={(opt) => setFormData({ ...formData, categoria_id: opt ? opt.value : '' })}
+                                            options={categories.filter(c => c.tipo === formData.tipo).map(c => ({ value: c._id, label: c.nombre }))}
+                                            isClearable
+                                            styles={{
+                                                control: (b) => ({ ...b, borderRadius: '0.75rem', borderColor: '#f1f5f9', backgroundColor: '#f8fafc', fontSize: '12px', fontWeight: 700, minHeight: '46px' }),
+                                                option: (b, s) => ({ ...b, fontSize: '12px', fontWeight: 600, backgroundColor: s.isSelected ? '#3b82f6' : s.isFocused ? '#eff6ff' : 'white' }),
+                                                menu: (b) => ({ ...b, zIndex: 9999, borderRadius: '0.75rem' })
+                                            }}
+                                        />
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Monto ($)</label>
@@ -1150,17 +1154,19 @@ const FinanzasPersonales = () => {
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoría</label>
-                                <select 
-                                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
-                                    value={recForm.categoria_id}
-                                    onChange={(e) => setRecForm({ ...recForm, categoria_id: e.target.value })}
-                                    required
-                                >
-                                    <option value="">Seleccionar...</option>
-                                    {categories.filter(c => c.tipo === recForm.tipo).map(c => (
-                                        <option key={c._id} value={c._id}>{c.nombre}</option>
-                                    ))}
-                                </select>
+                                <Select
+                                    placeholder="Buscar categoría..."
+                                    noOptionsMessage={() => 'No hay categorías'}
+                                    value={categories.filter(c => c.tipo === recForm.tipo).map(c => ({ value: c._id, label: c.nombre })).find(o => o.value === recForm.categoria_id) || null}
+                                    onChange={(opt) => setRecForm({ ...recForm, categoria_id: opt ? opt.value : '' })}
+                                    options={categories.filter(c => c.tipo === recForm.tipo).map(c => ({ value: c._id, label: c.nombre }))}
+                                    isClearable
+                                    styles={{
+                                        control: (b) => ({ ...b, borderRadius: '0.75rem', borderColor: '#f1f5f9', backgroundColor: '#f8fafc', fontSize: '12px', fontWeight: 700, minHeight: '46px' }),
+                                        option: (b, s) => ({ ...b, fontSize: '12px', fontWeight: 600, backgroundColor: s.isSelected ? '#3b82f6' : s.isFocused ? '#eff6ff' : 'white' }),
+                                        menu: (b) => ({ ...b, zIndex: 9999, borderRadius: '0.75rem' })
+                                    }}
+                                />
                             </div>
                             <div className="flex items-center gap-3 py-2">
                                 <input 
