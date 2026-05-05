@@ -316,8 +316,25 @@ const MapaHabitaciones = () => {
         );
     }
 
+    const habsConSaldo = habitaciones.filter(h => (h.detalleEstado?.saldo || 0) > 0);
+    const totalSaldoPendiente = habsConSaldo.reduce((sum, h) => sum + (h.detalleEstado?.saldo || 0), 0);
+
     return (
         <div className="space-y-8 pb-12 animate-in fade-in duration-500">
+            {/* Banner saldo pendiente */}
+            {totalSaldoPendiente > 0 && (
+                <div className="bg-red-600 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-lg shadow-red-100 animate-pulse">
+                    <div className="flex items-center gap-3">
+                        <AlertCircle size={24} className="text-white flex-shrink-0" />
+                        <div>
+                            <p className="text-white font-black text-sm uppercase tracking-widest">Saldo Pendiente por Cobrar</p>
+                            <p className="text-red-100 text-xs font-bold">{habsConSaldo.length} habitación{habsConSaldo.length > 1 ? 'es' : ''} con saldo: {habsConSaldo.map(h => `Hab ${h.numero}`).join(', ')}</p>
+                        </div>
+                    </div>
+                    <div className="text-white font-black text-2xl">${formatCurrency(totalSaldoPendiente)}</div>
+                </div>
+            )}
+
             {/* Header section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between w-full">
@@ -424,7 +441,11 @@ const MapaHabitaciones = () => {
                             onClick={() => handleRoomClick(hab)}
                             className={`group relative transition-all duration-300 transform hover:-translate-y-1 cursor-pointer`}
                         >
-                            <div className={`h-full bg-white rounded-2xl shadow-sm border-2 ${isCheckoutToday ? 'border-orange-400 ring-2 ring-orange-100 ring-offset-1' : styles.border} overflow-hidden flex flex-col`}>
+                            <div className={`h-full bg-white rounded-2xl shadow-sm border-2 ${
+                                (hab.detalleEstado?.saldo || 0) > 0
+                                    ? 'border-red-500 ring-2 ring-red-300 ring-offset-1 shadow-red-100 shadow-lg'
+                                    : isCheckoutToday ? 'border-orange-400 ring-2 ring-orange-100 ring-offset-1' : styles.border
+                            } overflow-hidden flex flex-col`}>
                                 {/* Card Header / Icon area */}
                                 <div className={`p-2 ${styles.bg} flex flex-col items-center justify-center space-y-1 relative`}>
                                     {/* Botón de cambio de estado de limpieza rápido */}
@@ -535,13 +556,19 @@ const MapaHabitaciones = () => {
                                                         <span className="text-[9px] font-black text-emerald-600">${formatCurrency(hab.detalleEstado.pagado || 0)}</span>
                                                     </div>
                                                 </div>
-                                                <div className={`mt-1 p-1.5 rounded-lg flex justify-between items-center text-[10px] font-black ${ (hab.detalleEstado.saldo || 0) > 0 ? (isHighBalance ? 'bg-red-600 text-white ring-2 ring-red-200' : 'bg-red-100 text-red-700 animate-pulse') : 'bg-emerald-100 text-emerald-700'}`}>
-                                                    <div className="flex items-center gap-1">
-                                                        {isHighBalance ? <AlertCircle size={10} /> : <DollarSign size={10} />} 
-                                                        SALDO:
+                                                {(hab.detalleEstado.saldo || 0) > 0 ? (
+                                                    <div className="mt-1 p-2 rounded-xl bg-red-600 text-white flex justify-between items-center animate-pulse shadow-sm">
+                                                        <div className="flex items-center gap-1 font-black text-[10px]">
+                                                            <AlertCircle size={11} /> SALDO PENDIENTE
+                                                        </div>
+                                                        <div className="font-black text-[11px]">${formatCurrency(hab.detalleEstado.saldo)}</div>
                                                     </div>
-                                                    <div>${formatCurrency(hab.detalleEstado.saldo || 0)}</div>
-                                                </div>
+                                                ) : (
+                                                    <div className="mt-1 p-1.5 rounded-lg flex justify-between items-center text-[10px] font-black bg-emerald-100 text-emerald-700">
+                                                        <div className="flex items-center gap-1"><DollarSign size={10} /> SALDO:</div>
+                                                        <div>$0</div>
+                                                    </div>
+                                                )}
                                             </div>
                                         )
                                     )}
