@@ -321,20 +321,6 @@ const MapaHabitaciones = () => {
 
     return (
         <div className="space-y-8 pb-12 animate-in fade-in duration-500">
-            {/* Banner saldo pendiente */}
-            {totalSaldoPendiente > 0 && (
-                <div className="bg-red-600 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-lg shadow-red-100 animate-pulse">
-                    <div className="flex items-center gap-3">
-                        <AlertCircle size={24} className="text-white flex-shrink-0" />
-                        <div>
-                            <p className="text-white font-black text-sm uppercase tracking-widest">Saldo Pendiente por Cobrar</p>
-                            <p className="text-red-100 text-xs font-bold">{habsConSaldo.length} habitación{habsConSaldo.length > 1 ? 'es' : ''} con saldo: {habsConSaldo.map(h => `Hab ${h.numero}`).join(', ')}</p>
-                        </div>
-                    </div>
-                    <div className="text-white font-black text-2xl">${formatCurrency(totalSaldoPendiente)}</div>
-                </div>
-            )}
-
             {/* Header section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between w-full">
@@ -427,6 +413,22 @@ const MapaHabitaciones = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Banner saldo pendiente - debajo del conteo */}
+            {totalSaldoPendiente > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                        <AlertCircle size={18} className="text-red-500 flex-shrink-0" />
+                        <div>
+                            <span className="text-red-700 font-black text-sm uppercase tracking-wide">Saldo Pendiente por Cobrar</span>
+                            <span className="text-red-500 text-xs font-bold ml-2">
+                                ({habsConSaldo.length} habitación{habsConSaldo.length > 1 ? 'es' : ''} con saldo: {habsConSaldo.map(h => `Hab ${h.numero} ($${formatCurrency(h.detalleEstado.saldo)})`).join(', ')})
+                            </span>
+                        </div>
+                    </div>
+                    <div className="text-red-700 font-black text-lg">${formatCurrency(totalSaldoPendiente)}</div>
+                </div>
+            )}
 
             {/* Room Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-2">
