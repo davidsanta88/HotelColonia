@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
-import { Plus, Trash2, Filter, Search, Paperclip, ImageIcon, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Filter, Search, Paperclip, ImageIcon, Edit2, TrendingUp, TrendingDown, Scale } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { formatCurrency, cleanNumericValue, getImageUrl } from '../utils/format';
 import { usePermissions } from '../hooks/usePermissions';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 
 const Gastos = () => {
     const { user } = useContext(AuthContext);
@@ -200,6 +201,28 @@ const Gastos = () => {
     const totalIngresos = filteredGastos.filter(g => g.tipo === 'Ingreso').reduce((sum, g) => sum + g.monto, 0);
     const balanceNeto = totalIngresos - totalEgresos;
 
+    // Estadísticas por categoría (gastos)
+    const CHART_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#06b6d4','#14b8a6','#84cc16'];
+    const porCategoria = Object.values(
+        filteredGastos.filter(g => g.tipo === 'Gasto').reduce((acc, g) => {
+            const key = g.categoria_nombre || 'Sin Categoría';
+            acc[key] = acc[key] || { name: key, value: 0, count: 0 };
+            acc[key].value += g.monto;
+            acc[key].count += 1;
+            return acc;
+        }, {})
+    ).sort((a, b) => b.value - a.value);
+
+    const porMedioPago = Object.values(
+        filteredGastos.reduce((acc, g) => {
+            const key = g.medioPago || 'EFECTIVO';
+            acc[key] = acc[key] || { name: key, gastos: 0, ingresos: 0 };
+            if (g.tipo === 'Gasto') acc[key].gastos += g.monto;
+            else acc[key].ingresos += g.monto;
+            return acc;
+        }, {})
+    );
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -214,6 +237,86 @@ const Gastos = () => {
                     </button>
                 )}
             </div>
+
+            {/* Estadísticas */}
+            {!loading && filteredGastos.length > 0 && (
+                <div className="space-y-4">
+                    {/* Tarjetas resumen */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 flex items-center gap-4">
+                            <div className="bg-emerald-500 text-white rounded-xl p-3"><TrendingUp size={22} /></div>
+                            <div>
+                                <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Total Ingresos</p>
+                                <p className="text-2xl font-black text-emerald-700">${formatCurrency(totalIngresos)}</p>
+                                <p className="text-xs text-emerald-400">{filteredGastos.filter(g => g.tipo === 'Ingreso').length} movimientos</p>
+                            </div>
+                        </div>
+                        <div className="bg-red-50 border border-red-100 rounded-2xl p-5 flex items-center gap-4">
+                            <div className="bg-red-500 text-white rounded-xl p-3"><TrendingDown size={22} /></div>
+                            <div>
+                                <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Total Gastos</p>
+                                <p className="text-2xl font-black text-red-700">${formatCurrency(totalEgresos)}</p>
+                                <p className="text-xs text-red-400">{filteredGastos.filter(g => g.tipo === 'Gasto').length} movimientos</p>
+                            </div>
+                        </div>
+                        <div className={`${balanceNeto >= 0 ? 'bg-blue-50 border-blue-100' : 'bg-orange-50 border-orange-100'} border rounded-2xl p-5 flex items-center gap-4`}>
+                            <div className={`${balanceNeto >= 0 ? 'bg-blue-500' : 'bg-orange-500'} text-white rounded-xl p-3`}><Scale size={22} /></div>
+                            <div>
+                                <p className={`text-[10px] font-black ${balanceNeto >= 0 ? 'text-blue-500' : 'text-orange-500'} uppercase tracking-widest`}>Balance Neto</p>
+                                <p className={`text-2xl font-black ${balanceNeto >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>${formatCurrency(Math.abs(balanceNeto))}</p>
+                                <p className={`text-xs ${balanceNeto >= 0 ? 'text-blue-400' : 'text-orange-400'}`}>{balanceNeto >= 0 ? 'Superávit' : 'Déficit'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Gráficas */}
+                    {porCategoria.length > 0 && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {/* Dona por categoría */}
+                            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                                <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Gastos por Categoría</h3>
+                                <div className="flex gap-4">
+                                    <ResponsiveContainer width="50%" height={180}>
+                                        <PieChart>
+                                            <Pie data={porCategoria} dataKey="value" cx="50%" cy="50%" innerRadius={45} outerRadius={75}>
+                                                {porCategoria.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                                            </Pie>
+                                            <Tooltip formatter={(v) => `$${formatCurrency(v)}`} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                    <div className="flex-1 space-y-1.5 overflow-y-auto max-h-44">
+                                        {porCategoria.map((cat, i) => (
+                                            <div key={i} className="flex items-center justify-between gap-2">
+                                                <div className="flex items-center gap-1.5 min-w-0">
+                                                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                                                    <span className="text-xs font-bold text-slate-600 truncate">{cat.name}</span>
+                                                </div>
+                                                <span className="text-xs font-black text-slate-800 whitespace-nowrap">${formatCurrency(cat.value)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Barras por medio de pago */}
+                            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                                <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Por Medio de Pago</h3>
+                                <ResponsiveContainer width="100%" height={180}>
+                                    <BarChart data={porMedioPago} margin={{ top: 0, right: 0, left: -10, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                                        <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 700 }} />
+                                        <YAxis tick={{ fontSize: 10 }} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+                                        <Tooltip formatter={(v) => `$${formatCurrency(v)}`} />
+                                        <Legend wrapperStyle={{ fontSize: 10, fontWeight: 700 }} />
+                                        <Bar dataKey="ingresos" name="Ingresos" fill="#22c55e" radius={[4,4,0,0]} />
+                                        <Bar dataKey="gastos" name="Gastos" fill="#ef4444" radius={[4,4,0,0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div className="card">
                 <form onSubmit={handleSearch} className="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-wrap gap-4 items-end">
