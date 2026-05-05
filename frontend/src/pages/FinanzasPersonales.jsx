@@ -22,6 +22,11 @@ import Select from 'react-select';
 
 const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 
+const todayLocal = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 const FinanzasPersonales = () => {
     const { user } = useContext(AuthContext);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -73,7 +78,7 @@ const FinanzasPersonales = () => {
         categoria_id: '',
         monto: '',
         descripcion: '',
-        fecha: new Date().toISOString().split('T')[0]
+        fecha: todayLocal()
     });
 
     // Formulario Categoría
@@ -134,7 +139,7 @@ const FinanzasPersonales = () => {
                 categoria_id: '',
                 monto: '', 
                 descripcion: '',
-                fecha: new Date().toISOString().split('T')[0]
+                fecha: todayLocal()
             });
             setIsEditing(false);
             setEditingId(null);
@@ -168,7 +173,7 @@ const FinanzasPersonales = () => {
             categoria_id: '',
             monto: '', 
             descripcion: '',
-            fecha: new Date().toISOString().split('T')[0]
+            fecha: todayLocal()
         });
     };
 
