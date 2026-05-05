@@ -584,9 +584,9 @@ const FinanzasPersonales = () => {
                                         <Select
                                             placeholder="Buscar categoría..."
                                             noOptionsMessage={() => 'No hay categorías'}
-                                            value={categories.filter(c => c.tipo === formData.tipo).map(c => ({ value: c._id, label: c.nombre })).find(o => o.value === formData.categoria_id) || null}
+                                            value={categories.filter(c => c.tipo === formData.tipo).sort((a,b) => a.nombre.localeCompare(b.nombre)).map(c => ({ value: c._id, label: c.nombre })).find(o => o.value === formData.categoria_id) || null}
                                             onChange={(opt) => setFormData({ ...formData, categoria_id: opt ? opt.value : '' })}
-                                            options={categories.filter(c => c.tipo === formData.tipo).map(c => ({ value: c._id, label: c.nombre }))}
+                                            options={categories.filter(c => c.tipo === formData.tipo).sort((a,b) => a.nombre.localeCompare(b.nombre)).map(c => ({ value: c._id, label: c.nombre }))}
                                             isClearable
                                             styles={{
                                                 control: (b) => ({ ...b, borderRadius: '0.75rem', borderColor: '#f1f5f9', backgroundColor: '#f8fafc', fontSize: '12px', fontWeight: 700, minHeight: '46px' }),
@@ -1162,9 +1162,9 @@ const FinanzasPersonales = () => {
                                 <Select
                                     placeholder="Buscar categoría..."
                                     noOptionsMessage={() => 'No hay categorías'}
-                                    value={categories.filter(c => c.tipo === recForm.tipo).map(c => ({ value: c._id, label: c.nombre })).find(o => o.value === recForm.categoria_id) || null}
+                                    value={categories.filter(c => c.tipo === recForm.tipo).sort((a,b) => a.nombre.localeCompare(b.nombre)).map(c => ({ value: c._id, label: c.nombre })).find(o => o.value === recForm.categoria_id) || null}
                                     onChange={(opt) => setRecForm({ ...recForm, categoria_id: opt ? opt.value : '' })}
-                                    options={categories.filter(c => c.tipo === recForm.tipo).map(c => ({ value: c._id, label: c.nombre }))}
+                                    options={categories.filter(c => c.tipo === recForm.tipo).sort((a,b) => a.nombre.localeCompare(b.nombre)).map(c => ({ value: c._id, label: c.nombre }))}
                                     isClearable
                                     styles={{
                                         control: (b) => ({ ...b, borderRadius: '0.75rem', borderColor: '#f1f5f9', backgroundColor: '#f8fafc', fontSize: '12px', fontWeight: 700, minHeight: '46px' }),
