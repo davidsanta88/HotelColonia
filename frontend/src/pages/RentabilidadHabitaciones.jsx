@@ -14,7 +14,7 @@ import {
     Layers,
     Percent
 } from 'lucide-react';
-import { format, subDays } from 'date-fns';
+import { format, subDays, startOfMonth, addDays } from 'date-fns';
 import { formatCurrency } from '../utils/format';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -35,8 +35,8 @@ const RentabilidadHabitaciones = () => {
     const [searchParams] = useSearchParams();
     const [viewMode, setViewMode] = useState(searchParams.get('mode') === 'consolidated' ? 'consolidated' : 'individual');
     const [filtros, setFiltros] = useState({
-        inicio: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
-        fin: format(new Date(), 'yyyy-MM-dd')
+        inicio: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
+        fin: format(addDays(new Date(), 1), 'yyyy-MM-dd')
     });
 
     useEffect(() => {

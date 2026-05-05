@@ -153,8 +153,8 @@ const CuadreCaja = () => {
                 efectivo_retirado: rawRetirado ? parseFloat(rawRetirado) : 0,
                 nota: cierreNota,
                 medios_pago: {
-                    nequi: data.resumen.total_nequi,
-                    bancolombia: data.resumen.total_bancolombia,
+                    nequi: Math.max(0, data.resumen.total_nequi || 0),
+                    bancolombia: Math.max(0, data.resumen.total_bancolombia || 0),
                     efectivo: rawSaldoReal ? parseFloat(rawSaldoReal) : expectedCashTotal,
                     otros: data.resumen.total_otros
                 },
@@ -174,7 +174,20 @@ const CuadreCaja = () => {
 
             setShowCierreModal(false);
             resetCierreForm();
-            fetchCierres();
+
+            // Refrescar cierres y luego actualizar cuadre desde el nuevo último cierre
+            const nuevosCierres = await fetchCierres();
+            if (nuevosCierres && nuevosCierres.length > 0) {
+                const nuevoUltimo = nuevosCierres[0];
+                const newFiltros = {
+                    inicio: nuevoUltimo.fecha,
+                    fin: new Date().toLocaleDateString('en-CA')
+                };
+                setFiltros(newFiltros);
+                fetchCuadre(newFiltros);
+            } else {
+                fetchCuadre();
+            }
         } catch (error) {
             Swal.fire('Error', error.response?.data?.message || 'No se pudo procesar el cierre', 'error');
         }
@@ -607,7 +620,7 @@ const CuadreCaja = () => {
                         </div>
                         <span className="text-sm font-black text-gray-700 uppercase">Total NEQUI</span>
                     </div>
-                    <p className="text-2xl font-black text-[#7030a0]">${formatCurrency(data.resumen.total_nequi)}</p>
+                    <p className="text-2xl font-black text-[#7030a0]">${formatCurrency(Math.max(0, data.resumen.total_nequi || 0))}</p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center space-y-2 group hover:border-[#004481]/30 transition-colors">
                     <div className="flex items-center gap-3">
@@ -616,7 +629,7 @@ const CuadreCaja = () => {
                         </div>
                         <span className="text-sm font-black text-gray-700 uppercase">Trans. Bancolombia</span>
                     </div>
-                    <p className="text-2xl font-black text-[#004481]">${formatCurrency(data.resumen.total_bancolombia)}</p>
+                    <p className="text-2xl font-black text-[#004481]">${formatCurrency(Math.max(0, data.resumen.total_bancolombia || 0))}</p>
                 </div>
                 <div className="bg-indigo-50/50 p-6 rounded-2xl shadow-sm border border-indigo-100 flex flex-col items-center justify-center space-y-2 group hover:border-indigo-300 transition-all active:scale-95 cursor-default">
                     <div className="flex items-center gap-3">
