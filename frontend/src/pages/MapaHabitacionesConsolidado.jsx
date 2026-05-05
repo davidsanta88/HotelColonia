@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { 
-    Hotel, 
-    Calendar, 
-    User, 
-    Info, 
-    CheckCircle, 
-    Clock, 
-    RefreshCw, 
+import {
+    Hotel,
+    Calendar,
+    User,
+    Info,
+    CheckCircle,
+    Clock,
+    RefreshCw,
     LogOut,
     LogIn,
     DollarSign,
@@ -20,7 +20,8 @@ import {
     Building2,
     Search,
     Filter,
-    Brush
+    Brush,
+    AlertCircle
 } from 'lucide-react';
 import moment from 'moment-timezone';
 import RegistroModal from '../components/modals/RegistroModal';
@@ -228,6 +229,13 @@ const MapaHabitacionesConsolidado = () => {
             }
         });
 
+        // Saldo pendiente por hotel
+        const habsConSaldoPlaza = plaza.filter(h => (h.registroActual?.saldo || 0) > 0);
+        const habsConSaldoColonial = colonial.filter(h => (h.registroActual?.saldo || 0) > 0);
+        const totalSaldoPlaza = habsConSaldoPlaza.reduce((sum, h) => sum + (h.registroActual?.saldo || 0), 0);
+        const totalSaldoColonial = habsConSaldoColonial.reduce((sum, h) => sum + (h.registroActual?.saldo || 0), 0);
+        const totalSaldoGlobal = totalSaldoPlaza + totalSaldoColonial;
+
         return {
             total, ocupadas, ocupacionTotal,
             plazaOcupadas, plazaTotal: plaza.length,
@@ -235,7 +243,9 @@ const MapaHabitacionesConsolidado = () => {
             plazaPerc, colonialPerc,
             ingresosHoy,
             disponibilidadPorTipo,
-            entreganHoy: habitaciones.filter(h => h.registroActual?.salida && moment().tz('America/Bogota').isSame(moment(h.registroActual.salida).tz('America/Bogota'), 'day')).length
+            entreganHoy: habitaciones.filter(h => h.registroActual?.salida && moment().tz('America/Bogota').isSame(moment(h.registroActual.salida).tz('America/Bogota'), 'day')).length,
+            habsConSaldoPlaza, habsConSaldoColonial,
+            totalSaldoPlaza, totalSaldoColonial, totalSaldoGlobal
         };
     }, [habitaciones]);
 
@@ -518,6 +528,31 @@ const MapaHabitacionesConsolidado = () => {
                 </div>
             </div>
 
+            {/* Banner saldo pendiente global */}
+            {stats.totalSaldoGlobal > 0 && (
+                <div className="bg-red-600 rounded-2xl px-5 py-3 flex flex-wrap items-center justify-between gap-3 shadow-md shadow-red-200">
+                    <div className="flex items-center gap-3">
+                        <AlertCircle size={20} className="text-white flex-shrink-0" />
+                        <div>
+                            <span className="text-white font-black text-sm uppercase tracking-wide">Saldo Pendiente por Cobrar</span>
+                            <div className="flex flex-wrap gap-4 mt-0.5">
+                                {stats.totalSaldoPlaza > 0 && (
+                                    <span className="text-red-100 text-xs font-bold">
+                                        Plaza: ${formatCurrency(stats.totalSaldoPlaza)} · {stats.habsConSaldoPlaza.length} hab ({stats.habsConSaldoPlaza.map(h => `Hab ${h.numero}`).join(', ')})
+                                    </span>
+                                )}
+                                {stats.totalSaldoColonial > 0 && (
+                                    <span className="text-red-100 text-xs font-bold">
+                                        Colonial: ${formatCurrency(stats.totalSaldoColonial)} · {stats.habsConSaldoColonial.length} hab ({stats.habsConSaldoColonial.map(h => `Hab ${h.numero}`).join(', ')})
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="text-white font-black text-xl">${formatCurrency(stats.totalSaldoGlobal)}</div>
+                </div>
+            )}
+
             {/* Grid */}
             <div className="space-y-4">
                 {['Hotel Plaza', 'Hotel Colonial'].filter(hotel => hotelFilter === 'todos' || hotel === hotelFilter).map(hotel => {
@@ -540,17 +575,34 @@ const MapaHabitacionesConsolidado = () => {
                                         {hotelHabs.length} {filter === 'todas' ? 'HABITACIONES' : filter.replace('_', ' ').toUpperCase()}
                                     </span>
                                 </div>
+                                {(() => {
+                                    const saldoHotel = hotel === 'Hotel Plaza' ? stats.totalSaldoPlaza : stats.totalSaldoColonial;
+                                    const habsSaldo = hotel === 'Hotel Plaza' ? stats.habsConSaldoPlaza : stats.habsConSaldoColonial;
+                                    return saldoHotel > 0 ? (
+                                        <div className="flex items-center gap-1.5 bg-red-600 text-white px-3 py-1.5 rounded-xl shadow-sm">
+                                            <AlertCircle size={13} />
+                                            <span className="text-[10px] font-black uppercase tracking-wide">
+                                                {habsSaldo.length} hab · ${formatCurrency(saldoHotel)}
+                                            </span>
+                                        </div>
+                                    ) : null;
+                                })()}
                             </div>
                             
                             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 2xl:grid-cols-12 gap-2">
                                 {hotelHabs.map(hab => {
                                     const styles = getStatusStyles(hab.estado, hab.estadoLimpieza);
                                     
+                                    const tieneSaldo = (hab.registroActual?.saldo || 0) > 0;
                                     return (
-                                        <div 
+                                        <div
                                             key={hab.id}
                                             onClick={() => handleRoomClick(hab)}
-                                            className={`group relative rounded-xl border ${styles.bg} ${styles.border} p-1.5 transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer flex flex-col min-h-[100px]`}
+                                            className={`group relative rounded-xl border p-1.5 transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer flex flex-col min-h-[100px] ${
+                                                tieneSaldo
+                                                    ? 'bg-red-50 border-red-500 ring-2 ring-red-300 ring-offset-1 shadow-red-100 shadow-lg'
+                                                    : `${styles.bg} ${styles.border}`
+                                            }`}
                                         >
                                             <div className="flex justify-between items-start mb-1">
                                                 <div className="flex flex-col">
@@ -560,10 +612,10 @@ const MapaHabitacionesConsolidado = () => {
                                                     </span>
                                                 </div>
                                             </div>
-                                            
+
                                             <div className="flex-1 flex flex-col justify-end space-y-0.5">
                                                 <p className="text-[8px] font-bold text-gray-500 truncate leading-none mb-1 uppercase opacity-60">{hab.tipo}</p>
-                                                
+
                                                 {hab.registroActual ? (
                                                     <div className="animate-in fade-in slide-in-from-bottom-1 duration-300">
                                                         <div className="flex items-center justify-between mb-1">
@@ -576,10 +628,15 @@ const MapaHabitacionesConsolidado = () => {
                                                         </div>
                                                         <div className={`mt-1 pt-1 border-t border-black/5 flex justify-between items-center text-[8px] font-black ${ (hab.registroActual.saldo || 0) > 100000 ? 'text-red-600 animate-pulse' : '' }`}>
                                                             <span>${new Intl.NumberFormat().format(hab.registroActual?.total || 0)}</span>
-                                                            {(hab.registroActual.saldo || 0) > 0 && (
-                                                                <span className="bg-red-50 px-1 rounded text-[7px]">S: ${new Intl.NumberFormat().format(hab.registroActual.saldo)}</span>
-                                                            )}
                                                         </div>
+                                                        {(hab.registroActual.saldo || 0) > 0 ? (
+                                                            <div className="mt-1 p-1.5 rounded-lg bg-red-600 text-white flex justify-between items-center animate-pulse shadow-sm">
+                                                                <div className="flex items-center gap-1 font-black text-[9px]">
+                                                                    <AlertCircle size={9} /> SALDO
+                                                                </div>
+                                                                <div className="font-black text-[9px]">${new Intl.NumberFormat().format(hab.registroActual.saldo)}</div>
+                                                            </div>
+                                                        ) : null}
                                                     </div>
                                                 ) : (
                                                     <div className="flex flex-col gap-0.5">
