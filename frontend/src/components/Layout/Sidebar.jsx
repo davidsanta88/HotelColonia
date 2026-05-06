@@ -144,6 +144,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { name: 'Roles y Permisos', path: '/roles', icon: <ShieldCheck size={20} />, code: 'roles_permisos' },
                 { name: 'Tipos de Habitación', path: '/tipos-habitaciones', icon: <Bed size={20} />, code: 'tipos_habitaciones' },
                 { name: 'Tipos de Registro', path: '/tipos-registro', icon: <ClipboardList size={20} />, code: 'tipos_registro' },
+                { name: 'Tarifas Habitaciones', path: '/tarifas', icon: <Tag size={20} />, code: 'configuracion' },
                 { name: 'Zonas y Habitaciones', path: '/habitaciones', icon: <Hotel size={20} />, code: 'habitaciones' },
             ]
         },
@@ -159,12 +160,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { name: 'Tablero de Precios', path: '/tablero-precios', icon: <DollarSignIcon size={20} /> },
                 { name: 'Encuestas Satisfacción', path: '/encuestas', icon: <Star size={20} /> },
                 { name: 'Calendario Ocupación', path: '/calendario-ocupacion', icon: <CalendarRange size={20} /> },
-            ]
-        },
-        {
-            title: 'Configuraciones',
-            items: [
-                { name: 'Tarifas Habitaciones', path: '/tarifas', icon: <Tag size={20} />, code: 'configuracion' },
             ]
         }
     ];
