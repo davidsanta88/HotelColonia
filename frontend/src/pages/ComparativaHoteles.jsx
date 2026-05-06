@@ -1332,7 +1332,7 @@ const ComparativaHoteles = () => {
                                     const plazaIng = ingresos.filter(m => (m.hotel||'').toLowerCase().includes('plaza')).reduce((s, m) => s + (m.monto || 0), 0);
                                     const colonialIng = ingresos.filter(m => (m.hotel||'').toLowerCase().includes('colonial')).reduce((s, m) => s + (m.monto || 0), 0);
                                     return (
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
                                             <div className="bg-indigo-50 rounded-2xl p-4">
                                                 <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Ingresos Plaza</p>
                                                 <p className="text-lg font-black text-indigo-700">${new Intl.NumberFormat().format(plazaIng)}</p>
@@ -1340,6 +1340,10 @@ const ComparativaHoteles = () => {
                                             <div className="bg-slate-50 rounded-2xl p-4">
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingresos Colonial</p>
                                                 <p className="text-lg font-black text-slate-700">${new Intl.NumberFormat().format(colonialIng)}</p>
+                                            </div>
+                                            <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
+                                                <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">Total Ingresos</p>
+                                                <p className="text-lg font-black text-emerald-700">${new Intl.NumberFormat().format(plazaIng + colonialIng)}</p>
                                             </div>
                                             <div className="bg-rose-50 rounded-2xl p-4">
                                                 <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Egresos Totales</p>
