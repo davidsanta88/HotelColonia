@@ -719,7 +719,7 @@ const MapaHabitaciones = () => {
                             <div className="flex items-center gap-2">
                                 <Tag size={18} />
                                 <h2 className="text-base font-black uppercase tracking-wide">
-                                    Precios Vigentes · {preciosData.tipoDia === 'festivo' ? '🎊 Festivo' : preciosData.tipoDia === 'fin_de_semana' ? '🎉 Fin de Semana' : '📅 Entre Semana'}
+                                    Precios Vigentes
                                 </h2>
                             </div>
                             <p className="text-[10px] opacity-70 font-bold mt-0.5 uppercase tracking-widest">{preciosData.fecha}</p>
