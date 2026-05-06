@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { 
-    Hotel, 
-    Calendar, 
-    User, 
-    Info, 
-    CheckCircle, 
-    Clock, 
-    Trash2, 
-    ChevronRight, 
-    AlertCircle, 
-    RefreshCw, 
+    Hotel,
+    Calendar,
+    User,
+    Info,
+    CheckCircle,
+    Clock,
+    Trash2,
+    ChevronRight,
+    AlertCircle,
+    RefreshCw,
     LogOut,
     LogIn,
     DollarSign,
@@ -20,7 +20,9 @@ import {
     Loader2,
     Paintbrush,
     CalendarPlus,
-    Brush
+    Brush,
+    Tag,
+    X
 } from 'lucide-react';
 import moment from 'moment';
 import RegistroModal from '../components/modals/RegistroModal';
@@ -33,6 +35,9 @@ const MapaHabitaciones = () => {
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(null);
     const [filter, setFilter] = useState('todas');
+    const [showPreciosModal, setShowPreciosModal] = useState(false);
+    const [preciosData, setPreciosData] = useState({ tarifas: [], tipoDia: 'entre_semana' });
+    const [loadingPrecios, setLoadingPrecios] = useState(false);
     const [showRegistroModal, setShowRegistroModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [selectedHabitacionId, setSelectedHabitacionId] = useState(null);
@@ -42,6 +47,16 @@ const MapaHabitaciones = () => {
     const navigate = useNavigate();
 
     const location = useLocation();
+
+    const fetchPrecios = async () => {
+        setLoadingPrecios(true);
+        setShowPreciosModal(true);
+        try {
+            const res = await api.get('/tarifas');
+            setPreciosData(res.data);
+        } catch (e) { console.error(e); }
+        finally { setLoadingPrecios(false); }
+    };
 
     const fetchMapa = async () => {
         if (!updating) setLoading(true);
@@ -395,7 +410,15 @@ const MapaHabitaciones = () => {
                         Reservadas
                     </button>
                     <div className="flex items-center gap-2">
-                        <button 
+                        <button
+                            onClick={fetchPrecios}
+                            className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-all font-bold text-sm shadow-sm"
+                            title="Ver precios por tipo de día"
+                        >
+                            <Tag size={18} />
+                            Ver Precios
+                        </button>
+                        <button
                             onClick={() => navigate('/reservas')}
                             className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-all font-bold text-sm shadow-sm"
                         >
@@ -681,6 +704,132 @@ const MapaHabitaciones = () => {
                     fetchMapa();
                 }}
             />
+
+        {/* Modal Precios por Tipo de Día */}
+        {showPreciosModal && (
+            <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowPreciosModal(false)}>
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden mt-2 sm:mt-0" onClick={e => e.stopPropagation()}>
+                    {/* Header */}
+                    <div className={`flex items-center justify-between px-6 py-4 text-white flex-shrink-0 ${
+                        preciosData.tipoDia === 'festivo' ? 'bg-gradient-to-r from-amber-500 to-orange-600' :
+                        preciosData.tipoDia === 'fin_de_semana' ? 'bg-gradient-to-r from-violet-600 to-purple-700' :
+                        'bg-gradient-to-r from-indigo-600 to-indigo-700'
+                    }`}>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <Tag size={18} />
+                                <h2 className="text-base font-black uppercase tracking-wide">
+                                    Precios Vigentes · {preciosData.tipoDia === 'festivo' ? '🎊 Festivo' : preciosData.tipoDia === 'fin_de_semana' ? '🎉 Fin de Semana' : '📅 Entre Semana'}
+                                </h2>
+                            </div>
+                            <p className="text-[10px] opacity-70 font-bold mt-0.5 uppercase tracking-widest">{preciosData.fecha}</p>
+                        </div>
+                        <button onClick={() => setShowPreciosModal(false)} className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all font-bold text-lg">
+                            <X size={18} />
+                        </button>
+                    </div>
+
+                    {/* Body */}
+                    <div className="overflow-y-auto flex-1 p-4 space-y-4">
+                        {loadingPrecios ? (
+                            <div className="flex justify-center py-16"><RefreshCw className="animate-spin text-indigo-400" size={32} /></div>
+                        ) : preciosData.tarifas.length === 0 ? (
+                            <div className="text-center py-16">
+                                <Tag size={40} className="mx-auto text-slate-200 mb-3" />
+                                <p className="text-slate-400 font-black text-xs uppercase">No hay tarifas configuradas</p>
+                                <p className="text-slate-300 text-xs mt-1">Configure las tarifas en Configuraciones → Tarifas Habitaciones</p>
+                            </div>
+                        ) : (
+                            <>
+                                {/* Tarjetas */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    {preciosData.tarifas.map(t => {
+                                        const precios = t[preciosData.tipoDia] || {};
+                                        const validos = [1,2,3,4,5,6].filter(p => precios[`personas_${p}`] > 0);
+                                        return (
+                                            <div key={t._id} className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+                                                <div className="h-1.5" style={{ backgroundColor: t.color || '#4f46e5' }} />
+                                                <div className="p-4">
+                                                    <h3 className="font-black text-slate-800 text-sm mb-3 flex items-center gap-2">
+                                                        <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: t.color || '#4f46e5' }} />
+                                                        {t.nombre}
+                                                    </h3>
+                                                    {validos.length === 0 ? (
+                                                        <p className="text-slate-300 text-xs text-center py-2">Sin precio</p>
+                                                    ) : (
+                                                        <div className="space-y-1.5">
+                                                            {validos.map(p => (
+                                                                <div key={p} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
+                                                                    <span className="text-xs text-slate-500 font-bold">{p === 1 ? '1 persona' : `${p} personas`}</span>
+                                                                    <span className="text-sm font-black" style={{ color: t.color || '#4f46e5' }}>
+                                                                        ${Number(precios[`personas_${p}`]).toLocaleString('es-CO')}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    {t.notas && <p className="text-[10px] text-slate-400 italic mt-2">ℹ️ {t.notas}</p>}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Tabla comparativa */}
+                                <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+                                    <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Comparativa todos los días</p>
+                                    </div>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-xs">
+                                            <thead>
+                                                <tr className="border-b border-slate-100">
+                                                    <th className="text-left px-4 py-2.5 font-black text-slate-500 uppercase text-[9px] tracking-widest">Habitación</th>
+                                                    <th className="text-center px-3 py-2.5 font-black text-slate-400 uppercase text-[9px]">Personas</th>
+                                                    <th className="text-right px-3 py-2.5 font-black text-indigo-600 uppercase text-[9px]">📅 L-V</th>
+                                                    <th className="text-right px-3 py-2.5 font-black text-violet-600 uppercase text-[9px]">🎉 S-D</th>
+                                                    <th className="text-right px-4 py-2.5 font-black text-amber-600 uppercase text-[9px]">🎊 Festivo</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {preciosData.tarifas.map(t =>
+                                                    [1,2,3,4,5,6].filter(p =>
+                                                        (t.entre_semana?.[`personas_${p}`] > 0) ||
+                                                        (t.fin_de_semana?.[`personas_${p}`] > 0) ||
+                                                        (t.festivo?.[`personas_${p}`] > 0)
+                                                    ).map((p, idx, arr) => (
+                                                        <tr key={`${t._id}-${p}`} className="border-b border-slate-50 hover:bg-slate-50/50">
+                                                            {idx === 0 && (
+                                                                <td className="px-4 py-2 font-black text-slate-800 text-xs" rowSpan={arr.length}>
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.color }} />
+                                                                        {t.nombre}
+                                                                    </div>
+                                                                </td>
+                                                            )}
+                                                            <td className="px-3 py-2 text-center text-slate-400 font-bold">{p}p</td>
+                                                            <td className={`px-3 py-2 text-right font-black text-xs ${preciosData.tipoDia === 'entre_semana' ? 'text-indigo-700 bg-indigo-50' : 'text-slate-600'}`}>
+                                                                {t.entre_semana?.[`personas_${p}`] > 0 ? `$${Number(t.entre_semana[`personas_${p}`]).toLocaleString('es-CO')}` : '–'}
+                                                            </td>
+                                                            <td className={`px-3 py-2 text-right font-black text-xs ${preciosData.tipoDia === 'fin_de_semana' ? 'text-violet-700 bg-violet-50' : 'text-slate-600'}`}>
+                                                                {t.fin_de_semana?.[`personas_${p}`] > 0 ? `$${Number(t.fin_de_semana[`personas_${p}`]).toLocaleString('es-CO')}` : '–'}
+                                                            </td>
+                                                            <td className={`px-4 py-2 text-right font-black text-xs ${preciosData.tipoDia === 'festivo' ? 'text-amber-700 bg-amber-50' : 'text-slate-600'}`}>
+                                                                {t.festivo?.[`personas_${p}`] > 0 ? `$${Number(t.festivo[`personas_${p}`]).toLocaleString('es-CO')}` : '–'}
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        )}
         </div>
     );
 };
