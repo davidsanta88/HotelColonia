@@ -62,11 +62,12 @@ const DetallesRegistroModal = ({ isOpen, onClose, registroId, onSuccess }) => {
 
     const fetchData = async () => {
         setLoading(true);
+        console.log('[DEBUG-MODAL] Iniciando fetchData para ID:', registroId);
         try {
-            const [resDet, resPagos, resConsumos, resProds, resTipos, resClientes, resHabs] = await Promise.all([
+            const [resDet, resCons, resPagos, resProds, resTipos, resClientes, resHabs] = await Promise.all([
                 api.get(`/registros/${registroId}`),
+                api.get(`/ventas/consumo/${registroId}`),
                 api.get(`/registros/${registroId}/pagos`),
-                api.get(`/registros/${registroId}/consumos`),
                 api.get('/productos'),
                 api.get('/tipos-registro'),
                 api.get('/clientes'),
@@ -75,8 +76,8 @@ const DetallesRegistroModal = ({ isOpen, onClose, registroId, onSuccess }) => {
             
             const det = resDet.data;
             setDetails(det);
+            setConsumos(resCons.data);
             setAbonos(resPagos.data);
-            setConsumos(resConsumos.data);
             setProductos(resProds.data);
             setTiposRegistro(resTipos.data);
             setClientes(resClientes.data);
@@ -752,7 +753,11 @@ const DetallesRegistroModal = ({ isOpen, onClose, registroId, onSuccess }) => {
                                                     <div className="flex items-center gap-2">
                                                         {h.telefono && (
                                                             <button 
-                                                                onClick={() => handleWAContact(h)}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    console.log('[DEBUG-DETALLE] Abriendo registro ID:', details._id);
+                                                                    handleWAContact(h);
+                                                                }}
                                                                 className="p-2 text-emerald-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
                                                                 title="Contactar por WhatsApp"
                                                             >

@@ -589,6 +589,7 @@ const MapaHabitaciones = () => {
                                                     <button 
                                                         onClick={(e) => {
                                                             e.stopPropagation();
+                                                            console.log('[DEBUG-MAPA] Abriendo detalle para registro:', hab.detalleEstado.id_registro);
                                                             setSelectedRegistroId(hab.detalleEstado.id_registro);
                                                             setInitialEditMode(true);
                                                             setShowDetailsModal(true);
