@@ -1301,21 +1301,21 @@ const ComparativaHoteles = () => {
 
         {/* Modal Movimientos Mes Actual Última Semana */}
         {showCajaModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowCajaModal(false)}>
-                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-                    <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-emerald-100 text-emerald-600 rounded-2xl">
-                                <Activity size={22} />
+            <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowCajaModal(false)}>
+                <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-5xl h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden mt-2 sm:mt-0" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-slate-100 flex-shrink-0">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl">
+                                <Activity size={18} />
                             </div>
                             <div>
-                                <h2 className="text-lg font-black text-slate-900 tracking-tight">Movimientos Mes Actual</h2>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mes actual · {format(startOfMonth(new Date()), 'dd/MM/yyyy')} – {format(new Date(), 'dd/MM/yyyy')}</p>
+                                <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">Movimientos Mes Actual</h2>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Mes actual · {format(startOfMonth(new Date()), 'dd/MM/yyyy')} – {format(new Date(), 'dd/MM/yyyy')}</p>
                             </div>
                         </div>
-                        <button onClick={() => setShowCajaModal(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-500 hover:text-slate-800 text-xl font-bold">✕</button>
+                        <button onClick={() => setShowCajaModal(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-500 hover:text-slate-800 text-xl font-bold flex-shrink-0">✕</button>
                     </div>
-                    <div className="overflow-auto flex-1 px-6 py-4">
+                    <div className="overflow-y-auto flex-1 px-3 sm:px-6 py-4">
                         {cajaModalLoading ? (
                             <div className="flex items-center justify-center py-20">
                                 <RefreshCw className="animate-spin text-emerald-500" size={36} />
@@ -1332,26 +1332,26 @@ const ComparativaHoteles = () => {
                                     const plazaIng = ingresos.filter(m => (m.hotel||'').toLowerCase().includes('plaza')).reduce((s, m) => s + (m.monto || 0), 0);
                                     const colonialIng = ingresos.filter(m => (m.hotel||'').toLowerCase().includes('colonial')).reduce((s, m) => s + (m.monto || 0), 0);
                                     return (
-                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
-                                            <div className="bg-indigo-50 rounded-2xl p-4">
-                                                <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Ingresos Plaza</p>
-                                                <p className="text-lg font-black text-indigo-700">${new Intl.NumberFormat().format(plazaIng)}</p>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 mb-4">
+                                            <div className="bg-indigo-50 rounded-xl p-3">
+                                                <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">Ing. Plaza</p>
+                                                <p className="text-sm font-black text-indigo-700">${new Intl.NumberFormat().format(plazaIng)}</p>
                                             </div>
-                                            <div className="bg-slate-50 rounded-2xl p-4">
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingresos Colonial</p>
-                                                <p className="text-lg font-black text-slate-700">${new Intl.NumberFormat().format(colonialIng)}</p>
+                                            <div className="bg-slate-50 rounded-xl p-3">
+                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Ing. Colonial</p>
+                                                <p className="text-sm font-black text-slate-700">${new Intl.NumberFormat().format(colonialIng)}</p>
                                             </div>
-                                            <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
-                                                <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">Total Ingresos</p>
-                                                <p className="text-lg font-black text-emerald-700">${new Intl.NumberFormat().format(plazaIng + colonialIng)}</p>
+                                            <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100">
+                                                <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-0.5">Total Ingresos</p>
+                                                <p className="text-sm font-black text-emerald-700">${new Intl.NumberFormat().format(plazaIng + colonialIng)}</p>
                                             </div>
-                                            <div className="bg-rose-50 rounded-2xl p-4">
-                                                <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Egresos Totales</p>
-                                                <p className="text-lg font-black text-rose-700">${new Intl.NumberFormat().format(totalEgr)}</p>
+                                            <div className="bg-rose-50 rounded-xl p-3">
+                                                <p className="text-[8px] font-black text-rose-400 uppercase tracking-widest mb-0.5">Egresos</p>
+                                                <p className="text-sm font-black text-rose-700">${new Intl.NumberFormat().format(totalEgr)}</p>
                                             </div>
-                                            <div className={`rounded-2xl p-4 ${totalNeto >= 0 ? 'bg-emerald-50' : 'bg-red-50'}`}>
-                                                <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${totalNeto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>Neto Consolidado</p>
-                                                <p className={`text-lg font-black ${totalNeto >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>${new Intl.NumberFormat().format(totalNeto)}</p>
+                                            <div className={`rounded-xl p-3 ${totalNeto >= 0 ? 'bg-emerald-50' : 'bg-red-50'}`}>
+                                                <p className={`text-[8px] font-black uppercase tracking-widest mb-0.5 ${totalNeto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>Neto</p>
+                                                <p className={`text-sm font-black ${totalNeto >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>${new Intl.NumberFormat().format(totalNeto)}</p>
                                             </div>
                                         </div>
                                     );
@@ -1443,23 +1443,23 @@ const ComparativaHoteles = () => {
 
         {/* Modal Ver Detalle Diario */}
         {showDetalleModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowDetalleModal(false)}>
-                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-                    <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-100 text-indigo-600 rounded-2xl">
-                                <FileText size={22} />
+            <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowDetalleModal(false)}>
+                <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-5xl h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden mt-2 sm:mt-0" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-slate-100 flex-shrink-0">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl">
+                                <FileText size={18} />
                             </div>
                             <div>
-                                <h2 className="text-lg font-black text-slate-900 tracking-tight">Detalle Diario Consolidado</h2>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">Detalle Diario Consolidado</h2>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                                     Período: {dates.inicio} – {dates.fin}
                                 </p>
                             </div>
                         </div>
-                        <button onClick={() => setShowDetalleModal(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-500 hover:text-slate-800 text-xl font-bold">✕</button>
+                        <button onClick={() => setShowDetalleModal(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-500 hover:text-slate-800 text-xl font-bold flex-shrink-0">✕</button>
                     </div>
-                    <div className="overflow-auto flex-1 px-6 py-4">
+                    <div className="overflow-y-auto flex-1 px-3 sm:px-6 py-4">
                         {(() => {
                             const plazaH = data?.plaza?.history || [];
                             const colonialH = data?.colonial?.history || [];
@@ -1482,26 +1482,26 @@ const ComparativaHoteles = () => {
                             const totNeto = (totPlazaIng + totColonialIng) - (totPlazaEgr + totColonialEgr);
                             return (
                                 <div>
-                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
-                                        <div className="bg-indigo-50 rounded-2xl p-4">
-                                            <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Ingresos Plaza</p>
-                                            <p className="text-lg font-black text-indigo-700">${new Intl.NumberFormat().format(totPlazaIng)}</p>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 mb-4">
+                                        <div className="bg-indigo-50 rounded-xl p-3">
+                                            <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">Ing. Plaza</p>
+                                            <p className="text-sm font-black text-indigo-700">${new Intl.NumberFormat().format(totPlazaIng)}</p>
                                         </div>
-                                        <div className="bg-slate-50 rounded-2xl p-4">
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingresos Colonial</p>
-                                            <p className="text-lg font-black text-slate-700">${new Intl.NumberFormat().format(totColonialIng)}</p>
+                                        <div className="bg-slate-50 rounded-xl p-3">
+                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Ing. Colonial</p>
+                                            <p className="text-sm font-black text-slate-700">${new Intl.NumberFormat().format(totColonialIng)}</p>
                                         </div>
-                                        <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
-                                            <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">Total Ingresos</p>
-                                            <p className="text-lg font-black text-emerald-700">${new Intl.NumberFormat().format(totPlazaIng + totColonialIng)}</p>
+                                        <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100">
+                                            <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-0.5">Total Ingresos</p>
+                                            <p className="text-sm font-black text-emerald-700">${new Intl.NumberFormat().format(totPlazaIng + totColonialIng)}</p>
                                         </div>
-                                        <div className="bg-rose-50 rounded-2xl p-4">
-                                            <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Egresos Totales</p>
-                                            <p className="text-lg font-black text-rose-700">${new Intl.NumberFormat().format(totPlazaEgr + totColonialEgr)}</p>
+                                        <div className="bg-rose-50 rounded-xl p-3">
+                                            <p className="text-[8px] font-black text-rose-400 uppercase tracking-widest mb-0.5">Egresos</p>
+                                            <p className="text-sm font-black text-rose-700">${new Intl.NumberFormat().format(totPlazaEgr + totColonialEgr)}</p>
                                         </div>
-                                        <div className={`rounded-2xl p-4 ${totNeto >= 0 ? 'bg-emerald-50' : 'bg-red-50'}`}>
-                                            <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${totNeto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>Neto Consolidado</p>
-                                            <p className={`text-lg font-black ${totNeto >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>${new Intl.NumberFormat().format(totNeto)}</p>
+                                        <div className={`rounded-xl p-3 ${totNeto >= 0 ? 'bg-emerald-50' : 'bg-red-50'}`}>
+                                            <p className={`text-[8px] font-black uppercase tracking-widest mb-0.5 ${totNeto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>Neto</p>
+                                            <p className={`text-sm font-black ${totNeto >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>${new Intl.NumberFormat().format(totNeto)}</p>
                                         </div>
                                     </div>
                                     <div className="overflow-x-auto rounded-2xl border border-slate-100">
