@@ -14,6 +14,9 @@ export const API_BASE_URL = import.meta.env.MODE === 'development'
 
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
+    if (config.url.includes('registros')) {
+        console.log(`[API-DEBUG] ${config.method.toUpperCase()} ${config.url}`);
+    }
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
         config.headers['x-auth-token'] = token;
