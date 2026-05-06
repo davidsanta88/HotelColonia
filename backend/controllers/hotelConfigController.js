@@ -132,13 +132,9 @@ exports.getMensajeBienvenida = async (req, res) => {
             if (!d) return '–';
             const date = new Date(d);
             if (isNaN(date.getTime())) return '–';
-            try {
-                return date.toLocaleDateString('es-CO', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'America/Bogota' });
-            } catch (e) {
-                return date.toISOString().split('T')[0];
-            }
+            return date.toISOString().split('T')[0]; // Formato simple YYYY-MM-DD
         };
-        const fmtCop = (v) => `$${Number(v || 0).toLocaleString('es-CO')}`;
+        const fmtCop = (v) => `$${Number(v || 0).toLocaleString()}`;
 
         const totalCobrado = registro.total || 0;
         const totalPagado = (registro.pagos || []).reduce((s, p) => s + (p.monto || 0), 0);
@@ -221,6 +217,7 @@ exports.getMensajeBienvenida = async (req, res) => {
 
         res.json({ mensaje, whatsappUrl, telefono: telefonoCliente, activo: true });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error('[GET-WA-LINK ERROR]', err);
+        res.status(500).json({ message: 'Error interno al generar link de WhatsApp', error: err.message });
     }
 };
