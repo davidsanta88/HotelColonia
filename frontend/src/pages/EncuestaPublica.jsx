@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Star, CheckCircle, AlertCircle } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://api.hotelbalconplaza.com';
+const API_URL = import.meta.env.MODE === 'development' ? 'http://localhost:5001/api' : '/api';
 
 const StarRating = ({ value, onChange, label }) => (
     <div className="space-y-1">
@@ -35,7 +35,7 @@ const EncuestaPublica = () => {
     });
 
     useEffect(() => {
-        axios.get(`${API_URL}/api/encuestas/responder/${token}`)
+        axios.get(`${API_URL}/encuestas/responder/${token}`)
             .then(r => { setEncuesta(r.data); if (r.data.completada) setEnviado(true); })
             .catch(() => setError('Encuesta no encontrada o enlace inválido'))
             .finally(() => setLoading(false));
@@ -48,7 +48,7 @@ const EncuestaPublica = () => {
             return;
         }
         try {
-            await axios.post(`${API_URL}/api/encuestas/responder/${token}`, form);
+            await axios.post(`${API_URL}/encuestas/responder/${token}`, form);
             setEnviado(true);
         } catch (e) {
             setError(e.response?.data?.message || 'Error al enviar');
