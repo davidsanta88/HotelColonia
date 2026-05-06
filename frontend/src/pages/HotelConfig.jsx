@@ -18,13 +18,6 @@ const HotelConfig = () => {
         pinFinanzas: '123',
         metaVentasMensual: 0,
         metaGananciaMensual: 0,
-        wifiNombre: '',
-        wifiClave1: '',
-        wifiClave2: '',
-        wifiClave3: '',
-        wifiClave4: '',
-        politicasBienvenida: '',
-        mensajeBienvenidaActivo: true,
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -365,52 +358,6 @@ const HotelConfig = () => {
                                     />
                                 </div>
                                 <p className="mt-2 text-[9px] text-emerald-600/60 font-medium italic">* Objetivo de utilidad neta (Ingresos - Egresos) del mes.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* SECCIÓN MENSAJE BIENVENIDA */}
-                    <div className="md:col-span-2 mt-4">
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="h-px flex-1 bg-slate-100"></div>
-                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">📱 Mensaje de Bienvenida WhatsApp</span>
-                            <div className="h-px flex-1 bg-slate-100"></div>
-                        </div>
-                        <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 space-y-5">
-                            {/* Activar/desactivar */}
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-black text-indigo-800">Mensaje automático al check-in</p>
-                                    <p className="text-[10px] text-indigo-400 font-bold mt-0.5">Al registrar un huésped se ofrecerá enviar este mensaje por WhatsApp</p>
-                                </div>
-                                <button type="button" onClick={() => setConfig(c => ({ ...c, mensajeBienvenidaActivo: !c.mensajeBienvenidaActivo }))}
-                                    className={`w-12 h-6 rounded-full transition-all relative ${config.mensajeBienvenidaActivo ? 'bg-indigo-500' : 'bg-slate-300'}`}>
-                                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${config.mensajeBienvenidaActivo ? 'left-6' : 'left-0.5'}`} />
-                                </button>
-                            </div>
-                            {/* WiFi */}
-                            <div>
-                                <label className="block text-xs font-black text-indigo-600 uppercase mb-2">Nombre de la red WiFi</label>
-                                <input type="text" name="wifiNombre" value={config.wifiNombre || ''} onChange={handleChange}
-                                    placeholder="Ej: HotelBalcon_WiFi"
-                                    className="w-full border border-indigo-200 rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" />
-                            </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                {[1,2,3,4].map(piso => (
-                                    <div key={piso}>
-                                        <label className="block text-xs font-black text-indigo-600 uppercase mb-2">Clave Piso {piso}</label>
-                                        <input type="text" name={`wifiClave${piso}`} value={config[`wifiClave${piso}`] || ''} onChange={handleChange}
-                                            placeholder={`Clave piso ${piso}`}
-                                            className="w-full border border-indigo-200 rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" />
-                                    </div>
-                                ))}
-                            </div>
-                            {/* Políticas bienvenida */}
-                            <div>
-                                <label className="block text-xs font-black text-indigo-600 uppercase mb-2">Políticas del hotel (para mensaje de bienvenida)</label>
-                                <textarea name="politicasBienvenida" value={config.politicasBienvenida || ''} onChange={handleChange}
-                                    rows={4} placeholder="Ej: Check-out hasta las 12:00 m. No se permiten mascotas. Silencio después de las 10 pm..."
-                                    className="w-full border border-indigo-200 rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white resize-none" />
                             </div>
                         </div>
                     </div>
