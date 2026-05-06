@@ -1472,11 +1472,14 @@ const ComparativaHoteles = () => {
                                                     <th className="text-left px-4 py-3 font-black text-slate-500 uppercase tracking-widest text-[9px]">Fecha</th>
                                                     <th className="text-right px-3 py-3 font-black text-indigo-500 uppercase tracking-widest text-[9px]">Plaza Ing.</th>
                                                     <th className="text-right px-3 py-3 font-black text-indigo-400 uppercase tracking-widest text-[9px]">Plaza Egr.</th>
-                                                    <th className="text-right px-3 py-3 font-black text-indigo-600 uppercase tracking-widest text-[9px]">Plaza Neto</th>
+                                                    <th className="text-right px-2 py-3 font-black text-indigo-600 uppercase tracking-widest text-[9px]">Plaza Neto</th>
+                                                    <th className="text-right px-2 py-3 font-black text-slate-300 uppercase tracking-widest text-[9px]">%</th>
                                                     <th className="text-right px-3 py-3 font-black text-slate-500 uppercase tracking-widest text-[9px]">Colonial Ing.</th>
                                                     <th className="text-right px-3 py-3 font-black text-slate-400 uppercase tracking-widest text-[9px]">Colonial Egr.</th>
-                                                    <th className="text-right px-3 py-3 font-black text-slate-600 uppercase tracking-widest text-[9px]">Colonial Neto</th>
+                                                    <th className="text-right px-2 py-3 font-black text-slate-600 uppercase tracking-widest text-[9px]">Colonial Neto</th>
+                                                    <th className="text-right px-2 py-3 font-black text-slate-300 uppercase tracking-widest text-[9px]">%</th>
                                                     <th className="text-right px-4 py-3 font-black text-emerald-600 uppercase tracking-widest text-[9px]">Total Neto</th>
+                                                    <th className="text-right px-2 py-3 font-black text-slate-300 uppercase tracking-widest text-[9px]">%</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -1484,23 +1487,60 @@ const ComparativaHoteles = () => {
                                                     const plazaNeto = (row.plaza.ingresos || 0) - (row.plaza.egresos || 0);
                                                     const colonialNeto = (row.colonial.ingresos || 0) - (row.colonial.egresos || 0);
                                                     const totalNeto = plazaNeto + colonialNeto;
+                                                    const plazaPct = (row.plaza.ingresos || 0) > 0 ? (plazaNeto / row.plaza.ingresos) * 100 : 0;
+                                                    const colonialPct = (row.colonial.ingresos || 0) > 0 ? (colonialNeto / row.colonial.ingresos) * 100 : 0;
+                                                    const totalIng = (row.plaza.ingresos || 0) + (row.colonial.ingresos || 0);
+                                                    const totalPct = totalIng > 0 ? (totalNeto / totalIng) * 100 : 0;
                                                     return (
                                                         <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                                            <td className="px-4 py-3 font-black text-slate-700">{row.label}</td>
-                                                            <td className="px-3 py-3 text-right font-bold text-slate-600">${new Intl.NumberFormat().format(row.plaza.ingresos || 0)}</td>
-                                                            <td className="px-3 py-3 text-right font-bold text-rose-500">${new Intl.NumberFormat().format(row.plaza.egresos || 0)}</td>
-                                                            <td className={`px-3 py-3 text-right font-black ${plazaNeto >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${new Intl.NumberFormat().format(plazaNeto)}</td>
-                                                            <td className="px-3 py-3 text-right font-bold text-slate-600">${new Intl.NumberFormat().format(row.colonial.ingresos || 0)}</td>
-                                                            <td className="px-3 py-3 text-right font-bold text-rose-500">${new Intl.NumberFormat().format(row.colonial.egresos || 0)}</td>
-                                                            <td className={`px-3 py-3 text-right font-black ${colonialNeto >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${new Intl.NumberFormat().format(colonialNeto)}</td>
-                                                            <td className={`px-4 py-3 text-right font-black text-sm ${totalNeto >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>${new Intl.NumberFormat().format(totalNeto)}</td>
+                                                            <td className="px-4 py-2.5 font-black text-slate-700">{row.label}</td>
+                                                            <td className="px-3 py-2.5 text-right font-bold text-slate-600">${new Intl.NumberFormat().format(row.plaza.ingresos || 0)}</td>
+                                                            <td className="px-3 py-2.5 text-right font-bold text-rose-500">${new Intl.NumberFormat().format(row.plaza.egresos || 0)}</td>
+                                                            <td className={`px-2 py-2.5 text-right font-black ${plazaNeto >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${new Intl.NumberFormat().format(plazaNeto)}</td>
+                                                            <td className="px-2 py-2.5 text-right font-bold text-slate-400 text-[9px]">{plazaPct.toFixed(0)}%</td>
+                                                            <td className="px-3 py-2.5 text-right font-bold text-slate-600">${new Intl.NumberFormat().format(row.colonial.ingresos || 0)}</td>
+                                                            <td className="px-3 py-2.5 text-right font-bold text-rose-500">${new Intl.NumberFormat().format(row.colonial.egresos || 0)}</td>
+                                                            <td className={`px-2 py-2.5 text-right font-black ${colonialNeto >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${new Intl.NumberFormat().format(colonialNeto)}</td>
+                                                            <td className="px-2 py-2.5 text-right font-bold text-slate-400 text-[9px]">{colonialPct.toFixed(0)}%</td>
+                                                            <td className={`px-4 py-2.5 text-right font-black ${totalNeto >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>${new Intl.NumberFormat().format(totalNeto)}</td>
+                                                            <td className="px-2 py-2.5 text-right font-bold text-slate-400 text-[9px]">{totalPct.toFixed(0)}%</td>
                                                         </tr>
                                                     );
                                                 })}
                                                 {rows.length === 0 && (
-                                                    <tr><td colSpan={8} className="text-center py-10 text-slate-300 font-black text-xs uppercase">Sin datos para el período</td></tr>
+                                                    <tr><td colSpan={11} className="text-center py-10 text-slate-300 font-black text-xs uppercase">Sin datos para el período</td></tr>
                                                 )}
                                             </tbody>
+                                            {rows.length > 0 && (() => {
+                                                const tPlazaIng = rows.reduce((s,r) => s + (r.plaza.ingresos||0), 0);
+                                                const tPlazaEgr = rows.reduce((s,r) => s + (r.plaza.egresos||0), 0);
+                                                const tPlazaNeto = tPlazaIng - tPlazaEgr;
+                                                const tColonialIng = rows.reduce((s,r) => s + (r.colonial.ingresos||0), 0);
+                                                const tColonialEgr = rows.reduce((s,r) => s + (r.colonial.egresos||0), 0);
+                                                const tColonialNeto = tColonialIng - tColonialEgr;
+                                                const tTotalNeto = tPlazaNeto + tColonialNeto;
+                                                const tTotalIng = tPlazaIng + tColonialIng;
+                                                const tPlazaPct = tPlazaIng > 0 ? (tPlazaNeto/tPlazaIng)*100 : 0;
+                                                const tColonialPct = tColonialIng > 0 ? (tColonialNeto/tColonialIng)*100 : 0;
+                                                const tTotalPct = tTotalIng > 0 ? (tTotalNeto/tTotalIng)*100 : 0;
+                                                return (
+                                                    <tfoot>
+                                                        <tr className="bg-slate-900 text-white">
+                                                            <td className="px-4 py-3 font-black text-[10px] uppercase tracking-widest">Totales</td>
+                                                            <td className="px-3 py-3 text-right font-black">${new Intl.NumberFormat().format(tPlazaIng)}</td>
+                                                            <td className="px-3 py-3 text-right font-black text-rose-300">${new Intl.NumberFormat().format(tPlazaEgr)}</td>
+                                                            <td className={`px-2 py-3 text-right font-black ${tPlazaNeto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>${new Intl.NumberFormat().format(tPlazaNeto)}</td>
+                                                            <td className="px-2 py-3 text-right text-[9px] font-bold text-slate-400">{tPlazaPct.toFixed(0)}%</td>
+                                                            <td className="px-3 py-3 text-right font-black">${new Intl.NumberFormat().format(tColonialIng)}</td>
+                                                            <td className="px-3 py-3 text-right font-black text-rose-300">${new Intl.NumberFormat().format(tColonialEgr)}</td>
+                                                            <td className={`px-2 py-3 text-right font-black ${tColonialNeto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>${new Intl.NumberFormat().format(tColonialNeto)}</td>
+                                                            <td className="px-2 py-3 text-right text-[9px] font-bold text-slate-400">{tColonialPct.toFixed(0)}%</td>
+                                                            <td className={`px-4 py-3 text-right font-black text-sm ${tTotalNeto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>${new Intl.NumberFormat().format(tTotalNeto)}</td>
+                                                            <td className="px-2 py-3 text-right text-[9px] font-bold text-slate-400">{tTotalPct.toFixed(0)}%</td>
+                                                        </tr>
+                                                    </tfoot>
+                                                );
+                                            })()}
                                         </table>
                                     </div>
                                 </div>
