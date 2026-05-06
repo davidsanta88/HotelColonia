@@ -128,7 +128,16 @@ exports.getMensajeBienvenida = async (req, res) => {
 
         if (!registro) return res.status(404).json({ message: 'Registro no encontrado' });
 
-        const fmt = (d) => d ? new Date(d).toLocaleDateString('es-CO', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'America/Bogota' }) : '–';
+        const fmt = (d) => {
+            if (!d) return '–';
+            const date = new Date(d);
+            if (isNaN(date.getTime())) return '–';
+            try {
+                return date.toLocaleDateString('es-CO', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'America/Bogota' });
+            } catch (e) {
+                return date.toISOString().split('T')[0];
+            }
+        };
         const fmtCop = (v) => `$${Number(v || 0).toLocaleString('es-CO')}`;
 
         const totalCobrado = registro.total || 0;
