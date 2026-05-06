@@ -114,7 +114,7 @@ const ComparativaHoteles = () => {
             const rows = Array.from(map.values()).sort((a, b) => {
                 const va = a.sortKey || a.label;
                 const vb = b.sortKey || b.label;
-                return typeof va === 'string' ? va.localeCompare(vb) : va - vb;
+                return typeof va === 'string' ? vb.localeCompare(va) : vb - va;
             });
             setCajaModalData(rows);
         } catch (e) {
@@ -1439,7 +1439,7 @@ const ComparativaHoteles = () => {
                             const rows = Array.from(map.values()).sort((a, b) => {
                                 const va = a.sortKey || a.label;
                                 const vb = b.sortKey || b.label;
-                                return typeof va === 'string' ? va.localeCompare(vb) : va - vb;
+                                return typeof va === 'string' ? vb.localeCompare(va) : vb - va;
                             });
                             const totPlazaIng = rows.reduce((s, r) => s + (r.plaza.ingresos || 0), 0);
                             const totColonialIng = rows.reduce((s, r) => s + (r.colonial.ingresos || 0), 0);
