@@ -718,12 +718,21 @@ exports.getDetalleIngresosConsolidado = async (req, res) => {
             return localIngresos;
         };
 
-        // Fetch Plaza
-        const plazaIngresos = await fetchFromModels({ Registro, Reserva, Venta, Gasto, Cliente }, 'Hotel Plaza');
+        const isColonial = process.env.MONGODB_URI?.toLowerCase()?.includes('colonial');
 
-        // Fetch Colonial
-        const colonialModels = await getColonialModels();
-        const colonialIngresos = await fetchFromModels(colonialModels, 'Hotel Colonial');
+        let plazaIngresos, colonialIngresos;
+
+        if (isColonial) {
+            // Local es Colonial
+            colonialIngresos = await fetchFromModels({ Registro, Reserva, Venta, Gasto, Cliente }, 'Hotel Colonial');
+            const plazaModels = await getPlazaModels();
+            plazaIngresos = await fetchFromModels(plazaModels, 'Hotel Plaza');
+        } else {
+            // Local es Plaza
+            plazaIngresos = await fetchFromModels({ Registro, Reserva, Venta, Gasto, Cliente }, 'Hotel Plaza');
+            const colonialModels = await getColonialModels();
+            colonialIngresos = await fetchFromModels(colonialModels, 'Hotel Colonial');
+        }
 
         // Combine and sort
         const allIngresos = [...plazaIngresos, ...colonialIngresos].sort((a, b) => b.fecha - a.fecha);
