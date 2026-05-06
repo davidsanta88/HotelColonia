@@ -4,31 +4,31 @@ const HotelConfigSchema = new mongoose.Schema({
     nombre: {
         type: String,
         required: true,
-        default: 'HOTEL BALCÓN PLAZA'
+        default: 'HOTEL BALCÓN COLONIAL'
     },
     nit: {
         type: String,
         required: true,
-        default: '900.000.000-1'
+        default: '900.000.000-2'
     },
     direccion: {
         type: String,
         required: true,
-        default: 'Calle Real # 12-34, Santa Fe de Antioquia'
+        default: 'Calle del Medio # 10-20, Santa Fe de Antioquia'
     },
     telefono: {
         type: String,
         required: true,
-        default: '(604) 000-0000'
+        default: '(604) 111-2222'
     },
     correo: {
         type: String,
         required: true,
-        default: 'reservas@hotelbalconplaza.com'
+        default: 'reservas@hotelbalconcolonial.com'
     },
     sitioWeb: {
         type: String,
-        default: 'www.hotelbalconplaza.com'
+        default: 'www.hotelbalconcolonial.com'
     },
     politica: {
         type: String,
@@ -58,7 +58,7 @@ const HotelConfigSchema = new mongoose.Schema({
     },
     adminCorreo: {
         type: String,
-        default: 'administracion@hotelbalconplaza.com'
+        default: 'administracion@hotelbalconcolonial.com'
     },
     firmaUrl: {
         type: String,
@@ -66,11 +66,11 @@ const HotelConfigSchema = new mongoose.Schema({
     },
     logoUrl: {
         type: String,
-        default: '/logo.jpg'
+        default: '/logo-colonial.jpg'
     },
     backgroundUrl: {
         type: String,
-        default: '/hotel_noche.jpg'
+        default: '/hotel_colonial_noche.jpg'
     },
     checklistAuditoria: {
         type: [String],
@@ -103,6 +103,15 @@ const HotelConfigSchema = new mongoose.Schema({
     wifiClave4: { type: String, default: '' },
     politicasBienvenida: { type: String, default: '' },
     datosAdicionalesCheckin: { type: String, default: '' },
+    // Campos para WhatsApp
+    mensajeBienvenidaActivo: {
+        type: Boolean,
+        default: true
+    },
+    mensajeBienvenida: {
+        type: String,
+        default: '¡Hola! Bienvenido/a a nuestro hotel. Aquí tienes los detalles de tu reserva.'
+    },
     updatedAt: {
         type: Date,
         default: Date.now

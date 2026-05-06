@@ -6,7 +6,7 @@ const Registro = require('../models/Registro');
 const streamUpload = (buffer) => {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
-            { folder: 'hotel-plaza/config' },
+            { folder: 'hotel/config' },
             (error, result) => {
                 if (result) resolve(result);
                 else reject(error);
@@ -156,6 +156,9 @@ exports.getMensajeBienvenida = async (req, res) => {
         const sep = `━━━━━━━━━━━━━━━━━━━━━━`;
 
         let mensaje = `🏨 *${hotelNombre.toUpperCase()}*\n`;
+        if (config?.logoUrl && config.logoUrl.startsWith('http')) {
+            mensaje += `${config.logoUrl}\n`;
+        }
         mensaje += `${sep}\n\n`;
         mensaje += `¡Bienvenido/a, *${registro.cliente?.nombre || 'Huésped'}*! 🙏\n\n`;
         mensaje += `Es un placer recibirle. Esperamos que su estadía sea cómoda, agradable y llena de gratos momentos.\n\n`;

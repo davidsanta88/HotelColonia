@@ -1,103 +1,87 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { 
+    X, 
+    Calendar, 
+    Home, 
+    User, 
+    Clock, 
+    CreditCard, 
+    Plus, 
+    Trash2, 
+    Edit, 
+    Printer, 
+    MessageSquare,
+    DollarSign,
+    Info,
+    Tag,
+    Search,
+    Edit3,
+    ShoppingBag,
+    LogOut
+} from 'lucide-react';
 import api from '../../services/api';
 import Swal from 'sweetalert2';
 import moment from 'moment';
 import { format } from 'date-fns';
-import { 
-    X, 
-    Edit, 
-    Save, 
-    Plus, 
-    Trash2, 
-    Info, 
-    DollarSign, 
-    CreditCard, 
-    ShoppingBag,
-    User,
-    Calendar,
-    Home,
-    Edit3,
-    Printer,
-    LogOut,
-    Clock,
-    Search,
-    Tag
-} from 'lucide-react';
-import Select from 'react-select';
 import { formatCurrency, cleanNumericValue } from '../../utils/format';
-import { generateVoucher } from '../../utils/voucherGenerator';
 import { getWhatsAppLink, WA_TEMPLATES } from '../../utils/whatsapp';
-import { MessageSquare } from 'lucide-react';
+import { generateVoucher } from '../../utils/voucherGenerator';
 import { AuthContext } from '../../context/AuthContext';
-import { useContext } from 'react';
 
-const DetallesRegistroModal = ({ registroId, isOpen, onClose, onSuccess, initialEditMode = false }) => {
+const DetallesRegistroModal = ({ isOpen, onClose, registroId, onSuccess }) => {
     const { hotelConfig } = useContext(AuthContext);
-    const [loading, setLoading] = useState(true);
-    const [isEditing, setIsEditing] = useState(initialEditMode);
     const [details, setDetails] = useState(null);
-    const [consumos, setConsumos] = useState([]);
     const [abonos, setAbonos] = useState([]);
+    const [consumos, setConsumos] = useState([]);
     const [productos, setProductos] = useState([]);
-    const [mediosPago, setMediosPago] = useState([]);
-    const [habitaciones, setHabitaciones] = useState([]);
     const [tiposRegistro, setTiposRegistro] = useState([]);
-    
-    const [editData, setEditData] = useState({
-        fecha_salida: '',
-        total: '',
-        notas: '',
-        tipo_registro: '',
-        huespedes: []
-    });
-
-    const [showAbonoForm, setShowAbonoForm] = useState(false);
-    const [abonoForm, setAbonoForm] = useState({ monto: '', medio: '', notas: '' });
-    
-    const [showConsumoForm, setShowConsumoForm] = useState(false);
-    const [consumoForm, setConsumoForm] = useState({ productoId: '', cantidad: 1 });
-
-    const [showAddHuespedModal, setShowAddHuespedModal] = useState(false);
     const [clientes, setClientes] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editData, setEditData] = useState({});
+    const [abonoForm, setAbonoForm] = useState({ monto: '', medio: '', notas: '' });
+    const [showAbonoForm, setShowAbonoForm] = useState(false);
+    const [consumoForm, setConsumoForm] = useState({ productoId: '', cantidad: 1 });
+    const [showConsumoForm, setShowConsumoForm] = useState(false);
+    const [showAddHuespedModal, setShowAddHuespedModal] = useState(false);
     const [searchCliente, setSearchCliente] = useState('');
+    const [habitaciones, setHabitaciones] = useState([]);
+
+    const mediosPago = [
+        { id: 1, nombre: 'Efectivo' },
+        { id: 2, nombre: 'Transferencia' },
+        { id: 3, nombre: 'Tarjeta Débito' },
+        { id: 4, nombre: 'Tarjeta Crédito' }
+    ];
 
     useEffect(() => {
         if (isOpen && registroId) {
             fetchData();
-            setIsEditing(initialEditMode);
-        } else {
-            // Reset state when closed
-            setDetails(null);
-            setIsEditing(false);
-            setShowAbonoForm(false);
-            setShowConsumoForm(false);
         }
     }, [isOpen, registroId]);
 
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [resDet, resCons, resAbonos, resProd, resMedios, resHab, resClientes, resTipos] = await Promise.all([
+            const [resDet, resPagos, resConsumos, resProds, resTipos, resClientes, resHabs] = await Promise.all([
                 api.get(`/registros/${registroId}`),
-                api.get(`/ventas/consumo/${registroId}`),
                 api.get(`/registros/${registroId}/pagos`),
+                api.get(`/registros/${registroId}/consumos`),
                 api.get('/productos'),
-                api.get('/medios-pago'),
-                api.get('/habitaciones'),
+                api.get('/tipos-registro'),
                 api.get('/clientes'),
-                api.get('/tipos-registro')
+                api.get('/habitaciones')
             ]);
             
             const det = resDet.data;
             setDetails(det);
-            setConsumos(resCons.data);
-            setAbonos(resAbonos.data);
-            setProductos(resProd.data);
-            setMediosPago(resMedios.data);
-            setHabitaciones(resHab.data);
+            setAbonos(resPagos.data);
+            setConsumos(resConsumos.data);
+            setProductos(resProds.data);
+            setTiposRegistro(resTipos.data);
             setClientes(resClientes.data);
-            setTiposRegistro(resTipos.data || []);
-            
+            setHabitaciones(resHabs.data);
+
             setEditData({
                 fecha_salida: det.fecha_salida ? det.fecha_salida.split('T')[0] : '',
                 total: det.total || 0,

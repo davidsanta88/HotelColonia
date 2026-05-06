@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import Select from 'react-select';
 import { formatCurrency, cleanNumericValue } from '../../utils/format';
-import { getWhatsAppLink, WA_TEMPLATES } from '../../utils/whatsapp';
 import { AuthContext } from '../../context/AuthContext';
 import { useContext } from 'react';
 
@@ -314,9 +313,6 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
             console.log('[DEBUG-CHECKIN] Payload enviado:', dataToSave);
             await api.post('/registros', dataToSave);
             
-            
-            Swal.close();
-
             // Obtener el último registro creado para este huésped y habitación
             let whatsappUrl = null;
             let mensajeBienvenidaActivo = true;
@@ -630,7 +626,7 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
                                         <p className="text-[7px] font-bold text-emerald-400 uppercase mt-0.5">Basado en noches</p>
                                     </div>
                                     <div>
-                                        <label className="text-[8px] font-black uppercase tracking-widest text-emerald-600/60 mb-1 block">2. Valor Real a Cobrar</label>
+                                        <label className="text-8px] font-black uppercase tracking-widest text-emerald-600/60 mb-1 block">2. Valor Real a Cobrar</label>
                                         <div className="relative">
                                             <DollarSign className="absolute left-2 top-2 text-emerald-300" size={12} />
                                             <input 
