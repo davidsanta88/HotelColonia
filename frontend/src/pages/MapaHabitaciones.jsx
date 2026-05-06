@@ -299,7 +299,39 @@ const MapaHabitaciones = () => {
                 const notasCapturadas = result.value || '';
                 Swal.fire({ title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 await api.put(`/registros/checkout/${registroId}`, { notasSalida: notasCapturadas });
-                Swal.fire('Éxito', 'Check-out realizado', 'success');
+
+                // Crear encuesta automáticamente y ofrecer envío por WhatsApp
+                try {
+                    const hotelNombre = document.title || 'Hotel Balcón';
+                    const baseUrl = window.location.origin;
+                    const encRes = await api.post(`/encuestas/desde-registro/${registroId}`, { hotelNombre, baseUrl });
+                    const { url, whatsappUrl, telefono } = encRes.data;
+
+                    await Swal.fire({
+                        title: '✅ Check-out realizado',
+                        html: `
+                            <div class="space-y-4 text-left">
+                                <p class="text-sm text-gray-600">La habitación quedó libre y marcada para aseo.</p>
+                                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+                                    <p class="text-xs font-black text-emerald-700 uppercase tracking-widest mb-2">📋 Encuesta de satisfacción generada</p>
+                                    <p class="text-xs text-gray-500 break-all">${url}</p>
+                                </div>
+                                ${whatsappUrl ? `<p class="text-xs text-gray-500 text-center">¿Desea enviar la encuesta al huésped por WhatsApp?</p>` : `<p class="text-xs text-amber-600 text-center font-bold">⚠️ El huésped no tiene teléfono registrado</p>`}
+                            </div>
+                        `,
+                        icon: 'success',
+                        showCancelButton: !!whatsappUrl,
+                        confirmButtonText: whatsappUrl ? '📱 Enviar por WhatsApp' : 'Cerrar',
+                        cancelButtonText: 'Cerrar sin enviar',
+                        confirmButtonColor: whatsappUrl ? '#25D366' : '#3b82f6',
+                        cancelButtonColor: '#6b7280',
+                    }).then(r => {
+                        if (r.isConfirmed && whatsappUrl) window.open(whatsappUrl, '_blank');
+                    });
+                } catch (_) {
+                    Swal.fire('✅ Check-out realizado', 'La habitación quedó libre y marcada para aseo.', 'success');
+                }
+
                 fetchMapa();
             } catch (error) {
                 Swal.fire('Error', 'No se pudo completar el check-out', 'error');

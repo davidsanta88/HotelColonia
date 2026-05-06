@@ -1,4 +1,6 @@
 const Encuesta = require('../models/Encuesta');
+const Registro = require('../models/Registro');
+const Cliente = require('../models/Cliente');
 const crypto = require('crypto');
 
 exports.crearEncuesta = async (req, res) => {
@@ -67,6 +69,52 @@ exports.getEncuestas = async (req, res) => {
                 recomendarian: completadas.filter(e => e.recomendaria).length,
             }
         });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.crearDesdeRegistro = async (req, res) => {
+    try {
+        const { registroId } = req.params;
+        const hotelNombre = req.body.hotelNombre || 'Hotel Balcón';
+        const baseUrl = req.body.baseUrl || process.env.FRONTEND_URL || 'https://hotelbalconplaza.com';
+
+        const registro = await Registro.findById(registroId)
+            .populate('habitacion', 'numero')
+            .populate('cliente', 'nombre telefono')
+            .lean();
+
+        if (!registro) return res.status(404).json({ message: 'Registro no encontrado' });
+
+        // Evitar encuestas duplicadas para el mismo registro
+        const existe = await Encuesta.findOne({ registro_id: registroId });
+        if (existe) {
+            const url = `${baseUrl}/encuesta/${existe.token}`;
+            const telefono = registro.cliente?.telefono?.replace(/\D/g, '') || '';
+            const whatsappUrl = telefono
+                ? `https://wa.me/57${telefono}?text=${encodeURIComponent(`¡Gracias por hospedarse en ${hotelNombre}! 🙏 Su opinión es muy importante para nosotros. Por favor califique su estadía: ${url}`)}`
+                : null;
+            return res.json({ encuesta: existe, url, whatsappUrl });
+        }
+
+        const token = crypto.randomBytes(16).toString('hex');
+        const encuesta = await Encuesta.create({
+            registro_id: registroId,
+            habitacion_numero: registro.habitacion?.numero || '–',
+            huesped_nombre: registro.cliente?.nombre || 'Huésped',
+            hotel: hotelNombre,
+            token
+        });
+
+        const url = `${baseUrl}/encuesta/${token}`;
+        const telefono = registro.cliente?.telefono?.replace(/\D/g, '') || '';
+        const mensaje = `¡Gracias por hospedarse en ${hotelNombre}! 🙏\n\nSu opinión es muy importante para nosotros. Por favor califique su estadía:\n${url}\n\n¡Esperamos verle pronto! 🏨`;
+        const whatsappUrl = telefono
+            ? `https://wa.me/57${telefono}?text=${encodeURIComponent(mensaje)}`
+            : null;
+
+        res.json({ encuesta, url, whatsappUrl, telefono });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
