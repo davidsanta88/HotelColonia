@@ -741,40 +741,6 @@ const MapaHabitaciones = () => {
                             </div>
                         ) : (
                             <>
-                                {/* Tarjetas */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                    {preciosData.tarifas.map(t => {
-                                        const precios = t[preciosData.tipoDia] || {};
-                                        const validos = [1,2,3,4,5,6].filter(p => precios[`personas_${p}`] > 0);
-                                        return (
-                                            <div key={t._id} className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-                                                <div className="h-1.5" style={{ backgroundColor: t.color || '#4f46e5' }} />
-                                                <div className="p-4">
-                                                    <h3 className="font-black text-slate-800 text-sm mb-3 flex items-center gap-2">
-                                                        <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: t.color || '#4f46e5' }} />
-                                                        {t.nombre}
-                                                    </h3>
-                                                    {validos.length === 0 ? (
-                                                        <p className="text-slate-300 text-xs text-center py-2">Sin precio</p>
-                                                    ) : (
-                                                        <div className="space-y-1.5">
-                                                            {validos.map(p => (
-                                                                <div key={p} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
-                                                                    <span className="text-xs text-slate-500 font-bold">{p === 1 ? '1 persona' : `${p} personas`}</span>
-                                                                    <span className="text-sm font-black" style={{ color: t.color || '#4f46e5' }}>
-                                                                        ${Number(precios[`personas_${p}`]).toLocaleString('es-CO')}
-                                                                    </span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                    {t.notas && <p className="text-[10px] text-slate-400 italic mt-2">ℹ️ {t.notas}</p>}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
                                 {/* Tabla comparativa */}
                                 <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
                                     <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
