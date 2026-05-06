@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Swal from 'sweetalert2';
-import { Save, Building2, Phone, Mail, MapPin, FileText, Info, CreditCard, Globe, Quote, X, DollarSign, ShieldAlert, TrendingDown, Lock, TrendingUp } from 'lucide-react';
+import { Save, Building2, Phone, Mail, MapPin, FileText, Info, CreditCard, Globe, Quote, X, DollarSign, ShieldAlert, TrendingDown, Lock, TrendingUp, Wifi, MessageSquare } from 'lucide-react';
 
 const HotelConfig = () => {
     const [config, setConfig] = useState({
@@ -18,6 +18,13 @@ const HotelConfig = () => {
         pinFinanzas: '123',
         metaVentasMensual: 0,
         metaGananciaMensual: 0,
+        wifiNombre: '',
+        wifiClave1: '',
+        wifiClave2: '',
+        wifiClave3: '',
+        wifiClave4: '',
+        politicasBienvenida: '',
+        datosAdicionalesCheckin: '',
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -358,6 +365,60 @@ const HotelConfig = () => {
                                     />
                                 </div>
                                 <p className="mt-2 text-[9px] text-emerald-600/60 font-medium italic">* Objetivo de utilidad neta (Ingresos - Egresos) del mes.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* DATOS PARA CHECK-IN */}
+                    <div className="md:col-span-2 mt-4">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="h-px flex-1 bg-slate-100"></div>
+                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">📱 Datos para Mensaje de Bienvenida (Check-in)</span>
+                            <div className="h-px flex-1 bg-slate-100"></div>
+                        </div>
+                        <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 space-y-5">
+                            {/* WiFi */}
+                            <div>
+                                <label className="flex items-center gap-2 text-xs font-black text-emerald-700 uppercase mb-2">
+                                    <Wifi size={14} /> Red WiFi
+                                </label>
+                                <input type="text" name="wifiNombre" value={config.wifiNombre || ''} onChange={handleChange}
+                                    placeholder="Ej: HotelBalcon_WiFi"
+                                    className="w-full border border-emerald-200 rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white" />
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                {[1,2,3,4].map(piso => (
+                                    <div key={piso}>
+                                        <label className="block text-xs font-black text-emerald-600 uppercase mb-2">Clave Piso {piso}</label>
+                                        <input type="text" name={`wifiClave${piso}`} value={config[`wifiClave${piso}`] || ''} onChange={handleChange}
+                                            placeholder={`Piso ${piso}`}
+                                            className="w-full border border-emerald-200 rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white" />
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Datos adicionales */}
+                            <div>
+                                <label className="flex items-center gap-2 text-xs font-black text-emerald-700 uppercase mb-2">
+                                    <MessageSquare size={14} /> Información adicional para el huésped
+                                </label>
+                                <textarea name="datosAdicionalesCheckin" value={config.datosAdicionalesCheckin || ''} onChange={handleChange}
+                                    rows={4}
+                                    placeholder={"Ej:\n🍽️ Restaurante La Casona – a 2 cuadras del hotel\n☕ Café del Parque – desayunos típicos\n🗺️ Plaza Mayor – a 5 min caminando"}
+                                    className="w-full border border-emerald-200 rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white resize-none" />
+                                <p className="mt-1.5 text-[10px] text-emerald-600/60 font-medium italic">* Aparecerá como "Información de Interés" en el mensaje de bienvenida por WhatsApp.</p>
+                            </div>
+
+                            {/* Políticas bienvenida */}
+                            <div>
+                                <label className="flex items-center gap-2 text-xs font-black text-emerald-700 uppercase mb-2">
+                                    <FileText size={14} /> Políticas del hotel (para mensaje de bienvenida)
+                                </label>
+                                <textarea name="politicasBienvenida" value={config.politicasBienvenida || ''} onChange={handleChange}
+                                    rows={4}
+                                    placeholder="Ej: Check-out hasta las 12:00 m. No se permiten mascotas. Silencio después de las 10 pm. No se permite ingreso de visitantes después de las 9 pm..."
+                                    className="w-full border border-emerald-200 rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white resize-none" />
+                                <p className="mt-1.5 text-[10px] text-emerald-600/60 font-medium italic">* Si se deja en blanco, se usará la política general del hotel.</p>
                             </div>
                         </div>
                     </div>

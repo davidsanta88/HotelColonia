@@ -102,7 +102,7 @@ const HotelConfigSchema = new mongoose.Schema({
     wifiClave3: { type: String, default: '' },
     wifiClave4: { type: String, default: '' },
     politicasBienvenida: { type: String, default: '' },
-    mensajeBienvenidaActivo: { type: Boolean, default: true },
+    datosAdicionalesCheckin: { type: String, default: '' },
     updatedAt: {
         type: Date,
         default: Date.now

@@ -121,22 +121,30 @@ exports.getMensajeBienvenida = async (req, res) => {
         const { registroId } = req.params;
         const config = await HotelConfig.findOne();
         const registro = await Registro.findById(registroId)
-            .populate('habitacion', 'numero')
+            .populate('habitacion', 'numero tipo')
             .populate('cliente', 'nombre telefono')
+            .populate('huespedes', 'nombre')
             .lean();
 
         if (!registro) return res.status(404).json({ message: 'Registro no encontrado' });
 
-        const fmt = (d) => d ? new Date(d).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Bogota' }) : '–';
+        const fmt = (d) => d ? new Date(d).toLocaleDateString('es-CO', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'America/Bogota' }) : '–';
         const fmtCop = (v) => `$${Number(v || 0).toLocaleString('es-CO')}`;
 
         const totalCobrado = registro.total || 0;
         const totalPagado = (registro.pagos || []).reduce((s, p) => s + (p.monto || 0), 0);
         const saldo = Math.max(0, totalCobrado - totalPagado);
 
+        const noches = registro.fechaEntrada && registro.fechaSalida
+            ? Math.max(1, Math.round((new Date(registro.fechaSalida) - new Date(registro.fechaEntrada)) / (1000 * 60 * 60 * 24)))
+            : null;
+        const numPersonas = (registro.huespedes || []).length || 1;
+
         const hotelNombre = config?.nombre || 'Hotel Balcón';
+        const telefono = config?.telefono || '';
         const sitioWeb = config?.sitioWeb || '';
         const politicas = config?.politicasBienvenida || config?.politica || '';
+        const datosAdicionales = config?.datosAdicionalesCheckin || '';
         const wifiNombre = config?.wifiNombre || '';
         const wifiLineas = [
             config?.wifiClave1 ? `  • Piso 1: *${config.wifiClave1}*` : '',
@@ -145,49 +153,63 @@ exports.getMensajeBienvenida = async (req, res) => {
             config?.wifiClave4 ? `  • Piso 4: *${config.wifiClave4}*` : '',
         ].filter(Boolean);
 
+        const sep = `━━━━━━━━━━━━━━━━━━━━━━`;
+
         let mensaje = `🏨 *${hotelNombre.toUpperCase()}*\n`;
-        mensaje += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        mensaje += `¡Bienvenido/a, *${registro.cliente?.nombre || 'Huésped'}*! 🎉\n\n`;
-        mensaje += `Estamos muy contentos de recibirle. Le deseamos una estadía cómoda y placentera.\n\n`;
-        mensaje += `📋 *DATOS DE SU REGISTRO*\n`;
-        mensaje += `─────────────────────\n`;
-        mensaje += `🛏️ Habitación: *${registro.habitacion?.numero || '–'}*\n`;
-        mensaje += `📅 Ingreso: *${fmt(registro.fechaEntrada)}*\n`;
-        mensaje += `📅 Salida programada: *${fmt(registro.fechaSalida)}*\n\n`;
+        mensaje += `${sep}\n\n`;
+        mensaje += `¡Bienvenido/a, *${registro.cliente?.nombre || 'Huésped'}*! 🙏\n\n`;
+        mensaje += `Es un placer recibirle. Esperamos que su estadía sea cómoda, agradable y llena de gratos momentos.\n\n`;
+
+        mensaje += `${sep}\n`;
+        mensaje += `📋 *DATOS DE SU ESTADÍA*\n`;
+        mensaje += `${sep}\n`;
+        mensaje += `🛏️  Habitación: *${registro.habitacion?.numero || '–'}*\n`;
+        mensaje += `📅  Check-in: *${fmt(registro.fechaEntrada)}*\n`;
+        mensaje += `📅  Check-out: *${fmt(registro.fechaSalida)}*\n`;
+        if (noches) mensaje += `🌙  Noches: *${noches}*\n`;
+        mensaje += `👥  Huéspedes: *${numPersonas}*\n\n`;
+
+        mensaje += `${sep}\n`;
         mensaje += `💰 *RESUMEN FINANCIERO*\n`;
-        mensaje += `─────────────────────\n`;
-        mensaje += `Total cobrado: *${fmtCop(totalCobrado)}*\n`;
-        mensaje += `Total pagado: *${fmtCop(totalPagado)}*\n`;
-        mensaje += `Saldo pendiente: *${fmtCop(saldo)}*\n\n`;
+        mensaje += `${sep}\n`;
+        mensaje += `💵  Total: *${fmtCop(totalCobrado)}*\n`;
+        mensaje += `✅  Abono recibido: *${fmtCop(totalPagado)}*\n`;
+        mensaje += `⏳  Saldo pendiente: *${fmtCop(saldo)}*\n\n`;
 
         if (wifiNombre || wifiLineas.length > 0) {
+            mensaje += `${sep}\n`;
             mensaje += `📶 *ACCESO WIFI*\n`;
-            mensaje += `─────────────────────\n`;
-            if (wifiNombre) mensaje += `Red: *${wifiNombre}*\n`;
-            if (wifiLineas.length > 0) mensaje += `Contraseñas:\n${wifiLineas.join('\n')}\n`;
+            mensaje += `${sep}\n`;
+            if (wifiNombre) mensaje += `📡  Red: *${wifiNombre}*\n`;
+            if (wifiLineas.length > 0) mensaje += `🔐  Contraseñas:\n${wifiLineas.join('\n')}\n`;
             mensaje += `\n`;
         }
 
+        if (datosAdicionales) {
+            mensaje += `${sep}\n`;
+            mensaje += `ℹ️  *INFORMACIÓN DE INTERÉS*\n`;
+            mensaje += `${sep}\n`;
+            mensaje += `${datosAdicionales}\n\n`;
+        }
+
         if (politicas) {
+            mensaje += `${sep}\n`;
             mensaje += `📌 *POLÍTICAS DEL HOTEL*\n`;
-            mensaje += `─────────────────────\n`;
+            mensaje += `${sep}\n`;
             mensaje += `${politicas}\n\n`;
         }
 
-        if (sitioWeb) {
-            mensaje += `🌐 *SÍGUENOS*\n`;
-            mensaje += `─────────────────────\n`;
-            mensaje += `${sitioWeb}\n\n`;
-        }
+        mensaje += `${sep}\n`;
+        mensaje += `Estamos a su disposición para lo que necesite. ¡Que lo disfrute! 🌟\n`;
+        if (telefono) mensaje += `📞 *${telefono}*`;
+        if (sitioWeb) mensaje += ` | 🌐 *${sitioWeb}*`;
 
-        mensaje += `¡Gracias por elegirnos! Cualquier inquietud, estamos a su disposición. 🙏`;
-
-        const telefono = (registro.cliente?.telefono || '').replace(/\D/g, '');
-        const whatsappUrl = telefono
-            ? `https://wa.me/57${telefono}?text=${encodeURIComponent(mensaje)}`
+        const telefonoCliente = (registro.cliente?.telefono || '').replace(/\D/g, '');
+        const whatsappUrl = telefonoCliente
+            ? `https://wa.me/57${telefonoCliente}?text=${encodeURIComponent(mensaje)}`
             : null;
 
-        res.json({ mensaje, whatsappUrl, telefono, activo: config?.mensajeBienvenidaActivo !== false });
+        res.json({ mensaje, whatsappUrl, telefono: telefonoCliente, activo: true });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
