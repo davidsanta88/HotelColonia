@@ -123,18 +123,22 @@ exports.getMensajeBienvenida = async (req, res) => {
         const registro = await Registro.findById(registroId)
             .populate('habitacion', 'numero tipo')
             .populate('cliente', 'nombre telefono')
-            .populate('huespedes', 'nombre')
             .lean();
 
         if (!registro) return res.status(404).json({ message: 'Registro no encontrado' });
 
+        const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+        const DIAS_S = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
         const fmt = (d) => {
             if (!d) return '–';
-            const date = new Date(d);
-            if (isNaN(date.getTime())) return '–';
-            return date.toISOString().split('T')[0]; // Formato simple YYYY-MM-DD
+            try {
+                const date = new Date(d);
+                if (isNaN(date.getTime())) return '–';
+                const bog = new Date(date.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+                return `${DIAS_S[bog.getDay()]} ${bog.getDate()} de ${MESES[bog.getMonth()]} de ${bog.getFullYear()}`;
+            } catch { return String(d).split('T')[0]; }
         };
-        const fmtCop = (v) => `$${Number(v || 0).toLocaleString()}`;
+        const fmtCop = (v) => { try { return `$${Number(v||0).toLocaleString('es-CO')}`; } catch { return `$${Number(v||0).toLocaleString()}`; } };
 
         const totalCobrado = registro.total || 0;
         const totalPagado = (registro.pagos || []).reduce((s, p) => s + (p.monto || 0), 0);
@@ -143,7 +147,7 @@ exports.getMensajeBienvenida = async (req, res) => {
         const noches = registro.fechaEntrada && registro.fechaSalida
             ? Math.max(1, Math.round((new Date(registro.fechaSalida) - new Date(registro.fechaEntrada)) / (1000 * 60 * 60 * 24)))
             : null;
-        const numPersonas = (registro.huespedes || []).length || 1;
+        const numPersonas = Array.isArray(registro.huespedes) ? (registro.huespedes.filter(Boolean).length || 1) : 1;
 
         const hotelNombre = config?.nombre || 'Hotel Balcón';
         const telefono = config?.telefono || '';
@@ -161,9 +165,6 @@ exports.getMensajeBienvenida = async (req, res) => {
         const sep = `━━━━━━━━━━━━━━━━━━━━━━`;
 
         let mensaje = `🏨 *${hotelNombre.toUpperCase()}*\n`;
-        if (config?.logoUrl && config.logoUrl.startsWith('http')) {
-            mensaje += `${config.logoUrl}\n`;
-        }
         mensaje += `${sep}\n\n`;
         mensaje += `¡Bienvenido/a, *${registro.cliente?.nombre || 'Huésped'}*! 🙏\n\n`;
         mensaje += `Es un placer recibirle. Esperamos que su estadía sea cómoda, agradable y llena de gratos momentos.\n\n`;
@@ -213,7 +214,9 @@ exports.getMensajeBienvenida = async (req, res) => {
         if (sitioWeb) mensaje += ` | 🌐 *${sitioWeb}*`;
 
         const telefonoCliente = (registro.cliente?.telefono || '').replace(/\D/g, '');
-        const whatsappUrl = `https://wa.me/${telefonoCliente ? '57' + telefonoCliente : ''}?text=${encodeURIComponent(mensaje)}`;
+        const whatsappUrl = telefonoCliente
+            ? `https://wa.me/57${telefonoCliente}?text=${encodeURIComponent(mensaje)}`
+            : null;
 
         res.json({ mensaje, whatsappUrl, telefono: telefonoCliente, activo: true });
     } catch (err) {
