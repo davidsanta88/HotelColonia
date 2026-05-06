@@ -96,6 +96,13 @@ const HotelConfigSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    wifiNombre: { type: String, default: '' },
+    wifiClave1: { type: String, default: '' },
+    wifiClave2: { type: String, default: '' },
+    wifiClave3: { type: String, default: '' },
+    wifiClave4: { type: String, default: '' },
+    politicasBienvenida: { type: String, default: '' },
+    mensajeBienvenidaActivo: { type: Boolean, default: true },
     updatedAt: {
         type: Date,
         default: Date.now

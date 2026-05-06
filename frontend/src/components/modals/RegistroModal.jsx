@@ -316,26 +316,33 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
             
             
             Swal.close();
+
+            // Obtener el último registro creado para este huésped y habitación
+            let whatsappUrl = null;
+            let mensajeBienvenidaActivo = true;
+            try {
+                const regsRes = await api.get(`/registros?habitacion=${formData.habitacion_id}&limit=1`);
+                const regs = Array.isArray(regsRes.data) ? regsRes.data : (regsRes.data?.registros || []);
+                const ultimoReg = regs[0];
+                if (ultimoReg?._id) {
+                    const bienvenidaRes = await api.get(`/hotel-config/mensaje-bienvenida/${ultimoReg._id}`);
+                    whatsappUrl = bienvenidaRes.data.whatsappUrl;
+                    mensajeBienvenidaActivo = bienvenidaRes.data.activo;
+                }
+            } catch (_) {}
+
             const { isConfirmed } = await Swal.fire({
                 title: '¡Registro Exitoso!',
                 text: 'El huésped ha sido ingresado correctamente.',
                 icon: 'success',
-                showCancelButton: true,
-                confirmButtonText: 'Enviar WhatsApp de Bienvenida',
-                cancelButtonText: 'Cerrar',
+                showCancelButton: mensajeBienvenidaActivo && !!whatsappUrl,
+                confirmButtonText: mensajeBienvenidaActivo && whatsappUrl ? '📱 Enviar WhatsApp Bienvenida' : 'Cerrar',
+                cancelButtonText: 'Cerrar sin enviar',
                 confirmButtonColor: '#10b981',
             });
 
-            if (isConfirmed) {
-                const titular = huespedesList[0];
-                const hotelName = hotelConfig?.nombre?.toLowerCase()?.includes('colonial') ? 'Colonial' : 'Plaza';
-                const hab = habitaciones.find(h => String(h.id || h._id) === String(formData.habitacion_id));
-                
-                const link = getWhatsAppLink(
-                    titular.telefono,
-                    WA_TEMPLATES.WELCOME(titular.nombre, hotelName, hab?.numero || '')
-                );
-                if (link) window.open(link, '_blank');
+            if (isConfirmed && whatsappUrl) {
+                window.open(whatsappUrl, '_blank');
             }
 
             onSuccess();
