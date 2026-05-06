@@ -53,6 +53,8 @@ import Aliados from './pages/Aliados';
 import CalendarioOcupacion from './pages/CalendarioOcupacion';
 import EncuestasAdmin from './pages/EncuestasAdmin';
 import EncuestaPublica from './pages/EncuestaPublica';
+import Tarifas from './pages/Tarifas';
+import TableroPrecios from './pages/TableroPrecios';
 import Layout from './components/Layout/Layout';
 
 const PrivateRoute = ({ children, roles, code }) => {
@@ -141,6 +143,8 @@ const AppRoutes = () => {
                 <Route path="manuales" element={<Manuales />} />
                 <Route path="calendario-ocupacion" element={<CalendarioOcupacion />} />
                 <Route path="encuestas" element={<EncuestasAdmin />} />
+                <Route path="tarifas" element={<Tarifas />} />
+                <Route path="tablero-precios" element={<TableroPrecios />} />
             </Route>
             <Route path="/checkin" element={<CheckinPublico />} />
             <Route path="/encuesta/:token" element={<EncuestaPublica />} />

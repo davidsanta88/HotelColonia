@@ -39,7 +39,9 @@ import {
     Truck,
     FileCheck,
     Star,
-    CalendarRange
+    CalendarRange,
+    Tag,
+    DollarSign as DollarSignIcon
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -154,8 +156,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         {
             title: 'Experiencia Huésped',
             items: [
+                { name: 'Tablero de Precios', path: '/tablero-precios', icon: <DollarSignIcon size={20} /> },
                 { name: 'Encuestas Satisfacción', path: '/encuestas', icon: <Star size={20} /> },
                 { name: 'Calendario Ocupación', path: '/calendario-ocupacion', icon: <CalendarRange size={20} /> },
+            ]
+        },
+        {
+            title: 'Configuraciones',
+            items: [
+                { name: 'Tarifas Habitaciones', path: '/tarifas', icon: <Tag size={20} />, code: 'configuracion' },
             ]
         }
     ];

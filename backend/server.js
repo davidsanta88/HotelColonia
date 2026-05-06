@@ -42,6 +42,7 @@ require('./models/PersonalFinance');
 require('./models/PersonalCategory');
 require('./models/Encuesta');
 require('./models/PushSubscription');
+require('./models/Tarifa');
 
 
 const helmet = require('helmet');
@@ -169,6 +170,7 @@ app.use('/api/restaurante', require('./routes/restaurante'));
 app.use('/api/proveedores', require('./routes/proveedor'));
 app.use('/api/documentos-hotel', require('./routes/documento'));
 app.use('/api/chatbot', require('./routes/chatbot'));
+app.use('/api/tarifas', require('./routes/tarifas'));
 app.use('/api/encuestas', require('./routes/encuesta'));
 app.use('/api/push', require('./routes/push'));
 
