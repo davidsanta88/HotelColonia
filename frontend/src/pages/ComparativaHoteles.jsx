@@ -101,22 +101,8 @@ const ComparativaHoteles = () => {
         try {
             const fin = format(new Date(), 'yyyy-MM-dd');
             const inicio = format(startOfMonth(new Date()), 'yyyy-MM-dd');
-            const res = await api.get(`/stats/comparative?inicio=${inicio}&fin=${fin}`);
-            const plazaH = res.data?.plaza?.history || [];
-            const colonialH = res.data?.colonial?.history || [];
-            const map = new Map();
-            plazaH.forEach(p => map.set(p.label, { label: p.label, sortKey: p.sortKey, plaza: p, colonial: { ingresos: 0, egresos: 0, margen: 0 } }));
-            colonialH.forEach(c => {
-                const ex = map.get(c.label) || { label: c.label, sortKey: c.sortKey, plaza: { ingresos: 0, egresos: 0, margen: 0 }, colonial: c };
-                ex.colonial = c;
-                map.set(c.label, ex);
-            });
-            const rows = Array.from(map.values()).sort((a, b) => {
-                const va = a.sortKey || a.label;
-                const vb = b.sortKey || b.label;
-                return typeof va === 'string' ? vb.localeCompare(va) : vb - va;
-            });
-            setCajaModalData(rows);
+            const res = await api.get(`/reportes/detalle-ingresos-consolidado?inicio=${inicio}&fin=${fin}`);
+            setCajaModalData(res.data || []);
         } catch (e) {
             console.error('Error fetching caja modal', e);
         } finally {
@@ -1335,67 +1321,80 @@ const ComparativaHoteles = () => {
                             </div>
                         ) : (
                             <div>
+                                {/* Resumen */}
                                 {(() => {
-                                    const totPlazaIng = cajaModalData.reduce((s, r) => s + (r.plaza.ingresos || 0), 0);
-                                    const totColonialIng = cajaModalData.reduce((s, r) => s + (r.colonial.ingresos || 0), 0);
-                                    const totPlazaEgr = cajaModalData.reduce((s, r) => s + (r.plaza.egresos || 0), 0);
-                                    const totColonialEgr = cajaModalData.reduce((s, r) => s + (r.colonial.egresos || 0), 0);
-                                    const totNeto = (totPlazaIng + totColonialIng) - (totPlazaEgr + totColonialEgr);
+                                    const ingresos = cajaModalData.filter(m => (m.monto || 0) > 0);
+                                    const egresos = cajaModalData.filter(m => (m.monto || 0) < 0);
+                                    const totalIng = ingresos.reduce((s, m) => s + (m.monto || 0), 0);
+                                    const totalEgr = Math.abs(egresos.reduce((s, m) => s + (m.monto || 0), 0));
+                                    const totalNeto = totalIng - totalEgr;
+                                    const plazaIng = ingresos.filter(m => (m.hotel||'').toLowerCase().includes('plaza')).reduce((s, m) => s + (m.monto || 0), 0);
+                                    const colonialIng = ingresos.filter(m => (m.hotel||'').toLowerCase().includes('colonial')).reduce((s, m) => s + (m.monto || 0), 0);
                                     return (
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
                                             <div className="bg-indigo-50 rounded-2xl p-4">
                                                 <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Ingresos Plaza</p>
-                                                <p className="text-lg font-black text-indigo-700">${new Intl.NumberFormat().format(totPlazaIng)}</p>
+                                                <p className="text-lg font-black text-indigo-700">${new Intl.NumberFormat().format(plazaIng)}</p>
                                             </div>
                                             <div className="bg-slate-50 rounded-2xl p-4">
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingresos Colonial</p>
-                                                <p className="text-lg font-black text-slate-700">${new Intl.NumberFormat().format(totColonialIng)}</p>
+                                                <p className="text-lg font-black text-slate-700">${new Intl.NumberFormat().format(colonialIng)}</p>
                                             </div>
                                             <div className="bg-rose-50 rounded-2xl p-4">
                                                 <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Egresos Totales</p>
-                                                <p className="text-lg font-black text-rose-700">${new Intl.NumberFormat().format(totPlazaEgr + totColonialEgr)}</p>
+                                                <p className="text-lg font-black text-rose-700">${new Intl.NumberFormat().format(totalEgr)}</p>
                                             </div>
-                                            <div className={`rounded-2xl p-4 ${totNeto >= 0 ? 'bg-emerald-50' : 'bg-red-50'}`}>
-                                                <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${totNeto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>Neto Consolidado</p>
-                                                <p className={`text-lg font-black ${totNeto >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>${new Intl.NumberFormat().format(totNeto)}</p>
+                                            <div className={`rounded-2xl p-4 ${totalNeto >= 0 ? 'bg-emerald-50' : 'bg-red-50'}`}>
+                                                <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${totalNeto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>Neto Consolidado</p>
+                                                <p className={`text-lg font-black ${totalNeto >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>${new Intl.NumberFormat().format(totalNeto)}</p>
                                             </div>
                                         </div>
                                     );
                                 })()}
+                                {/* Tabla movimientos */}
                                 <div className="overflow-x-auto rounded-2xl border border-slate-100">
                                     <table className="w-full text-xs">
                                         <thead>
                                             <tr className="bg-slate-50 border-b border-slate-100">
-                                                <th className="text-left px-4 py-3 font-black text-slate-500 uppercase tracking-widest text-[9px]">Fecha</th>
-                                                <th className="text-right px-3 py-3 font-black text-indigo-500 uppercase tracking-widest text-[9px]">Plaza Ing.</th>
-                                                <th className="text-right px-3 py-3 font-black text-indigo-400 uppercase tracking-widest text-[9px]">Plaza Egr.</th>
-                                                <th className="text-right px-3 py-3 font-black text-indigo-600 uppercase tracking-widest text-[9px]">Plaza Neto</th>
-                                                <th className="text-right px-3 py-3 font-black text-slate-500 uppercase tracking-widest text-[9px]">Colonial Ing.</th>
-                                                <th className="text-right px-3 py-3 font-black text-slate-400 uppercase tracking-widest text-[9px]">Colonial Egr.</th>
-                                                <th className="text-right px-3 py-3 font-black text-slate-600 uppercase tracking-widest text-[9px]">Colonial Neto</th>
-                                                <th className="text-right px-4 py-3 font-black text-emerald-600 uppercase tracking-widest text-[9px]">Total Neto</th>
+                                                <th className="text-left px-3 py-3 font-black text-slate-500 uppercase tracking-widest text-[9px]">Hotel</th>
+                                                <th className="text-left px-3 py-3 font-black text-slate-500 uppercase tracking-widest text-[9px]">Fecha</th>
+                                                <th className="text-left px-3 py-3 font-black text-slate-500 uppercase tracking-widest text-[9px]">Tipo</th>
+                                                <th className="text-left px-3 py-3 font-black text-slate-500 uppercase tracking-widest text-[9px]">Descripción</th>
+                                                <th className="text-left px-3 py-3 font-black text-slate-500 uppercase tracking-widest text-[9px]">Usuario</th>
+                                                <th className="text-left px-3 py-3 font-black text-slate-500 uppercase tracking-widest text-[9px]">Medio</th>
+                                                <th className="text-right px-3 py-3 font-black text-slate-500 uppercase tracking-widest text-[9px]">Valor</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {cajaModalData.map((row, i) => {
-                                                const plazaNeto = (row.plaza.ingresos || 0) - (row.plaza.egresos || 0);
-                                                const colonialNeto = (row.colonial.ingresos || 0) - (row.colonial.egresos || 0);
-                                                const totalNeto = plazaNeto + colonialNeto;
+                                            {cajaModalData.map((m, i) => {
+                                                const isPlaza = (m.hotel||'').toLowerCase().includes('plaza');
+                                                const isEgreso = (m.monto || 0) < 0;
                                                 return (
                                                     <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                                        <td className="px-4 py-3 font-black text-slate-700">{row.label}</td>
-                                                        <td className="px-3 py-3 text-right font-bold text-slate-600">${new Intl.NumberFormat().format(row.plaza.ingresos || 0)}</td>
-                                                        <td className="px-3 py-3 text-right font-bold text-rose-500">${new Intl.NumberFormat().format(row.plaza.egresos || 0)}</td>
-                                                        <td className={`px-3 py-3 text-right font-black ${plazaNeto >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${new Intl.NumberFormat().format(plazaNeto)}</td>
-                                                        <td className="px-3 py-3 text-right font-bold text-slate-600">${new Intl.NumberFormat().format(row.colonial.ingresos || 0)}</td>
-                                                        <td className="px-3 py-3 text-right font-bold text-rose-500">${new Intl.NumberFormat().format(row.colonial.egresos || 0)}</td>
-                                                        <td className={`px-3 py-3 text-right font-black ${colonialNeto >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${new Intl.NumberFormat().format(colonialNeto)}</td>
-                                                        <td className={`px-4 py-3 text-right font-black text-sm ${totalNeto >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>${new Intl.NumberFormat().format(totalNeto)}</td>
+                                                        <td className="px-3 py-2">
+                                                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${isPlaza ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
+                                                                {isPlaza ? 'PLAZA' : 'COLONIAL'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-3 py-2 font-bold text-slate-600 whitespace-nowrap">
+                                                            {m.fecha ? new Date(m.fecha).toLocaleDateString('es-CO', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '-'}
+                                                        </td>
+                                                        <td className="px-3 py-2">
+                                                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 uppercase">{m.tipo}</span>
+                                                        </td>
+                                                        <td className="px-3 py-2 font-bold text-slate-700 max-w-[180px] truncate">{m.descripcion}</td>
+                                                        <td className="px-3 py-2 font-bold text-slate-500 whitespace-nowrap">{m.usuario}</td>
+                                                        <td className="px-3 py-2">
+                                                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 uppercase">{m.medioPago}</span>
+                                                        </td>
+                                                        <td className={`px-3 py-2 text-right font-black ${isEgreso ? 'text-red-600' : 'text-emerald-600'}`}>
+                                                            {isEgreso ? '-' : '+'}${new Intl.NumberFormat().format(Math.abs(m.monto || 0))}
+                                                        </td>
                                                     </tr>
                                                 );
                                             })}
                                             {cajaModalData.length === 0 && (
-                                                <tr><td colSpan={8} className="text-center py-10 text-slate-300 font-black text-xs uppercase">Sin datos para el período</td></tr>
+                                                <tr><td colSpan={7} className="text-center py-10 text-slate-300 font-black text-xs uppercase">Sin movimientos para el período</td></tr>
                                             )}
                                         </tbody>
                                     </table>
