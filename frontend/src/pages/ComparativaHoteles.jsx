@@ -229,6 +229,13 @@ const ComparativaHoteles = () => {
                     
                     <div className="flex flex-wrap gap-3">
                         <button
+                            onClick={() => navigate('/mapa-habitaciones-consolidado')}
+                            className="flex items-center justify-center gap-3 px-6 py-3 bg-slate-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 active:scale-95 w-full md:w-auto"
+                        >
+                            <Building2 size={18} />
+                            Mapa Consolidado
+                        </button>
+                        <button
                             onClick={fetchCajaModal}
                             className="flex items-center justify-center gap-3 px-6 py-3 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 active:scale-95 w-full md:w-auto"
                         >
