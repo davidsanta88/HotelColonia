@@ -44,8 +44,12 @@ const Tarifas = () => {
     const handleEditar = (t) => { setForm({ ...t }); setEditando(t._id); };
     const handleCancelar = () => { setEditando(null); setForm(emptyForm()); };
 
+    const formatMiles = (v) => v ? Number(v).toLocaleString('es-CO') : '';
+    const parseMiles = (str) => Number(str.toString().replace(/\./g, '').replace(/,/g, '')) || 0;
+
     const handleChangePrecio = (tipoDia, persona, valor) => {
-        setForm(f => ({ ...f, [tipoDia]: { ...f[tipoDia], [`personas_${persona}`]: Number(valor) || 0 } }));
+        const raw = parseMiles(valor);
+        setForm(f => ({ ...f, [tipoDia]: { ...f[tipoDia], [`personas_${persona}`]: raw } }));
     };
 
     const handleSave = async () => {
@@ -128,7 +132,8 @@ const Tarifas = () => {
                                         <label className="block text-[9px] font-black text-slate-500 uppercase mb-1">{p === 1 ? '1 persona' : `${p} personas`}</label>
                                         <div className="relative">
                                             <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">$</span>
-                                            <input type="number" value={form[dia.key][`personas_${p}`] || ''}
+                                            <input type="text" inputMode="numeric"
+                                                value={form[dia.key][`personas_${p}`] ? formatMiles(form[dia.key][`personas_${p}`]) : ''}
                                                 onChange={e => handleChangePrecio(dia.key, p, e.target.value)}
                                                 placeholder="0"
                                                 className="w-full pl-5 pr-2 py-2 border border-slate-200 rounded-xl text-xs font-black focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" />
