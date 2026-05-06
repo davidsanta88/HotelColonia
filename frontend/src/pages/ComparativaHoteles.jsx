@@ -59,6 +59,9 @@ const ComparativaHoteles = () => {
     const [periodoActivo, setPeriodoActivo] = useState(3);
     const [dates, setDates] = useState(PERIODOS[3].getDates());
     const [statsConsolidadas, setStatsConsolidadas] = useState(null);
+    const [showCajaModal, setShowCajaModal] = useState(false);
+    const [cajaModalData, setCajaModalData] = useState([]);
+    const [cajaModalLoading, setCajaModalLoading] = useState(false);
 
     useEffect(() => {
         fetchComparativeData();
@@ -89,6 +92,35 @@ const ComparativaHoteles = () => {
     const seleccionarPeriodo = (idx) => {
         setPeriodoActivo(idx);
         setDates(PERIODOS[idx].getDates());
+    };
+
+    const fetchCajaModal = async () => {
+        setCajaModalLoading(true);
+        setShowCajaModal(true);
+        try {
+            const fin = format(new Date(), 'yyyy-MM-dd');
+            const inicio = format(subDays(new Date(), 6), 'yyyy-MM-dd');
+            const res = await api.get(`/stats/comparative?inicio=${inicio}&fin=${fin}`);
+            const plazaH = res.data?.plaza?.history || [];
+            const colonialH = res.data?.colonial?.history || [];
+            const map = new Map();
+            plazaH.forEach(p => map.set(p.label, { label: p.label, sortKey: p.sortKey, plaza: p, colonial: { ingresos: 0, egresos: 0, margen: 0 } }));
+            colonialH.forEach(c => {
+                const ex = map.get(c.label) || { label: c.label, sortKey: c.sortKey, plaza: { ingresos: 0, egresos: 0, margen: 0 }, colonial: c };
+                ex.colonial = c;
+                map.set(c.label, ex);
+            });
+            const rows = Array.from(map.values()).sort((a, b) => {
+                const va = a.sortKey || a.label;
+                const vb = b.sortKey || b.label;
+                return typeof va === 'string' ? va.localeCompare(vb) : va - vb;
+            });
+            setCajaModalData(rows);
+        } catch (e) {
+            console.error('Error fetching caja modal', e);
+        } finally {
+            setCajaModalLoading(false);
+        }
     };
 
     if (loading) return (
@@ -193,6 +225,7 @@ const ComparativaHoteles = () => {
     const globalGananciaProgreso = totalMetaGanancia > 0 ? (totalGlobalMargen / totalMetaGanancia) * 100 : 0;
 
     return (
+        <>
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">
             <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -206,13 +239,22 @@ const ComparativaHoteles = () => {
                         <p className="text-slate-400 text-sm font-medium mt-1 uppercase tracking-wider">An├ílisis entre Hotel Plaza y Hotel Colonial</p>
                     </div>
                     
-                    <button 
-                        onClick={() => navigate('/caja-diaria-consolidada')}
-                        className="flex items-center justify-center gap-3 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 w-full md:w-auto"
-                    >
-                        <FileText size={18} />
-                        Ver Detalle Diario
-                    </button>
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            onClick={fetchCajaModal}
+                            className="flex items-center justify-center gap-3 px-6 py-3 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 active:scale-95 w-full md:w-auto"
+                        >
+                            <Activity size={18} />
+                            Caja Última Semana
+                        </button>
+                        <button
+                            onClick={() => navigate('/caja-diaria-consolidada')}
+                            className="flex items-center justify-center gap-3 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 w-full md:w-auto"
+                        >
+                            <FileText size={18} />
+                            Ver Detalle Diario
+                        </button>
+                    </div>
                     
                     <div className="flex flex-col sm:flex-row gap-3">
                         <div className="flex gap-1 bg-slate-100 p-1 rounded-2xl">
@@ -1267,8 +1309,103 @@ const ComparativaHoteles = () => {
                 </div>
             </div>
 
-
         </div>
+
+        {/* Modal Movimiento Caja Consolidada Última Semana */}
+        {showCajaModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowCajaModal(false)}>
+                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-emerald-100 text-emerald-600 rounded-2xl">
+                                <Activity size={22} />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-black text-slate-900 tracking-tight">Movimiento Caja Consolidada</h2>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Última semana · {format(subDays(new Date(), 6), 'dd/MM/yyyy')} – {format(new Date(), 'dd/MM/yyyy')}</p>
+                            </div>
+                        </div>
+                        <button onClick={() => setShowCajaModal(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-500 hover:text-slate-800 text-xl font-bold">✕</button>
+                    </div>
+                    <div className="overflow-auto flex-1 px-6 py-4">
+                        {cajaModalLoading ? (
+                            <div className="flex items-center justify-center py-20">
+                                <RefreshCw className="animate-spin text-emerald-500" size={36} />
+                            </div>
+                        ) : (
+                            <div>
+                                {(() => {
+                                    const totPlazaIng = cajaModalData.reduce((s, r) => s + (r.plaza.ingresos || 0), 0);
+                                    const totColonialIng = cajaModalData.reduce((s, r) => s + (r.colonial.ingresos || 0), 0);
+                                    const totPlazaEgr = cajaModalData.reduce((s, r) => s + (r.plaza.egresos || 0), 0);
+                                    const totColonialEgr = cajaModalData.reduce((s, r) => s + (r.colonial.egresos || 0), 0);
+                                    const totNeto = (totPlazaIng + totColonialIng) - (totPlazaEgr + totColonialEgr);
+                                    return (
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+                                            <div className="bg-indigo-50 rounded-2xl p-4">
+                                                <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Ingresos Plaza</p>
+                                                <p className="text-lg font-black text-indigo-700">${new Intl.NumberFormat().format(totPlazaIng)}</p>
+                                            </div>
+                                            <div className="bg-slate-50 rounded-2xl p-4">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingresos Colonial</p>
+                                                <p className="text-lg font-black text-slate-700">${new Intl.NumberFormat().format(totColonialIng)}</p>
+                                            </div>
+                                            <div className="bg-rose-50 rounded-2xl p-4">
+                                                <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Egresos Totales</p>
+                                                <p className="text-lg font-black text-rose-700">${new Intl.NumberFormat().format(totPlazaEgr + totColonialEgr)}</p>
+                                            </div>
+                                            <div className={`rounded-2xl p-4 ${totNeto >= 0 ? 'bg-emerald-50' : 'bg-red-50'}`}>
+                                                <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${totNeto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>Neto Consolidado</p>
+                                                <p className={`text-lg font-black ${totNeto >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>${new Intl.NumberFormat().format(totNeto)}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+                                <div className="overflow-x-auto rounded-2xl border border-slate-100">
+                                    <table className="w-full text-xs">
+                                        <thead>
+                                            <tr className="bg-slate-50 border-b border-slate-100">
+                                                <th className="text-left px-4 py-3 font-black text-slate-500 uppercase tracking-widest text-[9px]">Fecha</th>
+                                                <th className="text-right px-3 py-3 font-black text-indigo-500 uppercase tracking-widest text-[9px]">Plaza Ing.</th>
+                                                <th className="text-right px-3 py-3 font-black text-indigo-400 uppercase tracking-widest text-[9px]">Plaza Egr.</th>
+                                                <th className="text-right px-3 py-3 font-black text-indigo-600 uppercase tracking-widest text-[9px]">Plaza Neto</th>
+                                                <th className="text-right px-3 py-3 font-black text-slate-500 uppercase tracking-widest text-[9px]">Colonial Ing.</th>
+                                                <th className="text-right px-3 py-3 font-black text-slate-400 uppercase tracking-widest text-[9px]">Colonial Egr.</th>
+                                                <th className="text-right px-3 py-3 font-black text-slate-600 uppercase tracking-widest text-[9px]">Colonial Neto</th>
+                                                <th className="text-right px-4 py-3 font-black text-emerald-600 uppercase tracking-widest text-[9px]">Total Neto</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {cajaModalData.map((row, i) => {
+                                                const plazaNeto = (row.plaza.ingresos || 0) - (row.plaza.egresos || 0);
+                                                const colonialNeto = (row.colonial.ingresos || 0) - (row.colonial.egresos || 0);
+                                                const totalNeto = plazaNeto + colonialNeto;
+                                                return (
+                                                    <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                                        <td className="px-4 py-3 font-black text-slate-700">{row.label}</td>
+                                                        <td className="px-3 py-3 text-right font-bold text-slate-600">${new Intl.NumberFormat().format(row.plaza.ingresos || 0)}</td>
+                                                        <td className="px-3 py-3 text-right font-bold text-rose-500">${new Intl.NumberFormat().format(row.plaza.egresos || 0)}</td>
+                                                        <td className={`px-3 py-3 text-right font-black ${plazaNeto >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${new Intl.NumberFormat().format(plazaNeto)}</td>
+                                                        <td className="px-3 py-3 text-right font-bold text-slate-600">${new Intl.NumberFormat().format(row.colonial.ingresos || 0)}</td>
+                                                        <td className="px-3 py-3 text-right font-bold text-rose-500">${new Intl.NumberFormat().format(row.colonial.egresos || 0)}</td>
+                                                        <td className={`px-3 py-3 text-right font-black ${colonialNeto >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${new Intl.NumberFormat().format(colonialNeto)}</td>
+                                                        <td className={`px-4 py-3 text-right font-black text-sm ${totalNeto >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>${new Intl.NumberFormat().format(totalNeto)}</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            {cajaModalData.length === 0 && (
+                                                <tr><td colSpan={8} className="text-center py-10 text-slate-300 font-black text-xs uppercase">Sin datos para el período</td></tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        )}
+        </>
     );
 };
 
