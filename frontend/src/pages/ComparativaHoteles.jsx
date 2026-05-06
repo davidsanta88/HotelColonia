@@ -100,7 +100,7 @@ const ComparativaHoteles = () => {
         setShowCajaModal(true);
         try {
             const fin = format(new Date(), 'yyyy-MM-dd');
-            const inicio = format(subDays(new Date(), 29), 'yyyy-MM-dd');
+            const inicio = format(startOfMonth(new Date()), 'yyyy-MM-dd');
             const res = await api.get(`/stats/comparative?inicio=${inicio}&fin=${fin}`);
             const plazaH = res.data?.plaza?.history || [];
             const colonialH = res.data?.colonial?.history || [];
@@ -246,7 +246,7 @@ const ComparativaHoteles = () => {
                             className="flex items-center justify-center gap-3 px-6 py-3 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 active:scale-95 w-full md:w-auto"
                         >
                             <Activity size={18} />
-                            Caja Último Mes
+                            Caja Mes Actual
                         </button>
                         <button
                             onClick={() => setShowDetalleModal(true)}
@@ -1323,7 +1323,7 @@ const ComparativaHoteles = () => {
                             </div>
                             <div>
                                 <h2 className="text-lg font-black text-slate-900 tracking-tight">Movimiento Caja Consolidada</h2>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Último mes · {format(subDays(new Date(), 29), 'dd/MM/yyyy')} – {format(new Date(), 'dd/MM/yyyy')}</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mes actual · {format(startOfMonth(new Date()), 'dd/MM/yyyy')} – {format(new Date(), 'dd/MM/yyyy')}</p>
                             </div>
                         </div>
                         <button onClick={() => setShowCajaModal(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-500 hover:text-slate-800 text-xl font-bold">✕</button>
