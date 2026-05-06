@@ -81,40 +81,72 @@ exports.crearDesdeRegistro = async (req, res) => {
         const baseUrl = req.body.baseUrl || process.env.FRONTEND_URL || 'https://hotelbalconplaza.com';
 
         const registro = await Registro.findById(registroId)
-            .populate('habitacion', 'numero')
+            .populate('habitacion', 'numero tipo')
             .populate('cliente', 'nombre telefono')
             .lean();
 
         if (!registro) return res.status(404).json({ message: 'Registro no encontrado' });
 
-        // Evitar encuestas duplicadas para el mismo registro
+        // Calcular resumen financiero
+        const totalCobrado = registro.total || 0;
+        const totalPagado = (registro.pagos || []).reduce((s, p) => s + (p.monto || 0), 0);
+        const saldo = Math.max(0, totalCobrado - totalPagado);
+
+        // Calcular noches
+        const entrada = registro.fechaEntrada ? new Date(registro.fechaEntrada) : null;
+        const salidaReal = registro.fechaSalidaReal || registro.fechaSalida;
+        const salida = salidaReal ? new Date(salidaReal) : new Date();
+        const noches = entrada ? Math.max(1, Math.ceil((salida - entrada) / (1000 * 60 * 60 * 24))) : 1;
+
+        const fmt = (d) => d ? new Date(d).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Bogota' }) : '–';
+        const fmtCop = (v) => `$${Number(v).toLocaleString('es-CO')}`;
+
+        // Evitar encuestas duplicadas
         const existe = await Encuesta.findOne({ registro_id: registroId });
-        if (existe) {
-            const url = `${baseUrl}/encuesta/${existe.token}`;
-            const telefono = registro.cliente?.telefono?.replace(/\D/g, '') || '';
-            const whatsappUrl = telefono
-                ? `https://wa.me/57${telefono}?text=${encodeURIComponent(`¡Gracias por hospedarse en ${hotelNombre}! 🙏 Su opinión es muy importante para nosotros. Por favor califique su estadía: ${url}`)}`
-                : null;
-            return res.json({ encuesta: existe, url, whatsappUrl });
+        const token = existe ? existe.token : crypto.randomBytes(16).toString('hex');
+        if (!existe) {
+            await Encuesta.create({
+                registro_id: registroId,
+                habitacion_numero: registro.habitacion?.numero || '–',
+                huesped_nombre: registro.cliente?.nombre || 'Huésped',
+                hotel: hotelNombre,
+                token
+            });
         }
 
-        const token = crypto.randomBytes(16).toString('hex');
-        const encuesta = await Encuesta.create({
-            registro_id: registroId,
-            habitacion_numero: registro.habitacion?.numero || '–',
-            huesped_nombre: registro.cliente?.nombre || 'Huésped',
-            hotel: hotelNombre,
-            token
-        });
-
         const url = `${baseUrl}/encuesta/${token}`;
-        const telefono = registro.cliente?.telefono?.replace(/\D/g, '') || '';
-        const mensaje = `¡Gracias por hospedarse en ${hotelNombre}! 🙏\n\nSu opinión es muy importante para nosotros. Por favor califique su estadía:\n${url}\n\n¡Esperamos verle pronto! 🏨`;
+        const telefono = (registro.cliente?.telefono || '').replace(/\D/g, '');
+
+        const mensaje =
+`🏨 *${hotelNombre.toUpperCase()}*
+
+Estimado/a *${registro.cliente?.nombre || 'Huésped'}*,
+
+Ha sido un placer recibirle. Esperamos que su estadía haya superado sus expectativas y que pronto nos vuelva a visitar.
+
+📋 *RESUMEN DE SU ESTADÍA*
+🛏️ Habitación: *${registro.habitacion?.numero || '–'}*
+📅 Ingreso: *${fmt(entrada)}*
+📅 Salida: *${fmt(salida)}*
+🌙 Noches: *${noches}*
+
+💰 *RESUMEN FINANCIERO*
+Total hospedaje: *${fmtCop(totalCobrado)}*
+Total pagado: *${fmtCop(totalPagado)}*
+Saldo pendiente: *${fmtCop(saldo)}*
+
+⭐ *SU OPINIÓN NOS IMPORTA*
+Por favor dedique 1 minuto a calificar su estadía:
+👉 ${url}
+
+¡Gracias por confiar en nosotros! 🙏
+*${hotelNombre}*`;
+
         const whatsappUrl = telefono
             ? `https://wa.me/57${telefono}?text=${encodeURIComponent(mensaje)}`
             : null;
 
-        res.json({ encuesta, url, whatsappUrl, telefono });
+        res.json({ encuesta: existe || { token }, url, whatsappUrl, telefono, mensaje });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
