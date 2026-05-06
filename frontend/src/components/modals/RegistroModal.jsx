@@ -311,21 +311,22 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
             };
             
             console.log('[DEBUG-CHECKIN] Payload enviado:', dataToSave);
-            await api.post('/registros', dataToSave);
-            
-            // Obtener el último registro creado para este huésped y habitación
+            const resCreate = await api.post('/registros', dataToSave);
+            const nuevoRegistroId = resCreate.data.registro?._id || resCreate.data.registro?.id;
+
+            // Obtener el link de WhatsApp usando el ID retornado
             let whatsappUrl = null;
             let mensajeBienvenidaActivo = true;
-            try {
-                const regsRes = await api.get(`/registros?habitacion=${formData.habitacion_id}&limit=1`);
-                const regs = Array.isArray(regsRes.data) ? regsRes.data : (regsRes.data?.registros || []);
-                const ultimoReg = regs[0];
-                if (ultimoReg?._id) {
-                    const bienvenidaRes = await api.get(`/hotel-config/mensaje-bienvenida/${ultimoReg._id}`);
+            
+            if (nuevoRegistroId) {
+                try {
+                    const bienvenidaRes = await api.get(`/hotel-config/mensaje-bienvenida/${nuevoRegistroId}`);
                     whatsappUrl = bienvenidaRes.data.whatsappUrl;
                     mensajeBienvenidaActivo = bienvenidaRes.data.activo;
+                } catch (errWa) {
+                    console.error('[WA-ERROR] No se pudo generar el link:', errWa);
                 }
-            } catch (_) {}
+            }
 
             const { isConfirmed } = await Swal.fire({
                 title: '¡Registro Exitoso!',

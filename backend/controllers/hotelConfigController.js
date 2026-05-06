@@ -208,9 +208,7 @@ exports.getMensajeBienvenida = async (req, res) => {
         if (sitioWeb) mensaje += ` | 🌐 *${sitioWeb}*`;
 
         const telefonoCliente = (registro.cliente?.telefono || '').replace(/\D/g, '');
-        const whatsappUrl = telefonoCliente
-            ? `https://wa.me/57${telefonoCliente}?text=${encodeURIComponent(mensaje)}`
-            : null;
+        const whatsappUrl = `https://wa.me/${telefonoCliente ? '57' + telefonoCliente : ''}?text=${encodeURIComponent(mensaje)}`;
 
         res.json({ mensaje, whatsappUrl, telefono: telefonoCliente, activo: true });
     } catch (err) {
