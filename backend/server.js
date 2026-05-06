@@ -40,6 +40,8 @@ require('./models/Proveedor');
 require('./models/DocumentoHotel');
 require('./models/PersonalFinance');
 require('./models/PersonalCategory');
+require('./models/Encuesta');
+require('./models/PushSubscription');
 
 
 const helmet = require('helmet');
