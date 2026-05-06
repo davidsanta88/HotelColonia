@@ -112,6 +112,7 @@ app.get('/api/ping', (req, res) => {
 
 // 1. PUBLIC ROUTES (No Token required for these prefixes/routes)
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/encuestas/responder', require('./routes/encuesta')); // Encuesta pública sin token
 app.use('/api/solicitudes', require('./routes/solicitudes'));
 app.use('/api/municipios', require('./routes/municipios')); // Incluye /fix/reseed
 app.use('/api/tipos-habitacion', require('./routes/tiposHabitacion'));
@@ -166,6 +167,8 @@ app.use('/api/restaurante', require('./routes/restaurante'));
 app.use('/api/proveedores', require('./routes/proveedor'));
 app.use('/api/documentos-hotel', require('./routes/documento'));
 app.use('/api/chatbot', require('./routes/chatbot'));
+app.use('/api/encuestas', require('./routes/encuesta'));
+app.use('/api/push', require('./routes/push'));
 
 // Global Error Handler for JSON responses
 app.use((err, req, res, next) => {

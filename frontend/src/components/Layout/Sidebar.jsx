@@ -37,7 +37,9 @@ import {
     Coffee,
     UtensilsCrossed,
     Truck,
-    FileCheck
+    FileCheck,
+    Star,
+    CalendarRange
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -147,6 +149,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             title: 'Ayuda',
             items: [
                 { name: 'Manuales Sistema', path: '/manuales', icon: <Book size={20} /> }
+            ]
+        },
+        {
+            title: 'Experiencia Huésped',
+            items: [
+                { name: 'Encuestas Satisfacción', path: '/encuestas', icon: <Star size={20} /> },
+                { name: 'Calendario Ocupación', path: '/calendario-ocupacion', icon: <CalendarRange size={20} /> },
             ]
         }
     ];

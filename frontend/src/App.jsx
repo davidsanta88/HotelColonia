@@ -50,6 +50,9 @@ import CajaDiariaConsolidada from './pages/CajaDiariaConsolidada';
 import Proveedores from './pages/Proveedores';
 import DocumentosHotel from './pages/DocumentosHotel';
 import Aliados from './pages/Aliados';
+import CalendarioOcupacion from './pages/CalendarioOcupacion';
+import EncuestasAdmin from './pages/EncuestasAdmin';
+import EncuestaPublica from './pages/EncuestaPublica';
 import Layout from './components/Layout/Layout';
 
 const PrivateRoute = ({ children, roles, code }) => {
@@ -136,8 +139,11 @@ const AppRoutes = () => {
                 <Route path="rentabilidad-habitaciones" element={<PrivateRoute code="rentabilidad"><RentabilidadHabitaciones /></PrivateRoute>} />
                 <Route path="config" element={<PrivateRoute code="configuracion"><HotelConfig /></PrivateRoute>} />
                 <Route path="manuales" element={<Manuales />} />
+                <Route path="calendario-ocupacion" element={<CalendarioOcupacion />} />
+                <Route path="encuestas" element={<EncuestasAdmin />} />
             </Route>
             <Route path="/checkin" element={<CheckinPublico />} />
+            <Route path="/encuesta/:token" element={<EncuestaPublica />} />
         </Routes>
     );
 };
