@@ -233,7 +233,7 @@ const ComparativaHoteles = () => {
                             className="flex items-center justify-center gap-3 px-6 py-3 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 active:scale-95 w-full md:w-auto"
                         >
                             <Activity size={18} />
-                            Caja Mes Actual
+                            Movimientos Mes Actual
                         </button>
                         <button
                             onClick={() => setShowDetalleModal(true)}
@@ -1299,7 +1299,7 @@ const ComparativaHoteles = () => {
 
         </div>
 
-        {/* Modal Movimiento Caja Consolidada Última Semana */}
+        {/* Modal Movimientos Mes Actual Última Semana */}
         {showCajaModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowCajaModal(false)}>
                 <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
@@ -1309,7 +1309,7 @@ const ComparativaHoteles = () => {
                                 <Activity size={22} />
                             </div>
                             <div>
-                                <h2 className="text-lg font-black text-slate-900 tracking-tight">Movimiento Caja Consolidada</h2>
+                                <h2 className="text-lg font-black text-slate-900 tracking-tight">Movimientos Mes Actual</h2>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mes actual · {format(startOfMonth(new Date()), 'dd/MM/yyyy')} – {format(new Date(), 'dd/MM/yyyy')}</p>
                             </div>
                         </div>
@@ -1482,7 +1482,7 @@ const ComparativaHoteles = () => {
                             const totNeto = (totPlazaIng + totColonialIng) - (totPlazaEgr + totColonialEgr);
                             return (
                                 <div>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
                                         <div className="bg-indigo-50 rounded-2xl p-4">
                                             <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Ingresos Plaza</p>
                                             <p className="text-lg font-black text-indigo-700">${new Intl.NumberFormat().format(totPlazaIng)}</p>
@@ -1490,6 +1490,10 @@ const ComparativaHoteles = () => {
                                         <div className="bg-slate-50 rounded-2xl p-4">
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingresos Colonial</p>
                                             <p className="text-lg font-black text-slate-700">${new Intl.NumberFormat().format(totColonialIng)}</p>
+                                        </div>
+                                        <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
+                                            <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">Total Ingresos</p>
+                                            <p className="text-lg font-black text-emerald-700">${new Intl.NumberFormat().format(totPlazaIng + totColonialIng)}</p>
                                         </div>
                                         <div className="bg-rose-50 rounded-2xl p-4">
                                             <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Egresos Totales</p>
