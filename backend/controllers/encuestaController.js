@@ -98,8 +98,16 @@ exports.crearDesdeRegistro = async (req, res) => {
         const salida = salidaReal ? new Date(salidaReal) : new Date();
         const noches = entrada ? Math.max(1, Math.ceil((salida - entrada) / (1000 * 60 * 60 * 24))) : 1;
 
-        const fmt = (d) => d ? new Date(d).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Bogota' }) : '–';
-        const fmtCop = (v) => `$${Number(v).toLocaleString('es-CO')}`;
+        const fmt = (d) => {
+            if (!d) return '–';
+            try {
+                const date = new Date(d);
+                if (isNaN(date.getTime())) return '–';
+                const bog = new Date(date.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+                return `${String(bog.getDate()).padStart(2,'0')}/${String(bog.getMonth()+1).padStart(2,'0')}/${bog.getFullYear()}`;
+            } catch { return String(d).split('T')[0]; }
+        };
+        const fmtCop = (v) => { try { return `$${Number(v||0).toLocaleString('es-CO')}`; } catch { return `$${Number(v||0).toLocaleString()}`; } };
 
         // Evitar encuestas duplicadas
         const existe = await Encuesta.findOne({ registro_id: registroId });
