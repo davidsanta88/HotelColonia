@@ -317,53 +317,29 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
             // Obtener el link de WhatsApp usando el ID retornado
             let whatsappUrl = null;
             let mensajeBienvenidaActivo = true;
-            
-            console.log('[DEBUG-WA] Buscando link para registro:', nuevoRegistroId);
-            
+
             if (nuevoRegistroId) {
                 try {
                     const bienvenidaRes = await api.get(`/hotel-config/mensaje-bienvenida/${nuevoRegistroId}`);
-                    console.log('[DEBUG-WA] Respuesta backend:', bienvenidaRes.data);
                     whatsappUrl = bienvenidaRes.data.whatsappUrl;
-                    mensajeBienvenidaActivo = bienvenidaRes.data.activo !== false;
+                    mensajeBienvenidaActivo = bienvenidaRes.data.activo;
                 } catch (errWa) {
-                    console.error('[DEBUG-WA] Error al obtener el link del backend:', errWa);
-                    // Fallback: Intentar generar un link básico si falla el backend pero tenemos el ID
-                    mensajeBienvenidaActivo = true;
+                    console.error('[WA-ERROR] No se pudo generar el link:', errWa);
                 }
             }
-
-            console.log('[DEBUG-WA] Estado final:', { whatsappUrl, mensajeBienvenidaActivo });
 
             const { isConfirmed } = await Swal.fire({
                 title: '¡Registro Exitoso!',
                 text: 'El huésped ha sido ingresado correctamente.',
                 icon: 'success',
-                showCancelButton: true, // Siempre mostrar para permitir cerrar sin enviar
-                confirmButtonText: '📱 Enviar WhatsApp Bienvenida',
+                showCancelButton: mensajeBienvenidaActivo && !!whatsappUrl,
+                confirmButtonText: mensajeBienvenidaActivo && whatsappUrl ? '📱 Enviar WhatsApp Bienvenida' : 'Cerrar',
                 cancelButtonText: 'Cerrar sin enviar',
                 confirmButtonColor: '#10b981',
-                cancelButtonColor: '#6b7280',
             });
 
-            if (isConfirmed) {
-                if (whatsappUrl) {
-                    window.open(whatsappUrl, '_blank');
-                } else {
-                    // Si no hay URL (ej: falló el backend), lo intentamos obtener de nuevo o mostramos error
-                    try {
-                        Swal.fire({ title: 'Generando enlace...', didOpen: () => Swal.showLoading() });
-                        const fallbackRes = await api.get(`/hotel-config/mensaje-bienvenida/${nuevoRegistroId}`);
-                        if (fallbackRes.data.whatsappUrl) {
-                            window.open(fallbackRes.data.whatsappUrl, '_blank');
-                            Swal.close();
-                        } else {
-                            Swal.fire('Error', 'No se pudo generar el enlace. Verifique el teléfono del cliente.', 'error');
-                        }
-                    } catch (e) {
-                        Swal.fire('Error', 'No se pudo conectar con el servidor de WhatsApp.', 'error');
-                    }
-                }
+            if (isConfirmed && whatsappUrl) {
+                window.open(whatsappUrl, '_blank');
             }
 
             onSuccess();
