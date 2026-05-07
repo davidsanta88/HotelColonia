@@ -593,7 +593,7 @@ const Registros = () => {
                     <div className="text-center p-8 text-gray-400">Cargando registros...</div>
                 ) : (
                     <div className="card overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
+                        <table className="w-full divide-y divide-gray-200 border-separate border-spacing-0">
                             <thead className="sticky-header">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Huésped</th>
@@ -610,52 +610,47 @@ const Registros = () => {
                                 </tr>
                                 {/* Fila de Filtros */}
                                 <tr className="bg-white">
-                                    <th className="px-6 py-2 border-b border-slate-50">
-                                        <input 
-                                            type="text" 
-                                            placeholder="Filtrar huésped..."
-                                            className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-3 font-bold text-slate-600 placeholder:text-slate-300"
+                                    <th className="px-3 py-2 border-b border-slate-50">
+                                        <input type="text" placeholder="Filtrar huésped..."
+                                            className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-2 font-bold text-slate-600 placeholder:text-slate-300"
                                             value={columnFilters.huesped}
-                                            onChange={(e) => handleFilterChange('huesped', e.target.value)}
-                                        />
+                                            onChange={(e) => handleFilterChange('huesped', e.target.value)} />
                                     </th>
-                                    <th className="px-6 py-2 border-b border-slate-50">
-                                        <input 
-                                            type="text" 
-                                            placeholder="Hab..."
-                                            className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-3 font-bold text-slate-600 placeholder:text-slate-300 text-center"
+                                    <th className="px-3 py-2 border-b border-slate-50">
+                                        <input type="text" placeholder="Hab..."
+                                            className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-2 font-bold text-slate-600 placeholder:text-slate-300 text-center"
                                             value={columnFilters.habitacion}
-                                            onChange={(e) => handleFilterChange('habitacion', e.target.value)}
-                                        />
+                                            onChange={(e) => handleFilterChange('habitacion', e.target.value)} />
                                     </th>
-                                    <th className="px-6 py-2 border-b border-slate-50">
-                                        <input 
-                                            type="text" 
-                                            placeholder="Filtrar fecha..."
-                                            className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-3 font-bold text-slate-600 placeholder:text-slate-300"
+                                    {isConsolidated && <th className="px-3 py-2 border-b border-slate-50"></th>}
+                                    <th className="px-3 py-2 border-b border-slate-50">
+                                        <input type="text" placeholder="Fecha..."
+                                            className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-2 font-bold text-slate-600 placeholder:text-slate-300"
                                             value={columnFilters.fechas}
-                                            onChange={(e) => handleFilterChange('fechas', e.target.value)}
-                                        />
+                                            onChange={(e) => handleFilterChange('fechas', e.target.value)} />
                                     </th>
-                                    <th className="px-6 py-2 border-b border-slate-50">
-                                        <input 
-                                            type="text" 
-                                            placeholder="Origen..."
-                                            className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-3 font-bold text-slate-600 placeholder:text-slate-300"
+                                    <th className="px-3 py-2 border-b border-slate-50"></th>
+                                    <th className="px-3 py-2 border-b border-slate-50">
+                                        <input type="text" placeholder="Origen..."
+                                            className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-2 font-bold text-slate-600 placeholder:text-slate-300"
                                             value={columnFilters.origen}
-                                            onChange={(e) => handleFilterChange('origen', e.target.value)}
-                                        />
+                                            onChange={(e) => handleFilterChange('origen', e.target.value)} />
                                     </th>
-                                    <th className="px-6 py-2 border-b border-slate-50"></th>
-                                    <th className="px-6 py-2 border-b border-slate-50"></th>
-                                    <th className="px-6 py-2 border-b border-slate-50"></th>
-                                    <th className="px-6 py-2 border-b border-slate-50"></th>
-                                    <th className="px-6 py-2 border-b border-slate-50"></th>
-                                    <th className="px-6 py-2 border-b border-slate-50"></th>
-                                    <th className="px-6 py-2 border-b border-slate-50"></th>
-                                    <th className="px-6 py-2 border-b border-slate-50"></th>
-                                    <th className="px-6 py-2 border-b border-slate-50"></th>
-                                    <th className="px-6 py-2 border-b border-slate-50"></th>
+                                    <th className="px-3 py-2 border-b border-slate-50"></th>
+                                    <th className="px-3 py-2 border-b border-slate-50"></th>
+                                    <th className="px-3 py-2 border-b border-slate-50"></th>
+                                    <th className="px-3 py-2 border-b border-slate-50">
+                                        <select
+                                            className="w-full text-[10px] bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-blue-400 py-1.5 px-2 font-bold text-slate-600"
+                                            value={columnFilters.estado}
+                                            onChange={(e) => handleFilterChange('estado', e.target.value)}>
+                                            <option value="">Todos</option>
+                                            <option value="activo">Activo</option>
+                                            <option value="finalizado">Finalizado</option>
+                                            <option value="cancelado">Cancelado</option>
+                                        </select>
+                                    </th>
+                                    <th className="px-3 py-2 border-b border-slate-50"></th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
