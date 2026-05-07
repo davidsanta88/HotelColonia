@@ -134,11 +134,11 @@ exports.getMensajeBienvenida = async (req, res) => {
             try {
                 const date = new Date(d);
                 if (isNaN(date.getTime())) return '–';
-                const bog = new Date(date.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
-                return `${DIAS_S[bog.getDay()]} ${bog.getDate()} de ${MESES[bog.getMonth()]} de ${bog.getFullYear()}`;
+                const bog = new Date(date.getTime() - 5 * 3600000); // UTC-5 Colombia sin DST
+                return `${DIAS_S[bog.getUTCDay()]} ${bog.getUTCDate()} de ${MESES[bog.getUTCMonth()]} de ${bog.getUTCFullYear()}`;
             } catch { return String(d).split('T')[0]; }
         };
-        const fmtCop = (v) => { try { return `$${Number(v||0).toLocaleString('es-CO')}`; } catch { return `$${Number(v||0).toLocaleString()}`; } };
+        const fmtCop = (v) => '$' + Number(v||0).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
         const totalCobrado = registro.total || 0;
         const totalPagado = (registro.pagos || []).reduce((s, p) => s + (p.monto || 0), 0);

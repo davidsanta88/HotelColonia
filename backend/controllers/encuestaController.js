@@ -103,11 +103,11 @@ exports.crearDesdeRegistro = async (req, res) => {
             try {
                 const date = new Date(d);
                 if (isNaN(date.getTime())) return '–';
-                const bog = new Date(date.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
-                return `${String(bog.getDate()).padStart(2,'0')}/${String(bog.getMonth()+1).padStart(2,'0')}/${bog.getFullYear()}`;
+                const bog = new Date(date.getTime() - 5 * 3600000); // UTC-5 Colombia sin DST
+                return `${String(bog.getUTCDate()).padStart(2,'0')}/${String(bog.getUTCMonth()+1).padStart(2,'0')}/${bog.getUTCFullYear()}`;
             } catch { return String(d).split('T')[0]; }
         };
-        const fmtCop = (v) => { try { return `$${Number(v||0).toLocaleString('es-CO')}`; } catch { return `$${Number(v||0).toLocaleString()}`; } };
+        const fmtCop = (v) => '$' + Number(v||0).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
         // Evitar encuestas duplicadas
         const existe = await Encuesta.findOne({ registro_id: registroId });
