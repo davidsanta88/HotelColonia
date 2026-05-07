@@ -316,24 +316,26 @@ const RegistroModal = ({ isOpen, onClose, initialHabitacionId, initialReserva, o
 
             // Obtener el link de WhatsApp usando el ID retornado
             let whatsappUrl = null;
-            let mensajeBienvenidaActivo = true;
 
             if (nuevoRegistroId) {
                 try {
                     const bienvenidaRes = await api.get(`/hotel-config/mensaje-bienvenida/${nuevoRegistroId}`);
                     whatsappUrl = bienvenidaRes.data.whatsappUrl;
-                    mensajeBienvenidaActivo = bienvenidaRes.data.activo;
-                } catch (errWa) {
-                    console.error('[WA-ERROR] No se pudo generar el link:', errWa);
-                }
+                } catch (_) {}
+            }
+
+            // Fallback: si el backend falló, construir URL básica con teléfono del huésped
+            if (!whatsappUrl) {
+                const tel = huespedesList[0]?.telefono?.replace(/\D/g, '');
+                if (tel) whatsappUrl = `https://wa.me/57${tel}`;
             }
 
             const { isConfirmed } = await Swal.fire({
                 title: '¡Registro Exitoso!',
                 text: 'El huésped ha sido ingresado correctamente.',
                 icon: 'success',
-                showCancelButton: mensajeBienvenidaActivo && !!whatsappUrl,
-                confirmButtonText: mensajeBienvenidaActivo && whatsappUrl ? '📱 Enviar WhatsApp Bienvenida' : 'Cerrar',
+                showCancelButton: !!whatsappUrl,
+                confirmButtonText: whatsappUrl ? '📱 Enviar WhatsApp Bienvenida' : 'Cerrar',
                 cancelButtonText: 'Cerrar sin enviar',
                 confirmButtonColor: '#10b981',
             });
