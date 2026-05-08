@@ -242,7 +242,7 @@ const Cotizaciones = () => {
                     {/* Header: Logo and Basic Hotel Info */}
                     <div className="flex flex-row justify-between items-center gap-8 mb-12 border-b-2 border-slate-900 pb-8">
                         <div className="flex flex-row items-center gap-6">
-                            <img src="/logo.jpg" alt="Logo Hotel" className="h-20 w-auto object-contain" />
+                            <img src={hotelConfig?.logoUrl || "/logo.jpg"} alt="Logo Hotel" className="h-20 w-auto object-contain" />
                             <div className="border-l-2 border-slate-100 pl-6">
                                 <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">{viewingCotizacion.hotelSnapshot.nombre}</h2>
                                 <p className="text-slate-500 font-bold text-xs tracking-widest uppercase">Nit: {viewingCotizacion.hotelSnapshot.nit}</p>
