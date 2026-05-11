@@ -11,6 +11,8 @@ const habitacionSchema = new mongoose.Schema({
     precio_4: Number,
     precio_5: Number,
     precio_6: Number,
+    numCamas: { type: Number, default: 0 },
+    numCamasBase: { type: Number, default: 0 },
     fotos: [String],
     estadoLimpieza: { type: String, default: 'Limpia' },
     comentarioLimpieza: String,

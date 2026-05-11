@@ -134,7 +134,9 @@ const Rooms = () => {
         precio_4: '',
         precio_5: '',
         precio_6: '',
-        descripcion: '' 
+        descripcion: '',
+        numCamas: '',
+        numCamasBase: ''
     });
 
     useEffect(() => {
@@ -238,7 +240,9 @@ const Rooms = () => {
                 precio_3: (room.precio_3 !== null && room.precio_3 !== undefined) ? room.precio_3 : '',
                 precio_4: (room.precio_4 !== null && room.precio_4 !== undefined) ? room.precio_4 : '',
                 precio_5: (room.precio_5 !== null && room.precio_5 !== undefined) ? room.precio_5 : '',
-                precio_6: (room.precio_6 !== null && room.precio_6 !== undefined) ? room.precio_6 : ''
+                precio_6: (room.precio_6 !== null && room.precio_6 !== undefined) ? room.precio_6 : '',
+                numCamas: room.numCamas ?? '',
+                numCamasBase: room.numCamasBase ?? ''
             });
             setEditMode(true);
         } else {
@@ -252,7 +256,9 @@ const Rooms = () => {
                 precio_4: '',
                 precio_5: '',
                 precio_6: '',
-                descripcion: '' 
+                descripcion: '',
+                numCamas: '',
+                numCamasBase: ''
             });
             setEditMode(false);
         }
@@ -575,6 +581,21 @@ const Rooms = () => {
                                 <label className="block text-sm font-medium text-gray-700">Descripción</label>
                                 <textarea className="input-field" rows="3" value={currentRoom.descripcion}
                                     onChange={e => setCurrentRoom({...currentRoom, descripcion: e.target.value})}></textarea>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Número de Camas</label>
+                                <input type="number" min="0" className="input-field py-1"
+                                    placeholder="Ej: 2"
+                                    value={currentRoom.numCamas}
+                                    onChange={e => setCurrentRoom({...currentRoom, numCamas: e.target.value})} />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Número de Base Camas</label>
+                                <input type="number" min="0" className="input-field py-1"
+                                    placeholder="Ej: 1"
+                                    value={currentRoom.numCamasBase}
+                                    onChange={e => setCurrentRoom({...currentRoom, numCamasBase: e.target.value})} />
                             </div>
 
                             <div className="col-span-1 md:col-span-2 mt-2 pt-2 border-t">
