@@ -41,7 +41,8 @@ import {
     Star,
     CalendarRange,
     Tag,
-    DollarSign as DollarSignIcon
+    DollarSign as DollarSignIcon,
+    Clock
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -113,6 +114,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { name: 'Reporte de Caja', path: '/reporte-ingresos', icon: <TrendingUp size={20} />, code: 'reporte_ingresos' },
                 { name: 'Reportes y Estadísticas', path: '/reportes', icon: <PieChart size={20} />, code: 'reportes' },
                 { name: 'Finanzas Personales', path: '/finanzas-personales', icon: <Wallet size={20} />, code: 'personal_finance' },
+                { name: 'Turnos del Personal', path: '/turnos', icon: <Clock size={20} />, code: 'usuarios' },
             ]
         },
         {

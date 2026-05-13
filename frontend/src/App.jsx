@@ -55,6 +55,7 @@ import EncuestasAdmin from './pages/EncuestasAdmin';
 import EncuestaPublica from './pages/EncuestaPublica';
 import Tarifas from './pages/Tarifas';
 import TableroPrecios from './pages/TableroPrecios';
+import Turnos from './pages/Turnos';
 import Layout from './components/Layout/Layout';
 
 const PrivateRoute = ({ children, roles, code }) => {
@@ -145,6 +146,7 @@ const AppRoutes = () => {
                 <Route path="encuestas" element={<EncuestasAdmin />} />
                 <Route path="tarifas" element={<Tarifas />} />
                 <Route path="tablero-precios" element={<TableroPrecios />} />
+                <Route path="turnos" element={<PrivateRoute code="usuarios"><Turnos /></PrivateRoute>} />
             </Route>
             <Route path="/checkin" element={<CheckinPublico />} />
             <Route path="/encuesta/:token" element={<EncuestaPublica />} />
